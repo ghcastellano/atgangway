@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { etaToLocalInput, hoursUntil, orderCloseAt } from "@/lib/format";
+import { callState, canOrder } from "@/lib/callstate";
 import type { Ship } from "@/lib/types";
 import { santosTime } from "@/lib/format";
 import { delayLabel } from "@/lib/types";
@@ -60,7 +61,22 @@ export default async function AdminShips() {
   const ships = (data ?? []) as Ship[];
 
   const live = ships.filter((s) => s.active);
-  const queue = ships.filter((s) => !s.active);
+
+  /* A fila era `!s.active` e mais nada — então mostrava as 147 escalas
+     que o sync já trouxe, 101 delas com ETA no passado, todas com
+     "em 0h" e um botão Publicar que criaria uma escala natimorta: sem
+     janela, ninguém compra. O rodapé ainda prometia que "o resto some
+     sozinho quando a escala passa", o que não acontecia.
+
+     Quem decide é a régua única de lib/callstate — a mesma do checkout,
+     do carrinho e da rotação no banco. Fila = o que ainda dá para
+     vender. O que venceu continua no banco (é histórico, e o sync usa
+     para reconhecer o navio na volta), só sai da tela. */
+  const naFila = ships.filter((s) => !s.active);
+  const queue = naFila.filter((s) =>
+    canOrder(callState({ eta: s.eta, cutoff_hours: s.cutoff_hours }))
+  );
+  const vencidas = naFila.length - queue.length;
 
   return (
     <main className="pb-nav">
@@ -69,7 +85,8 @@ export default async function AdminShips() {
       </p>
       {queue.length === 0 ? (
         <p className="finehint" style={{ margin: "0 18px 8px" }}>
-          Nada aguardando. O sync roda de hora em hora.
+          Nada aguardando com janela aberta. O sync roda de hora em hora.
+          {vencidas > 0 && ` (${vencidas} escala${vencidas === 1 ? "" : "s"} vencida${vencidas === 1 ? "" : "s"} fora da lista.)`}
         </p>
       ) : (
         <div className="cart-list">
@@ -98,8 +115,8 @@ export default async function AdminShips() {
       )}
       {queue.length > 60 && (
         <p className="finehint" style={{ margin: "8px 18px" }}>
-          Mostrando 60 de {queue.length} — publique os que interessam; o resto some
-          sozinho quando a escala passa.
+          Mostrando 60 de {queue.length} com janela aberta — publique os que
+          interessam. Escala que vence sai da fila sozinha.
         </p>
       )}
 
