@@ -10,6 +10,7 @@ import { supabaseConfigured } from "@/lib/env";
 import { imageUrl } from "@/lib/catalog";
 import { DEPOSIT_PCT, splitOrder, toCents, usd } from "@/lib/money";
 import { IconCart, IconPackage, IconTrash } from "@/components/Icon";
+import { callState, canOrder, type CallState } from "@/lib/callstate";
 
 type Line = {
   id: string;
@@ -45,6 +46,10 @@ export default function CartPage() {
   const [minOrderCents, setMinOrderCents] = useState(0);
   const [creditCents, setCreditCents] = useState(0);
   const [minDismissed, setMinDismissed] = useState(false);
+  // A janela da escala do perfil. O carrinho é a última tela antes do
+  // checkout: mandar para lá com a escala morta é fazer a pessoa
+  // trabalhar por um "não". Aqui o botão já vira o próximo passo.
+  const [callSt, setCallSt] = useState<CallState | null>(null);
 
   const ids = useMemo(() => Object.keys(items), [items]);
 
@@ -94,7 +99,23 @@ export default function CartPage() {
     // em zero — carrinho de quem ainda não entrou não pode quebrar. E ela
     // devolve numeric em dólares, então passa por toCents.
     supabase.rpc("my_credit_balance").then(({ data }) => setCreditCents(toCents(data ?? 0)));
+
+    // Estado da escala do próprio perfil. Visitante deslogado não tem
+    // escala e segue vendo o carrinho normal — o portão dele é o login.
+    supabase
+      .from("profiles")
+      .select("ships!profiles_ship_id_fkey(eta, ata, cutoff_hours)")
+      .maybeSingle()
+      .then(({ data }) => {
+        const s = (data as { ships: { eta: string; ata: string | null; cutoff_hours: number | null } | null } | null)?.ships;
+        if (s?.eta) setCallSt(callState({ eta: s.eta, ata: s.ata, cutoff_hours: s.cutoff_hours }));
+      });
   }, []);
+
+  // Só bloqueia quando SABE que a janela morreu. Estado desconhecido
+  // (deslogado, sem escala, leitura falhou) segue para o checkout, que
+  // tem o guard de servidor — a UI antecipa o "não", não o inventa.
+  const janelaMorta = callSt !== null && !canOrder(callSt);
 
   const rows = useMemo(
     () =>
@@ -201,9 +222,22 @@ export default function CartPage() {
               <b>{usd(subtotal)}</b>
             </div>
 
-            <Link className="btn" href="/checkout">
-              Proceed to Checkout
-            </Link>
+            {janelaMorta ? (
+              <>
+                <p className="alert" style={{ margin: "0 0 12px" }}>
+                  {callSt === "sailed"
+                    ? "Your vessel has sailed — this kit is saved for your next call."
+                    : "Orders for this call have closed — your kit is saved for the next one."}
+                </p>
+                <Link className="btn" href="/account">
+                  {callSt === "sailed" ? "I'm on a new vessel" : "Pick my next call"}
+                </Link>
+              </>
+            ) : (
+              <Link className="btn" href="/checkout">
+                Proceed to Checkout
+              </Link>
+            )}
             <Link className="btn navy" href="/shop">
               Return to shopping
             </Link>

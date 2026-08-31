@@ -3113,3 +3113,26 @@ svg.ic { flex: none; color: var(--amber); }
 .sumlines .op { color: var(--faint); }
 .sumlines .qt { color: var(--faint); font-family: var(--font-mono); }
 .sumlines b { color: var(--ink); font-size: 13px; white-space: nowrap; }
+
+/* ============================================================
+   Escala encerrada — o re-vínculo em um toque (Fase 2)
+   O cartão do navio deixa de ser um beco: quando o MESMO casco
+   (mesmo IMO) reaparece no line-up, o próximo passo é um botão.
+   ============================================================ */
+.vpanel .volta {
+  margin-top: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+}
+.vpanel .volta .vt { margin: 0; font-size: 14px; line-height: 1.4; }
+.vpanel .volta .vd { margin: 4px 0 0; font-size: 12px; color: var(--faint); }
+.vpanel .volta .vd.erro { color: var(--amber); }
+.vpanel .volta .btn { width: 100%; margin-top: var(--s3); }
+.vpanel .alink.outra {
+  display: block;
+  margin-top: var(--s2);
+  text-align: center;
+  font-size: 12px;
+}

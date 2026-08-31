@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { orderCloseAt, santosTime, usd } from "@/lib/format";
 import { callState, canOrder } from "@/lib/callstate";
+import SheIsBack from "./SheIsBack";
 
 /**
  * O navio da pessoa, com o que ela precisa saber antes de pedir.
@@ -46,7 +47,15 @@ function restante(ms: number): string {
   return `${Math.floor(horas / 24)}d ${horas % 24}h`;
 }
 
-export default function VesselPanel({ v, credit = 0 }: { v: VesselFacts; credit?: number }) {
+export default function VesselPanel({
+  v,
+  credit = 0,
+  back = null,
+}: {
+  v: VesselFacts;
+  credit?: number;
+  back?: { shipId: string; name: string; eta: string } | null;
+}) {
   const fecha = orderCloseAt(v.eta, v.cutoffHours);
   const faltaMs = fecha.getTime() - Date.now();
   /* Os quatro estados da escala saem da régua única de lib/callstate —
@@ -141,9 +150,21 @@ export default function VesselPanel({ v, credit = 0 }: { v: VesselFacts; credit?
       )}
 
       {encerrada ? (
-        <Link href="/account" className="btn acao" prefetch={false}>
-          I&apos;m on a new vessel
-        </Link>
+        /* O casco voltou: o gesto certo é continuar nele, não recadastrar.
+           O link para trocar de navio continua embaixo, menor — quem
+           mudou de contrato ainda precisa dele. */
+        back ? (
+          <>
+            <SheIsBack shipId={back.shipId} name={back.name} eta={back.eta} />
+            <Link href="/account" className="alink outra" prefetch={false}>
+              I&apos;m on a different vessel
+            </Link>
+          </>
+        ) : (
+          <Link href="/account" className="btn acao" prefetch={false}>
+            I&apos;m on a new vessel
+          </Link>
+        )
       ) : (
         <Link href={aberto ? "/shop" : "/ports"} className="btn acao" prefetch={false}>
           {aberto ? "Shop for this call" : "See the next call"}

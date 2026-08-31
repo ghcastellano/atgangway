@@ -3,6 +3,7 @@ import CaptainStrip from "@/components/CaptainStrip";
 import HeroSteps from "@/components/HeroSteps";
 import { IconCompass } from "@/components/Icon";
 import VesselPanel, { type VesselFacts } from "@/components/VesselPanel";
+import { callState, canOrder } from "@/lib/callstate";
 import { unstable_cache } from "next/cache";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import CategoryIcon from "@/components/CategoryIcon";
@@ -100,14 +101,18 @@ const loadStorefront = unstable_cache(
 
 type Captain = { code: string; rate: number } | null;
 
+/** A mesma escala, de volta: casado por IMO, que é a identidade do casco. */
+export type BackAgain = { shipId: string; name: string; eta: string } | null;
+
 type Crew =
-  | { kind: "vessel"; v: VesselFacts; cap: Captain; credit: number }
+  | { kind: "vessel"; v: VesselFacts; cap: Captain; credit: number; back: BackAgain }
   | { kind: "invite"; cap: Captain }
   | null;
 
 type CrewRow = {
   ship_id: string | null;
   referral_code: string | null;
+  vessel_imo: string | null;
   ships: {
     name: string; eta: string; berth: string | null; ata: string | null;
     imo: string | null; voyage: string | null; flag: string | null;
@@ -131,7 +136,7 @@ async function loadCrew(): Promise<Crew> {
     const { data } = await supabase
       .from("profiles")
       .select(
-        "ship_id, referral_code, ships(name, eta, berth, ata, imo, voyage, flag, cutoff_hours, delay_hours)"
+        "ship_id, referral_code, vessel_imo, ships(name, eta, berth, ata, imo, voyage, flag, cutoff_hours, delay_hours)"
       )
       .eq("id", user.id)
       .maybeSingle();
@@ -160,18 +165,41 @@ async function loadCrew(): Promise<Crew> {
     // Mesma régua do banco (rotação e crédito de desvio): o navio
     // esteve e foi, coalesce(ata, eta) + 48h.
     let credit = 0;
-    if (new Date(s.ata ?? s.eta).getTime() + 48 * 3600e3 < Date.now()) {
+    let back: BackAgain = null;
+    if (callState({ eta: s.eta, ata: s.ata, cutoff_hours: s.cutoff_hours }) === "sailed") {
       const { data: creditos } = await supabase
         .from("credits")
         .select("amount_usd")
         .eq("user_id", user.id);
       credit = (creditos ?? []).reduce((t, c) => t + Number(c.amount_usd), 0);
+
+      // O casco tem identidade — o IMO. A escala morreu, mas se o MESMO
+      // navio já reapareceu no line-up com outra viagem, o app reconhece
+      // e oferece o re-vínculo antes que a pessoa vá procurar. Só entra
+      // escala com janela ainda aberta: sugerir uma já fechada seria
+      // repetir o beco sem saída que esta fase existe para eliminar.
+      const imo = row.vessel_imo ?? s.imo;
+      if (imo) {
+        const { data: volta } = await supabase
+          .from("ships")
+          .select("id, name, eta, ata, cutoff_hours")
+          .eq("imo", imo)
+          .neq("id", row.ship_id)
+          .gt("eta", new Date().toISOString())
+          .order("eta", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (volta && canOrder(callState(volta))) {
+          back = { shipId: volta.id, name: volta.name, eta: volta.eta };
+        }
+      }
     }
 
     return {
       kind: "vessel",
       cap,
       credit,
+      back,
       v: {
         name: s.name, berth: s.berth, eta: s.eta, ata: s.ata,
         imo: s.imo, voyage: s.voyage, flag: s.flag,
@@ -256,7 +284,9 @@ export default async function Home() {
           largura, e o CSS não precisa mais remendar posição. */}
       {!crew && <HeroSteps />}
 
-      {crew?.kind === "vessel" && <VesselPanel v={crew.v} credit={crew.credit} />}
+      {crew?.kind === "vessel" && (
+        <VesselPanel v={crew.v} credit={crew.credit} back={crew.back} />
+      )}
 
       {/* Logo abaixo do painel da escala, que é o bloco que a pessoa
           logada de fato olha ao entrar. Antes do catálogo de propósito:

@@ -136,3 +136,55 @@ export async function saveProfile(input: ProfileInput): Promise<SaveProfileResul
   revalidatePath("/checkout");
   return { ok: true, complete, missing };
 }
+
+/**
+ * Re-vínculo de escala em um toque.
+ *
+ * O contrato de bordo acaba, o navio zarpa, e o perfil continua apontando
+ * para uma escala morta — o cliente é permanente, a ESCALA é que é
+ * efêmera. Quem expira aqui não é a sessão (o refresh token dura semanas,
+ * e é bom que dure): é o vínculo.
+ *
+ * Só troca o navio. Nome, posto, telefone, porto e o carrinho ficam onde
+ * estão — é a diferença entre "continuar de onde parou" e "recomeçar",
+ * que é o que um formulário completo faria a pessoa sentir.
+ */
+export async function switchVessel(shipId: string): Promise<{ ok: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Your session expired — please sign in again." };
+
+  // Os dados do navio são copiados para o perfil de propósito: o pedido
+  // não pode depender da visibilidade da escala (a RLS esconde navio
+  // fora do line-up, e já gravou pedido sem navio nenhum por isso).
+  const { data: navio } = await supabase
+    .from("ships")
+    .select("id, name, flag, imo")
+    .eq("id", shipId)
+    .maybeSingle();
+  if (!navio) return { ok: false, error: "That call is no longer on the line-up — pick another." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      ship_id: navio.id,
+      vessel_name: navio.name?.toUpperCase() ?? null,
+      vessel_flag: navio.flag ?? null,
+      vessel_imo: navio.imo ?? null,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error(
+      JSON.stringify({ at: "switch_vessel", user: user.id, code: error.code, message: error.message })
+    );
+    return { ok: false, error: "Couldn't switch your vessel — try again." };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/account");
+  revalidatePath("/checkout");
+  return { ok: true };
+}
