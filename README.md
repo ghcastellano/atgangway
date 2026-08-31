@@ -1,6 +1,6 @@
-# Vessel Supplier — app MVP
+# At Gangway — app MVP
 
-**🟢 No ar: <https://vesselsupplierco.vercel.app>**
+**🟢 No ar: <https://atgangway.com>**
 
 Loja de conveniência com **entrega na prancha de embarque** para tripulações em escala
 no **Porto de Santos**. Este repositório agora contém a **aplicação completa do MVP**
@@ -67,7 +67,7 @@ Sem as variáveis o app builda e abre normalmente, mostrando um aviso de
   com as 3 migrações de `supabase/migrations/` aplicadas (schema+RLS, seed, hardening).
   As chaves públicas estão commitadas em `.env.production` (a publishable key roda no
   navegador por design; a segurança vem da RLS).
-- **Vercel:** projeto `vesselsupplierco` linkado a este repositório — **push no `main`
+- **Vercel:** projeto `atgangway` linkado a github.com/ghcastellano/atgangway — **push no `main`
   faz deploy de produção automático**; branches geram preview.
 - Dashboard do banco: <https://supabase.com/dashboard/project/cuaocjxofaizefzcxlyc>
 
@@ -75,9 +75,9 @@ Sem as variáveis o app builda e abre normalmente, mostrando um aviso de
 
 Em [Authentication → URL Configuration](https://supabase.com/dashboard/project/cuaocjxofaizefzcxlyc/auth/url-configuration):
 
-- **Site URL:** `https://vesselsupplierco.vercel.app`
+- **Site URL:** `https://atgangway.com`
 - **Redirect URLs:**
-  - `https://vesselsupplierco.vercel.app/**`
+  - `https://atgangway.com/**`
   - `https://*-gustavos-projects-287c5dd3.vercel.app/**` (previews)
   - `http://localhost:3000/**`
 

@@ -8,32 +8,32 @@ import SiteChrome from "@/components/SiteChrome";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://vesselsupplierco.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atgangway.com"),
   title: {
-    default: "Vessel Supplier",
-    template: "%s · Vessel Supplier",
+    default: "At Gangway",
+    template: "%s · At Gangway",
   },
   description:
-    "Pre-order supplies before docking — delivered at the gangway. Porto de Santos.",
+    "Supplies delivered at your gangway. Pre-order before docking — Porto de Santos.",
   openGraph: {
-    siteName: "Vessel Supplier",
-    title: "Vessel Supplier — gangway delivery at Porto de Santos",
+    siteName: "At Gangway",
+    title: "At Gangway — supplies delivered at your gangway",
     description:
-      "Your order rides with your vessel's ETA. Pre-order before docking, pay a 30% deposit, receive at the gangway.",
+      "Your order rides with your vessel's ETA. Pre-order before docking, pay a 30% deposit, receive at the gangway. Porto de Santos.",
     type: "website",
     // O cartão que o WhatsApp mostra. O link do Captain viaja colado em
     // grupo de tripulação, e link sem imagem lê como link suspeito —
     // justamente no canal que é o programa inteiro de indicação.
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Vessel Supplier — delivered to your gangway at Porto de Santos" }],
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "At Gangway — supplies delivered at your gangway, Porto de Santos" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vessel Supplier — gangway delivery at Porto de Santos",
+    title: "At Gangway — supplies delivered at your gangway",
     images: ["/og.png"],
   },
   appleWebApp: {
     capable: true,
-    title: "Vessel",
+    title: "Gangway",
     statusBarStyle: "black-translucent",
   },
 };

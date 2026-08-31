@@ -2,10 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Vessel Supplier",
-    short_name: "Vessel",
+    name: "At Gangway",
+    short_name: "Gangway",
     description:
-      "Pre-order supplies before docking — delivered at the gangway. Porto de Santos.",
+      "Supplies delivered at your gangway. Pre-order before docking — Porto de Santos.",
     start_url: "/",
     display: "standalone",
     background_color: "#01060D",

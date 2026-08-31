@@ -145,7 +145,7 @@ function shell(opts: {
       </td></tr>
 
       <tr><td style="padding:18px 6px 0;color:${C.faint};font-size:12px;line-height:1.6">
-        Vessel Supplier — Porto de Santos.<br>
+        At Gangway — Porto de Santos.<br>
         Questions? Just reply to this e-mail.
         <a href="${opts.siteUrl}" style="color:${C.faint}">${esc(
           opts.siteUrl.replace(/^https?:\/\//, "")
@@ -293,7 +293,7 @@ export function buildOrderEmail(d: OrderEmailData, siteUrl: string): BuiltEmail 
         ``,
         `Track your order: ${href}`,
         ``,
-        `Vessel Supplier — Porto de Santos.`,
+        `At Gangway — Porto de Santos.`,
       ]
         .filter(Boolean)
         .join("\n"),
@@ -332,7 +332,7 @@ export function buildOrderEmail(d: OrderEmailData, siteUrl: string): BuiltEmail 
         `Show this code at the gangway: #${d.code}`,
         `Open order: ${href}`,
         ``,
-        `Vessel Supplier — Porto de Santos.`,
+        `At Gangway — Porto de Santos.`,
       ]
         .filter(Boolean)
         .join("\n"),
@@ -450,7 +450,7 @@ export function buildOrderEmail(d: OrderEmailData, siteUrl: string): BuiltEmail 
       `Order: ${href}`,
       `Captains earn: share your code with the next crew and get credit on their first order.`,
       ``,
-      `Vessel Supplier — Porto de Santos.`,
+      `At Gangway — Porto de Santos.`,
     ]
       .filter(Boolean)
       .join("\n"),

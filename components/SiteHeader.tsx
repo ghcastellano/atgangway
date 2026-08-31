@@ -90,14 +90,14 @@ export default function SiteHeader({
           </button>
 
           {/* O nome acessível precisa CONTER o texto visível (WCAG 2.5.3).
-              Os dois spans colavam em "VesselSupplier" — sem o espaço, e
+              Os dois spans colavam em "AtGangway" — sem o espaço, e
               com o travessão no aria-label, nada batia: quem usa comando
-              de voz dizia "clicar Vessel Supplier" e não achava o link. */}
-          <Link href="/" className="sunlogo" aria-label="Vessel Supplier home">
+              de voz dizia "clicar At Gangway" e não achava o link. */}
+          <Link href="/" className="sunlogo" aria-label="At Gangway home">
             <IconAnchor className="mark" />
             <span className="word">
-              <span className="l1">Vessel</span>{" "}
-              <span className="l2">Supplier</span>
+              <span className="l1">At</span>{" "}
+              <span className="l2">Gangway</span>
             </span>
           </Link>
 

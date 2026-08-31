@@ -62,6 +62,6 @@ test("valor explícito ganha da retaguarda, dentro e fora da Vercel", () => {
 
 test("SITE_URL tem retaguarda incondicional: o metadataBase precisa de URL válida em qualquer build", () => {
   const m = carrega(LIMPO);
-  assert.equal(m.s, "https://vesselsupplierco.vercel.app");
+  assert.equal(m.s, "https://atgangway.com");
   assert.doesNotThrow(() => new URL(m.s));
 });

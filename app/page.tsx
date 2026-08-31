@@ -262,7 +262,7 @@ export default async function Home() {
   return (
     <main className="pg-home">
       <section className="homehero">
-        <p className="kicker">Vessel Supplier · Porto de Santos</p>
+        <p className="kicker">At Gangway · Porto de Santos</p>
         <h1>Delivered to your gangway at Porto de Santos</h1>
         <p className="lead">
           Pre-order before you dock, pay a {DEPOSIT_PCT}% deposit, collect at the gangway.

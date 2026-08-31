@@ -38,6 +38,7 @@ const SECTIONS = [
       { label: "FAQ", href: "/faq" },
       { label: "Ports & delivery schedule", href: "/ports" },
       { label: "Contact us", href: `mailto:${CONTACT_EMAIL}` },
+      { label: "WhatsApp", href: "https://wa.me/5511970561448" },
     ],
   },
   {
@@ -156,7 +157,7 @@ export default function SiteFooter() {
       <SelosPagamento />
 
       <div className="sunfoot-legal">
-        © {new Date().getFullYear()} Vessel Supplier — Porto de Santos.
+        © {new Date().getFullYear()} At Gangway — Porto de Santos.
         <br />
         <Link href="/terms">Terms &amp; Conditions</Link> ·{" "}
         <Link href="/privacy">Privacy Policy</Link> ·{" "}

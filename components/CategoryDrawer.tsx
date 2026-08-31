@@ -94,11 +94,11 @@ export default function CategoryDrawer({
         aria-label={title ? `${title} categories` : "Categories"}
       >
         <div className="drawer-top">
-          <Link href="/" className="sunlogo" onClick={onClose} aria-label="Vessel Supplier — home">
+          <Link href="/" className="sunlogo" onClick={onClose} aria-label="At Gangway — home">
             <IconAnchor className="mark" />
             <span className="word">
-              <span className="l1">Vessel</span>
-              <span className="l2">Supplier</span>
+              <span className="l1">At</span>
+              <span className="l2">Gangway</span>
             </span>
           </Link>
           <button className="drawer-x" onClick={onClose} aria-label="Close">

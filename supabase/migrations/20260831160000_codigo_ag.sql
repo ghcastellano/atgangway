@@ -1,0 +1,6 @@
+-- O código do pedido veste a marca nova: AG-<serial> (At Gangway).
+-- (aplicada via MCP em 31/08/2026 como `codigo_ag`)
+-- Zero pedidos em produção — trocar agora é de graça; depois vira
+-- renumeração de documento fiscal. create or replace de place_order
+-- com o corpo INTEGRAL da 20260831120000_pedido_atomico_e_idempotente,
+-- mudando um literal só: 'MS-' || nextval(...) → 'AG-' || nextval(...).

@@ -19,7 +19,7 @@ const HOST = process.env.SMTP_HOST;
 const USER = process.env.SMTP_USER;
 const PASS = process.env.SMTP_PASS;
 const PORT = Number(process.env.SMTP_PORT ?? 465);
-const FROM = process.env.SMTP_FROM ?? `Vessel Supplier <${CONTACT_EMAIL}>`;
+const FROM = process.env.SMTP_FROM ?? `At Gangway <${CONTACT_EMAIL}>`;
 
 export const emailConfigured = Boolean(HOST && USER && PASS);
 

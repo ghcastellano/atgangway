@@ -18,7 +18,7 @@ export default function ShareCode({ code, link }: { code: string; link: string }
      do texto, ou a mensagem chega sem ele. Daí a frase seca para um
      lado e a frase com link para o outro. */
   const frase =
-    `Order from Vessel Supplier with my code ${code} — delivered at the gangway ` +
+    `Order from At Gangway with my code ${code} — delivered at the gangway ` +
     `in Santos.`;
   const comLink = `${frase} ${link}`;
 
@@ -26,7 +26,7 @@ export default function ShareCode({ code, link }: { code: string; link: string }
     // Web Share abre o WhatsApp direto no celular; no desktop cai no copiar.
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Vessel Supplier", text: frase, url: link });
+        await navigator.share({ title: "At Gangway", text: frase, url: link });
         return;
       } catch (e) {
         /* Desistir NÃO é falhar. O catch pegava os dois casos e seguia

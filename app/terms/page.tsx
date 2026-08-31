@@ -7,7 +7,7 @@ import { DEPOSIT_PCT } from "@/lib/money";
 export const metadata: Metadata = {
   title: "Terms & Conditions",
   description:
-    "How an order with Vessel Supplier works — deposit, balance at the gangway, cancellation rights and credit for a diverted call.",
+    "How an order with At Gangway works — deposit, balance at the gangway, cancellation rights and credit for a diverted call.",
 };
 
 /** Data da última revisão do texto. Termo sem data é termo que ninguém
@@ -50,13 +50,13 @@ export default function TermsPage() {
       <h1 className="pagettl">Terms &amp; Conditions</h1>
       <p className="pagelead">
         Last updated {LAST_UPDATED}. These terms govern orders placed with
-        Vessel Supplier.
+        At Gangway.
       </p>
 
       <section className="pdp-block">
         <h3>1 · Who you are contracting with</h3>
         <p className="pdp-text">
-          Vessel Supplier is the online store at Porto de Santos, São Paulo,
+          At Gangway is the online store at Porto de Santos, São Paulo,
           Brazil. Orders are handled by the same
           people who run the counter — there is no marketplace between us and
           you.
@@ -304,7 +304,7 @@ export default function TermsPage() {
           <a className="alink" href={`mailto:${CONTACT_EMAIL}`}>
             {CONTACT_EMAIL}
           </a>{" "}
-          · Vessel Supplier, Porto de Santos, São Paulo, Brazil. See also the{" "}
+          · At Gangway, Porto de Santos, São Paulo, Brazil. See also the{" "}
           <Link className="alink" href="/faq">
             FAQ
           </Link>

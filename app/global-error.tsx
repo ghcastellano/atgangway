@@ -35,7 +35,7 @@ export default function GlobalError({
           <div style={{ fontSize: 40, marginBottom: 12 }} aria-hidden>
             ⚓
           </div>
-          <h1 style={{ fontSize: 20, margin: "0 0 8px" }}>Vessel Supplier is down for a moment</h1>
+          <h1 style={{ fontSize: 20, margin: "0 0 8px" }}>At Gangway is down for a moment</h1>
           <p style={{ color: "#9FB4C8", fontSize: 14, margin: "0 0 20px" }}>
             We hit an error loading the site. Try again in a few seconds.
           </p>

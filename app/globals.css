@@ -1171,7 +1171,7 @@ input:-webkit-autofill:focus {
 /* Logotipo compacto, em duas linhas.
    A conta que obriga: para o centro ser simétrico, cada lateral
    precisa caber os três ícones (120px). Isso deixa 118px para a
-   marca, e "Vessel Supplier" numa linha ocupa 136px — não cabe sem
+   marca, e "At Gangway" numa linha ocupa 136px — não cabe sem
    colidir com o ícone de conta, que era o que acontecia. Empilhado,
    o conjunto ocupa ~88px, fica centrado de verdade e ainda lê como
    logotipo em vez de mais um rótulo entre ícones. */

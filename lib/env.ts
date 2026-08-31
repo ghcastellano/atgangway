@@ -34,7 +34,7 @@ export const supabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 // incondicional porque o metadataBase do layout precisa de uma URL
 // válida até num build sem env nenhuma.
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://vesselsupplierco.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://atgangway.com";
 
 /* NEXT_PUBLIC_USD_BRL_RATE foi removida. Era 5.30 congelada no build
    com o PTAX real em 5,1490 — e como a cobrança era em real, a
@@ -42,4 +42,4 @@ export const SITE_URL =
    guardada em fx_rates e atualizada por cron. */
 
 export const CONTACT_EMAIL =
-  process.env.NEXT_PUBLIC_CONTACT_EMAIL || "ahoy@marinerssupplyco.com";
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL || "help@atgangway.com";

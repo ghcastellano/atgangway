@@ -87,13 +87,17 @@ export function IconTrash({ size = 17, className }: Props) {
   );
 }
 
-/** Casco da marca — o vessel do Vessel Supplier (mastro, casco e linha
- *  d'água). Mantém o nome IconAnchor para não mexer nos imports; é só o
+/** A marca do At Gangway — o momento da entrega, desenhado: o casco
+ *  atracado no alto (escotilhas acesas), a PRANCHA DE EMBARQUE com
+ *  degraus descendo, e o pacote esperando na ponta. Cais e linha
+ *  d'água separados por um vão — o navio de um lado, a entrega do
+ *  outro, a prancha no meio. É o negócio inteiro num símbolo.
+ *  Mantém o nome IconAnchor para não mexer nos imports; é só o
  *  símbolo do logotipo, com uma casa só. */
 export function IconAnchor({ size = 21, className }: Props) {
   return (
-    <svg {...base(size)} className={className} strokeWidth={1.9}>
-      <path d="M12 3.4V11 M4 11H20L17.4 16.6Q15 19 12 19 9 19 6.6 16.6Z M3 21.4H21" />
+    <svg {...base(size)} className={className} strokeWidth={1.7}>
+      <path d="M9.2 3.8H21.7L19.4 7.9H10.3ZM12.3 5.9h.01M14.9 5.9h.01M17.5 5.9h.01M10.3 7.9 2.6 19.9M11.98 8.98 4.28 20.98M7.99 11.5 9.67 12.58M6.07 14.5 7.75 15.58M4.14 17.5 5.82 18.58M7.7 18h3.1v3.2H7.7ZM9.25 18v3.2M2 21.2h9.8M14 21.2h8M15.8 19.3h3.4" />
     </svg>
   );
 }
