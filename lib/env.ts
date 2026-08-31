@@ -17,7 +17,7 @@ const retaguarda = (valor: string | undefined, producao: string) =>
 // key roda no navegador; a segurança vem da RLS).
 export const SUPABASE_URL = retaguarda(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  "https://auth.marinerssupplyco.com"
+  "https://cuaocjxofaizefzcxlyc.supabase.co"
 );
 
 export const SUPABASE_ANON_KEY = retaguarda(
