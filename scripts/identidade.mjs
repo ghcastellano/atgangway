@@ -25,12 +25,17 @@ const FAINT = "#7E8FA6";
 const MARK =
   "M9.2 3.8H21.7L19.4 7.9H10.3ZM12.3 5.9h.01M14.9 5.9h.01M17.5 5.9h.01M10.3 7.9 2.6 19.9M11.98 8.98 4.28 20.98M7.99 11.5 9.67 12.58M6.07 14.5 7.75 15.58M4.14 17.5 5.82 18.58M7.7 18h3.1v3.2H7.7ZM9.25 18v3.2M2 21.2h9.8M14 21.2h8M15.8 19.3h3.4";
 
-/** Tile 100×100 (o mesmo do app/icon.svg, versão simplificada p/ tamanho pequeno). */
+/** Tile 100×100 — igual ao app/icon.svg: a cena em formas CHEIAS.
+ *  O mark de traço é para onde há espaço (cabeçalho, OG); a 16px as
+ *  duas guias da prancha se fundem num borrão, então o ícone de app
+ *  tem o seu próprio desenho, sólido. */
 const TILE = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <rect width="100" height="100" rx="22" fill="${NAVY}"/>
-  <g transform="translate(14 14) scale(3)" fill="none" stroke="${AMBER}" stroke-width="2.05" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M9.2 3.8H21.7L19.4 7.9H10.3ZM10.3 7.9 2.6 19.9M11.98 8.98 4.28 20.98M7.37 12.46 9.05 13.54M5.06 16.06 6.74 17.14M7.7 18h3.1v3.2H7.7ZM2 21.2h9.8M14 21.2h8"/>
+  <g fill="${AMBER}">
+    <path d="M36 20h50l-11 22H47Z"/>
+    <path d="M47 42h14L33 78H19Z"/>
+    <rect x="14" y="80" width="72" height="8" rx="4"/>
   </g>
 </svg>`;
 

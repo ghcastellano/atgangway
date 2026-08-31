@@ -1,10 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Favicon do At Gangway: a prancha de embarque em versão reduzida
-       (casco, prancha com dois degraus, pacote no cais). Menos elementos
-       que o mark do cabeçalho de propósito: a 16px, escotilha e onda
-       viram ruído — o que tem de ler é a diagonal da prancha. -->
+  <!-- Ícone de app do At Gangway: a mesma cena do logotipo (casco,
+       prancha, cais) em formas CHEIAS, não em traço.
+       O mark de linha do cabeçalho vira um borrão a 16px — as duas
+       guias da prancha se fundem e sobra uma mancha. Aqui a prancha é
+       uma faixa sólida, e o que resta a 16px ainda é uma diagonal
+       descendo de um casco para o cais: a leitura certa. -->
   <rect width="100" height="100" rx="22" fill="#040D1A"/>
-  <g transform="translate(14 14) scale(3)" fill="none" stroke="#FFB648" stroke-width="2.05" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M9.2 3.8H21.7L19.4 7.9H10.3ZM10.3 7.9 2.6 19.9M11.98 8.98 4.28 20.98M7.37 12.46 9.05 13.54M5.06 16.06 6.74 17.14M7.7 18h3.1v3.2H7.7ZM2 21.2h9.8M14 21.2h8"/>
+  <g fill="#FFB648">
+    <!-- casco atracado, no alto -->
+    <path d="M36 20h50l-11 22H47Z"/>
+    <!-- prancha de embarque: faixa sólida até o cais -->
+    <path d="M47 42h14L33 78H19Z"/>
+    <!-- cais -->
+    <rect x="14" y="80" width="72" height="8" rx="4"/>
   </g>
 </svg>

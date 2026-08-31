@@ -145,3 +145,16 @@ export function IconLogout({ size = 21, className }: Props) {
     </svg>
   );
 }
+
+/** Entrar — o IconLogout espelhado (a seta ENTRA na porta).
+ *  O item "Sign in" da gaveta usava o símbolo da MARCA como ícone de
+ *  menu: sobra da época da âncora, e marca ao lado de "Sign in" lê como
+ *  logotipo perdido numa lista, não como ação. */
+export function IconLogin({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M14 4.5h4.5v15H14" />
+      <path d="m9.2 8.5 3.5 3.5-3.5 3.5M12.7 12H4" />
+    </svg>
+  );
+}

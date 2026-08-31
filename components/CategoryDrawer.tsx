@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut } from "@/app/account/actions";
 import type { CategoryNode } from "@/lib/catalog";
-import { IconAnchor, IconCap, IconCart, IconClose, IconHeart, IconLogout, IconPackage, IconUser } from "./Icon";
+import { IconAnchor, IconCap, IconCart, IconClose, IconHeart, IconLogin, IconLogout, IconPackage, IconUser } from "./Icon";
 import CategoryIcon from "./CategoryIcon";
 
 /**
@@ -167,7 +167,7 @@ export default function CategoryDrawer({
                 </form>
               ) : (
                 <Link className="drawer-item" href="/login" onClick={onClose}>
-                  <IconAnchor className="ic" size={19} />
+                  <IconLogin className="ic" size={19} />
                   <span className="nm">Sign in</span>
                 </Link>
               )}
