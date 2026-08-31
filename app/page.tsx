@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import CaptainStrip from "@/components/CaptainStrip";
 import HeroSteps from "@/components/HeroSteps";
-import { IconCompass } from "@/components/Icon";
+import { IconCompass, IconPackage } from "@/components/Icon";
 import VesselPanel, { type VesselFacts } from "@/components/VesselPanel";
 import { callState, canOrder } from "@/lib/callstate";
 import { unstable_cache } from "next/cache";
@@ -9,7 +10,7 @@ import { createClient as createAnonClient } from "@supabase/supabase-js";
 import CategoryIcon from "@/components/CategoryIcon";
 import ProductCardView from "@/components/ProductCard";
 import { createClient } from "@/lib/supabase/server";
-import { listProducts, type Category, type ProductCard } from "@/lib/catalog";
+import { imageUrl, listProducts, type Category, type ProductCard } from "@/lib/catalog";
 import { wishedProductIds } from "@/lib/wishlist";
 import { SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 import { DEPOSIT_PCT } from "@/lib/money";
@@ -28,18 +29,25 @@ import { DEPOSIT_PCT } from "@/lib/money";
 export const dynamic = "force-dynamic";
 
 type RootCat = Pick<Category, "id" | "slug" | "name" | "icon"> & {
+  /** Caminho materializado ("/new-arrivals/") — chave do filtro da RPC. */
+  path: string;
   /** Corredores dentro do departamento. Vazio = departamento folha. */
   filhos: Pick<Category, "id" | "slug" | "name">[];
 };
 
+/** Peça na prateleira do cartão-coleção (departamento folha). */
+type ShelfItem = { slug: string; name: string; img: string | null };
+
 type Storefront = {
   roots: RootCat[];
   counts: Record<string, number>;
+  /** Por departamento-folha: as primeiras peças da coleção. */
+  shelves: Record<string, ShelfItem[]>;
   promo: ProductCard[];
   fresh: ProductCard[];
 };
 
-const EMPTY: Storefront = { roots: [], counts: {}, promo: [], fresh: [] };
+const EMPTY: Storefront = { roots: [], counts: {}, shelves: {}, promo: [], fresh: [] };
 
 /**
  * Cliente anônimo, sem cookie, de propósito: unstable_cache não pode
@@ -62,7 +70,7 @@ const loadStorefront = unstable_cache(
         // direita — e não dizia nada que a barra de cima já não diga.
         db
           .from("categories")
-          .select("id, slug, name, icon, parent_id, depth")
+          .select("id, slug, name, icon, parent_id, depth, path")
           .eq("active", true)
           .lte("depth", 1)
           .order("sort_order"),
@@ -84,9 +92,30 @@ const loadStorefront = unstable_cache(
         .filter((c) => c.depth === 0)
         .map((c) => ({ ...c, filhos: todas.filter((f) => f.parent_id === c.id) }));
 
+      // Departamento SEM corredores (uma coleção, como New Arrivals) não
+      // tem lista para encher o cartão — e o grid estica todos à altura do
+      // mais alto, então sobrava um buraco anunciando que ali havia algo.
+      // Em vez de encolher o cartão, ele passa a MOSTRAR a coleção, que é
+      // exatamente o que o nome promete: "New Arrivals" deixa de contar o
+      // que chegou e passa a mostrar. Só folha COM produto paga consulta,
+      // e ela entra no mesmo cache de 300s da vitrine.
+      const folhas = raizes.filter((c) => c.filhos.length === 0 && (byId[c.id] ?? 0) > 0);
+      const vitrines = await Promise.all(
+        folhas.map((c) => listProducts(db, { category: c.path, limit: 3 }))
+      );
+      const shelves: Record<string, ShelfItem[]> = {};
+      folhas.forEach((c, i) => {
+        shelves[c.id] = vitrines[i].items.map((p) => ({
+          slug: p.slug,
+          name: p.name,
+          img: imageUrl(p.primary_image_path),
+        }));
+      });
+
       return {
         roots: raizes as RootCat[],
         counts: byId,
+        shelves,
         promo: promo.items,
         fresh: fresh.items,
       };
@@ -342,6 +371,28 @@ export default async function Home() {
                           <Link href={`/c/${f.slug}`} prefetch={false}>
                             <span className="nm">{f.name}</span>
                             <span className="ct">{store.counts[f.id] ?? 0}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {/* Coleção sem corredores: a prateleira entra no lugar da
+                      lista. O cartão deixa de ser um rótulo com vazio e
+                      passa a entregar a própria promessa do nome. */}
+                  {c.filhos.length === 0 && (store.shelves[c.id]?.length ?? 0) > 0 && (
+                    <ul className="dept-shelf">
+                      {store.shelves[c.id].map((p) => (
+                        <li key={p.slug}>
+                          <Link href={`/p/${p.slug}`} prefetch={false}>
+                            <span className="th">
+                              {p.img ? (
+                                <Image src={p.img} alt="" fill sizes="120px" style={{ objectFit: "contain" }} />
+                              ) : (
+                                <span aria-hidden><IconPackage size={20} /></span>
+                              )}
+                            </span>
+                            <span className="nm">{p.name}</span>
                           </Link>
                         </li>
                       ))}

@@ -1399,7 +1399,7 @@ input:-webkit-autofill:focus {
    dizia. O cartão de departamento usa a mesma largura para dizer algo
    novo: quais corredores existem lá dentro e quantos itens cada um tem.
    É a informação que decide o clique. */
-.deptgrid { display: grid; gap: var(--sp-3); }
+.deptgrid { display: grid; gap: var(--sp-3); align-items: start; }
 @media (min-width: 620px) { .deptgrid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); } }
 
 .dept {
@@ -1442,6 +1442,33 @@ input:-webkit-autofill:focus {
 .dept-sub .ct {
   font-family: var(--font-mono); font-size: 11.5px; color: var(--faint);
   font-variant-numeric: tabular-nums;
+}
+
+/* Prateleira do cartão-coleção. Departamento folha (New Arrivals) nao
+   tem corredor para listar: mostra as tres primeiras pecas. Foto de
+   produto segue a regra da casa — fundo branco e contain, para nao
+   recortar a embalagem. align-items:start no grid acima garante que o
+   cartao encolha ate o conteudo em vez de esticar ate o vizinho. */
+.dept-shelf {
+  list-style: none; margin: 0; padding: 0 var(--sp-2) var(--sp-2);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2);
+}
+.dept-shelf a {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: var(--sp-2); border-radius: 10px;
+  color: var(--muted); text-decoration: none;
+  transition: background .14s, color .14s;
+}
+.dept-shelf a:hover { background: var(--card-hi); color: var(--ink); }
+.dept-shelf .th {
+  position: relative; aspect-ratio: 1;
+  background: #FFFFFF; border-radius: 8px; overflow: hidden;
+  display: grid; place-items: center; color: var(--faint);
+}
+.dept-shelf .nm {
+  font-size: 11.5px; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ===== admin: fila de revisão do line-up =====
