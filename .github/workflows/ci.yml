@@ -1,0 +1,46 @@
+# CI mínimo — o que um contribuidor roda na máquina, rodando em todo
+# push e PR. Antes disto NENHUM verificador rodava em lugar algum: a
+# suíte só existia para quem lembrasse de chamá-la.
+#
+# Os testes responsivos (Playwright contra servidor local) continuam
+# opt-in: aqui eles se declaram "skipped" no log — pulo explícito, não
+# silêncio. O build roda DUAS vezes de propósito: com a env pública do
+# repo e com env vazia — a segunda é a regressão do outage do painel em
+# branco (Invalid URL input: ''), que só aparece em "Collecting page
+# data".
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verifica:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Dependências
+        run: npm ci
+
+      - name: Tipos
+        run: npx tsc --noEmit
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Build com env vazia (regressão do painel em branco)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
+          NEXT_PUBLIC_SITE_URL: ""
+        run: npm run build

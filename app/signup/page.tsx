@@ -147,14 +147,11 @@ function SignupInner() {
       setErr("Please find your vessel, or create it.");
       return;
     }
-    if (!rank) {
-      setErr("Please select your rank.");
-      return;
-    }
-    if (!nationality) {
-      setErr("Please select your nationality.");
-      return;
-    }
+    // Rank e nacionalidade NÃO barram mais o cadastro: nenhum fluxo
+    // posterior os exige (o checkout libera sem eles — lib/profile.ts é
+    // a régua), e a alfândega precisa deles antes da ENTREGA, não antes
+    // de criar conta. Campo obrigatório que nada usa é atrito puro na
+    // porta de entrada.
     // O porto faltava aqui, e era o furo: o cadastro terminava "completo"
     // sem ele, e o checkout barrava o pagamento com "Port is required" —
     // todo cliente novo batia nessa parede pelo menos uma vez.
@@ -183,8 +180,8 @@ function SignupInner() {
         data: {
           full_name: fullName,
           whatsapp: phone,
-          rank_slug: rank,
-          nationality,
+          rank_slug: rank || null,
+          nationality: nationality || null,
           vessel_name: vessel.name,
           vessel_imo: vessel.imo,
           port_id: portId,
@@ -220,8 +217,9 @@ function SignupInner() {
       .update({
         full_name: fullName,
         whatsapp: phone,
-        rank_slug: rank,
-        nationality,
+        // opcionais: vazio grava null, não ""
+        rank_slug: rank || null,
+        nationality: nationality || null,
         ship_id: shipId,
         port_id: portId,
         vessel_name: vessel.name,
@@ -397,7 +395,6 @@ function SignupInner() {
 
         <SearchSelect
           label="Rank"
-          required
           options={ranks}
           value={rank}
           onChange={setRank}
@@ -406,12 +403,15 @@ function SignupInner() {
 
         <SearchSelect
           label="Nationality"
-          required
           options={NATIONALITIES}
           value={nationality}
           onChange={setNationality}
           placeholder="Search your country"
         />
+        <p className="finehint">
+          Rank and nationality are optional — they speed up port customs
+          paperwork, and you can add them any time in My Account.
+        </p>
 
         <label className="switch">
           <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
