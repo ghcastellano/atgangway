@@ -1,13 +1,42 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { missingProfileFields } from "@/lib/profile";
 
+/**
+ * Sair — de verdade, inclusive na tela.
+ *
+ * O cookie sempre foi apagado direito; quem não sabia era a interface.
+ * O cabeçalho é montado pelo SiteChrome, que pergunta ao servidor quem
+ * está logado e mora no LAYOUT RAIZ — e layout não re-renderiza numa
+ * navegação de cliente, que é o que o redirect() faz. A sessão morria e
+ * o menu seguia oferecendo "Sign out" até alguém recarregar na mão.
+ * revalidatePath com escopo "layout" é o que derruba essa memória.
+ *
+ * E o signOut do Supabase é chamada de REDE (revoga o refresh token no
+ * servidor). Se ela falhar — wifi de navio existe — a biblioteca pode
+ * deixar o cookie para trás, e aí a pessoa clicou em sair e continuou
+ * dentro. Nesse caso o cookie sai na marra: a vontade de sair não
+ * depende da rede.
+ */
 export async function signOut() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error(JSON.stringify({ at: "sign_out", message: error.message }));
+    const store = await cookies();
+    // sb-<ref>-auth-token, às vezes partido em .0/.1 quando a sessão
+    // não cabe num cookie só — por isso o prefixo, não o nome exato.
+    for (const c of store.getAll()) {
+      if (c.name.startsWith("sb-")) store.delete(c.name);
+    }
+  }
+
+  revalidatePath("/", "layout");
   redirect("/");
 }
 
