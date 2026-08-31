@@ -62,7 +62,7 @@ Preencha a coluna `price`, confira as linhas e suba pelo admin.
 O **Cadastro Nacional de Produtos** da GS1 Brasil é a base oficial: é
 dela que sai o EAN, e ela exige foto em alta resolução do fabricante. É
 gratuita para associado GS1 e alimenta varejo, e-commerce e Sefaz. Se a
-Vessel Supplier se associar (o que já faz sentido para emitir NF-e), essa
+At Gangway se associar (o que já faz sentido para emitir NF-e), essa
 é a fonte primária — melhor que qualquer acervo aberto, porque a foto vem
 do dono da marca. O script continua útil para o que ainda não estiver lá.
 
@@ -86,7 +86,7 @@ Snack kit, Hygiene kit, Deck kit, Drinks pack, Cable & adapter kit,
 First-need pharmacy, Poker set.
 
 **Nenhum dataset do mundo tem foto disso**, porque o produto não existe
-fora da Vessel Supplier — quem decide o que entra na caixa somos nós. Hoje
+fora da At Gangway — quem decide o que entra na caixa somos nós. Hoje
 essas fichas mostram acervo do Wikimedia que só ilustra a categoria: o
 café mostra um pacote holandês de museu, e o snack kit mostra Hershey's.
 

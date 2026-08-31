@@ -78,7 +78,7 @@ padrão:
 - Our Offices
 
 Abaixo: fileira de logos de meio de pagamento em cartões brancos.
-Depois: "© {ano} All rights reserved — Vessel Supplier" e os links
+Depois: "© {ano} All rights reserved — At Gangway" e os links
 "Terms & Conditions" · "Privacy Policy".
 
 ### 1.6 Menu da conta (ícone 👤)
