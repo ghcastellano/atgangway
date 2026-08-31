@@ -2,32 +2,44 @@
  * Transporte SMTP dos e-mails transacionais.
  *
  * Usa o mesmo servidor que já autentica os e-mails de conta
- * (Hostinger, ahoy@marinerssupplyco.com), então SPF/DKIM do domínio
- * valem para tudo que sai daqui — nada de remetente emprestado que
- * cai em spam de tripulação.
+ * (Hostinger, help@atgangway.com), então SPF/DKIM do domínio valem
+ * para tudo que sai daqui — nada de remetente emprestado que cai em
+ * spam de tripulação.
  *
- * Sem SMTP configurado o app não quebra: emailConfigured fica false
- * e o disparo vira no-op silencioso. O pedido continua andando; o
- * e-mail é acessório do fluxo, não pré-requisito.
+ * Sem SMTP configurado o app não quebra: emailConfigured() responde
+ * false e o disparo vira no-op silencioso. O pedido continua andando;
+ * o e-mail é acessório do fluxo, não pré-requisito.
+ *
+ * As variáveis são lidas A CADA CHAMADA, nunca no topo do módulo:
+ * const de módulo congela o que existia quando o bundle foi avaliado, e
+ * segredo cadastrado como *sensitive* na Vercel não chega ao build — a
+ * constante nasceria false e ficaria false com o SMTP ali, configurado.
+ * Foi exatamente o que aconteceu com a chave do Stripe.
  */
 
 import nodemailer, { type Transporter } from "nodemailer";
 import { SITE_URL, CONTACT_EMAIL } from "./env.ts";
 import { buildOrderEmail, type OrderEmailData } from "./emails.ts";
 
-const HOST = process.env.SMTP_HOST;
-const USER = process.env.SMTP_USER;
-const PASS = process.env.SMTP_PASS;
-const PORT = Number(process.env.SMTP_PORT ?? 465);
-const FROM = process.env.SMTP_FROM ?? `At Gangway <${CONTACT_EMAIL}>`;
+const conf = () => ({
+  host: process.env.SMTP_HOST,
+  user: process.env.SMTP_USER,
+  pass: process.env.SMTP_PASS,
+  port: Number(process.env.SMTP_PORT ?? 465),
+  from: process.env.SMTP_FROM ?? `At Gangway <${CONTACT_EMAIL}>`,
+});
 
-export const emailConfigured = Boolean(HOST && USER && PASS);
+export const emailConfigured = () => {
+  const c = conf();
+  return Boolean(c.host && c.user && c.pass);
+};
 
 let cached: Transporter | null = null;
 
 /** Devolve null quando falta configuração — o chamador decide o que fazer. */
 function transport(): Transporter | null {
   if (cached) return cached;
+  const { host: HOST, user: USER, pass: PASS, port: PORT } = conf();
   if (!HOST || !USER || !PASS) return null;
 
   cached = nodemailer.createTransport({
@@ -59,7 +71,7 @@ export async function sendMail(msg: {
   if (!msg.to || !msg.to.includes("@")) return { sent: false, skipped: "no_recipient" };
   try {
     await smtp.sendMail({
-      from: FROM,
+      from: conf().from,
       to: msg.to,
       replyTo: CONTACT_EMAIL,
       subject: msg.subject,

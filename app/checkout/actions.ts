@@ -180,7 +180,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     return { ok: true, code: r.code, creditApplied: applied, paid: true };
   }
 
-  if (stripeConfigured) {
+  if (stripeConfigured()) {
     try {
       const session = await createDepositSession(
         supabase,
@@ -213,7 +213,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
 // Retomada de pagamento (ex.: fechou o Stripe no meio) a partir da página do pedido
 export async function payOrderDeposit(code: string): Promise<{ url?: string; error?: string }> {
-  if (!stripeConfigured) return { error: "Online payment isn't enabled yet." };
+  if (!stripeConfigured()) return { error: "Online payment isn't enabled yet." };
 
   const supabase = await createClient();
   const {

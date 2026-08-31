@@ -3,7 +3,19 @@ import Stripe from "stripe";
 // Chave secreta só existe no servidor (env da Vercel — nunca no repo).
 // Sem ela o app continua funcionando no fluxo manual: pedido nasce
 // awaiting_deposit e o staff confirma no board.
-export const stripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY);
+/**
+ * Lida A CADA CHAMADA, nunca no topo do módulo.
+ *
+ * Era `const stripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY)`
+ * — e um const de módulo congela o que existia no momento em que o
+ * bundle foi avaliado. Variável marcada como *sensitive* na Vercel não
+ * chega ao build, então a constante nascia `false` e ficava `false`
+ * para sempre: o webhook (que lê dentro do handler) enxergava a chave e
+ * confirmava pagamentos, enquanto o checkout dizia "Online payment
+ * isn't enabled yet" com a chave ali, presente. Função pequena, lida na
+ * hora, imune a como o segredo foi cadastrado.
+ */
+export const stripeConfigured = () => Boolean(process.env.STRIPE_SECRET_KEY);
 
 let client: Stripe | null = null;
 
