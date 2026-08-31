@@ -28,6 +28,12 @@ const hostsDeFoto = [
 ] as string[];
 
 const nextConfig: NextConfig = {
+  // Congela no build "estamos na Vercel?" para os DOIS bundles (o
+  // process.env.VERCEL cru não chega ao navegador). É o que permite a
+  // lib/env aplicar a retaguarda de produção só onde ela pertence.
+  env: {
+    NEXT_PUBLIC_ON_VERCEL: process.env.VERCEL ? "1" : "",
+  },
   images: {
     // Foto de produto vem do Storage público do Supabase. next/image
     // faz o resize e serve AVIF/WebP: numa grade de 24 cards isso é a
