@@ -850,6 +850,23 @@ input:-webkit-autofill:focus {
   padding: 10px 14px 2px;
 }
 .listbar .count { font-family: var(--font-mono); font-size: 11px; color: var(--faint); margin-right: auto; }
+
+/* chips de filtro ativo — fora do @media de propósito: quem chega no
+   celular por link com ?brand=/?badge= precisa VER o que corta a lista
+   e ter onde limpar. Escondê-los era um beco sem saída de catálogo
+   curto sem explicação. O padding de 14px alinha com o .listbar; o
+   desktop zera porque a coluna da lista já traz o respiro. */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; padding: 0 14px; }
+.chips a {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px;
+  padding: 5px 11px 5px 13px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line-hi);
+  font-size: 12.5px; color: var(--ink);
+}
+.chips a b { color: var(--faint); font-weight: 500; }
+.chips a::after { content: "✕"; font-size: 11px; color: var(--faint); }
+.chips a:hover { border-color: var(--danger); }
+.chips a:hover::after { color: var(--danger); }
 .sortsel {
   background: var(--card); border: 1px solid var(--line-hi); border-radius: 10px;
   color: var(--ink); font-size: 13px; padding: 7px 10px; font-family: var(--font-body);
@@ -2614,17 +2631,9 @@ svg.ic { flex: none; color: var(--amber); }
   .offers a:hover { border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
   .offers a.on { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
 
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
-  .chips a {
-    display: inline-flex; align-items: center; gap: 8px; min-height: 40px;
-    padding: 5px 11px 5px 13px; border-radius: 999px;
-    background: var(--card); border: 1px solid var(--line-hi);
-    font-size: 12.5px; color: var(--ink);
-  }
-  .chips a b { color: var(--faint); font-weight: 500; }
-  .chips a::after { content: "✕"; font-size: 11px; color: var(--faint); }
-  .chips a:hover { border-color: var(--danger); }
-  .chips a:hover::after { color: var(--danger); }
+  /* base dos .chips subiu para o escopo global (mobile também mostra);
+     aqui só o ajuste de layout da coluna larga */
+  .chips { padding: 0; }
 
   /* a fita de subcategorias passa a QUEBRAR em vez de rolar: a 430px
      o polegar resolve, a 900px ninguém sabe que há mais à direita

@@ -17,7 +17,6 @@ function LoginInner() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [stay, setStay] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -112,15 +111,10 @@ function LoginInner() {
           </div>
         </div>
 
-        {/* Paridade com o Sunny. A persistência da sessão hoje é decidida
-            na criação do client do Supabase, não por login — o controle
-            existe na tela, mas ainda não muda o comportamento. */}
-        <label className="switch">
-          <input type="checkbox" checked={stay} onChange={(e) => setStay(e.target.checked)} />
-          <span className="track" />
-          <span className="lbl">Stay logged in</span>
-        </label>
-
+        {/* O switch "Stay logged in" saiu: nunca mudou comportamento (a
+            persistência é decidida na criação do client do Supabase) e um
+            controle que não controla nada é pior que nenhum — quem o
+            desligava num computador de passadiço achava que estava seguro. */}
         <p className="linkline" style={{ textAlign: "left" }}>
           <Link href={`/forgot-password?next=${encodeURIComponent(next)}`}>
             Forgot Your Password?

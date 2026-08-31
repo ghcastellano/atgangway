@@ -45,7 +45,6 @@ export default function CartPage() {
   const [lines, setLines] = useState<Line[] | null>(null);
   const [minOrderCents, setMinOrderCents] = useState(0);
   const [creditCents, setCreditCents] = useState(0);
-  const [minDismissed, setMinDismissed] = useState(false);
   // A janela da escala do perfil. O carrinho é a última tela antes do
   // checkout: mandar para lá com a escala morta é fazer a pessoa
   // trabalhar por um "não". Aqui o botão já vira o próximo passo.
@@ -146,12 +145,12 @@ export default function CartPage() {
     <main className="pg-cart">
       <Breadcrumb trail={[{ label: "Shopping Cart" }]} />
 
-      {belowMin && !minDismissed && rows.length > 0 && (
+      {/* O aviso não tem mais o ✕: dispensável, ele sumia levando junto a
+          única pista do mínimo — e o botão de checkout seguia ativo. Quem
+          decide é o CTA lá embaixo; este box só antecipa o número. */}
+      {belowMin && rows.length > 0 && (
         <div className="infobox">
           <span>Minimum order amount {usd(minOrderCents)}</span>
-          <button onClick={() => setMinDismissed(true)} aria-label="Dismiss">
-            ✕
-          </button>
         </div>
       )}
 
@@ -233,6 +232,14 @@ export default function CartPage() {
                   {callSt === "sailed" ? "I'm on a new vessel" : "Pick my next call"}
                 </Link>
               </>
+            ) : belowMin ? (
+              /* Abaixo do mínimo o botão diz o que falta em vez de deixar
+                 passar: o servidor sempre barrou no placeOrder, mas barrar
+                 lá é depois do checkout preenchido — o pior lugar para um
+                 "não" que o carrinho já sabia dar. */
+              <button className="btn" disabled>
+                Add {usd(minOrderCents - subtotal)} more to check out
+              </button>
             ) : (
               <Link className="btn" href="/checkout">
                 Proceed to Checkout

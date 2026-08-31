@@ -2,6 +2,7 @@ import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
 import ProductCardView from "@/components/ProductCard";
 import FacetRail from "@/components/FacetRail";
+import CategoryIcon from "@/components/CategoryIcon";
 import { IconCompass } from "@/components/Icon";
 import { listBrandsInUse } from "@/lib/brands";
 import { createClient } from "@/lib/supabase/server";
@@ -112,9 +113,8 @@ export default async function ShopPage({
           <div className="catgrid">
             {roots.map((c) => (
               <Link key={c.id} href={`/c/${c.slug}`} className="catcard" prefetch={false}>
-                <span className="ic" aria-hidden>
-                  {c.icon ?? "▪"}
-                </span>
+                {/* mesmo traço da home: o emoji do banco fica de retaguarda */}
+                <CategoryIcon slug={c.slug} fallback={c.icon} size={22} />
                 <span className="tx">
                   <span className="nm">{c.name}</span>
                   {c.children.length > 0 && (
@@ -161,7 +161,7 @@ export default async function ShopPage({
       {/* O que está filtrando agora, e como sair. Sem isto, quem chega
           por link com ?badge= não descobre por que a lista é curta. */}
       {(query || sp.badge || brandId) && (
-        <div className="chips wide-only">
+        <div className="chips">
           {query && (
             <Link href={keep({ q: null, cursor: null })} prefetch={false}>
               <b>Search</b> “{query}”

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CategoryIcon from "@/components/CategoryIcon";
 import type { BrandOption, CategoryNode } from "@/lib/catalog";
 
 /**
@@ -54,9 +55,9 @@ export default function FacetRail({
           {tree.map((root) => (
             <li key={root.id}>
               <Link href={`/c/${root.slug}`} className={root.slug === activeSlug ? "on" : ""}>
-                <span className="ic" aria-hidden>
-                  {root.icon ?? "▪"}
-                </span>
+                {/* traço da casa, não o emoji cru do banco — era o último
+                    lugar do storefront desktop com as duas caras coladas */}
+                <CategoryIcon slug={root.slug} fallback={root.icon} size={18} />
                 {root.name}
                 {/* PRODUTOS na subárvore, não subcategorias. O número
                     antigo era children.length — "Food & Drinks 4" quando

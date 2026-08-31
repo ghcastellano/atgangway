@@ -56,19 +56,20 @@ test("perfil ausente falta cadastro nos dois", () => {
   assert.equal(profileIsComplete(null), false);
 });
 
-test("a lista de rotas livres não tranca ninguém para fora", () => {
+test("o portão de cadastro vale só no checkout e não gira em círculo", () => {
   const fonte = readFileSync("lib/supabase/middleware.ts", "utf-8");
-  const m = fonte.match(/const LIVRES = \[([^\]]*)\]/);
-  assert.ok(m, "LIVRES sumiu — o desvio giraria em círculo");
-  const livres = m[1].match(/"([^"]+)"/g).map((s) => s.replaceAll('"', ""));
 
-  // /account é o DESTINO do desvio: sem ele, redireciona para si mesmo
-  // para sempre e a pessoa vê um erro de loop no navegador.
-  assert.ok(livres.includes("/account"), "/account tem de ser livre — é o destino");
-  // /auth e /login são entrada e saída: barrar ali impede até deslogar.
-  assert.ok(livres.includes("/auth"));
-  assert.ok(livres.includes("/login"));
-  // O staff não tem navio nem porto de casa. Barrar /admin trancaria a
-  // própria equipe para fora do painel.
-  assert.ok(livres.includes("/admin"), "/admin tem de ser livre — staff não tem navio");
+  // O portão tem de estar preso ao /checkout. Já foi o contrário — uma
+  // lista de exceções (LIVRES) barrando todo o resto — e o efeito era
+  // expulsar da própria vitrine quem entrava pelo Google sem completar
+  // o perfil. Navegar não pede cadastro; pagar é que pede.
+  const portao = fonte.match(/user && pathname\.startsWith\("([^"]+)"\)/);
+  assert.ok(portao, "o portão de cadastro sumiu do middleware");
+  assert.equal(portao[1], "/checkout", "o portão voltou a barrar além do checkout");
+  assert.ok(!fonte.includes("LIVRES"), "a lista de exceções voltou — o portão largo junto?");
+
+  // O desvio manda para /account; se /account um dia cair dentro do
+  // prefixo do portão, o redirecionamento vira loop infinito.
+  assert.ok(fonte.includes('url.pathname = "/account"'), "o desvio tem de ir para /account");
+  assert.ok(!"/account".startsWith(portao[1]), "destino do desvio dentro do portão = loop");
 });

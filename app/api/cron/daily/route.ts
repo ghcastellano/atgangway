@@ -22,11 +22,18 @@ export const maxDuration = 30;
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
-  if (!secret) return Response.json({ ok: false, reason: "CRON_SECRET ausente no ambiente" });
+  // 503 para config ausente e header-only, pela mesma razão do lineup:
+  // status honesto é o que o razão do pg_cron consegue ler, e segredo
+  // em query string vaza em log.
+  if (!secret) {
+    return Response.json(
+      { ok: false, reason: "CRON_SECRET ausente no ambiente" },
+      { status: 503 }
+    );
+  }
 
   const auth = request.headers.get("authorization");
-  const provided =
-    auth?.replace(/^Bearer\s+/i, "") ?? new URL(request.url).searchParams.get("key");
+  const provided = auth?.replace(/^Bearer\s+/i, "") ?? null;
   if (provided !== secret) return Response.json({ error: "unauthorized" }, { status: 401 });
 
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -34,7 +41,10 @@ export async function GET(request: Request) {
   });
   const { data, error } = await db.rpc("ops_daily", { p_secret: secret });
   if (error || !(data as { ok?: boolean })?.ok) {
-    return Response.json({ ok: false, error: error?.message ?? (data as { reason?: string })?.reason });
+    return Response.json(
+      { ok: false, error: error?.message ?? (data as { reason?: string })?.reason },
+      { status: 500 }
+    );
   }
 
   type Resumo = {

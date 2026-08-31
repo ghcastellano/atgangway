@@ -172,7 +172,7 @@ export default async function CategoryPage({
       </div>
 
       {(sp.badge || brandId) && (
-        <div className="chips wide-only">
+        <div className="chips">
           {sp.badge && (
             <Link href={keep({ badge: null, cursor: null })} prefetch={false}>
               <b>Offer</b> {BADGE_LABEL[sp.badge as "promo" | "new" | "outlet"]}

@@ -24,17 +24,22 @@ export const maxDuration = 60;
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
-  // Falta de configuração NÃO é falha de servidor: devolver 5xx aqui faz
-  // o monitoramento gritar durante a janela de propagação de env var,
-  // e não há nada que o cliente possa reexecutar. 200 + ok:false mantém
-  // o alarme limpo e o motivo explícito no corpo.
+  // Sem segredo o job não tem como rodar: 503 nomeia "configuração".
+  // Já foi 200 + ok:false "para o alarme ficar limpo" — e o efeito real
+  // era um pipeline morto invisível para qualquer monitor de status,
+  // inclusive o razão do pg_cron em net._http_response.
   if (!secret) {
-    return Response.json({ ok: false, reason: "CRON_SECRET ausente no ambiente" });
+    return Response.json(
+      { ok: false, reason: "CRON_SECRET ausente no ambiente" },
+      { status: 503 }
+    );
   }
 
   const auth = request.headers.get("authorization");
   const url = new URL(request.url);
-  const provided = auth?.replace(/^Bearer\s+/i, "") ?? url.searchParams.get("key");
+  // Só header Authorization. Segredo em ?key= fica em log de acesso,
+  // proxy e histórico — e o agendador (pg_cron) já manda o header.
+  const provided = auth?.replace(/^Bearer\s+/i, "") ?? null;
   if (provided !== secret) return Response.json({ error: "unauthorized" }, { status: 401 });
 
   const debug = url.searchParams.get("debug") === "1";
@@ -75,8 +80,10 @@ export async function GET(request: Request) {
   }
 
   if (!rows.length) {
-    // fonte fora do ar não é erro fatal: o staff segue cadastrando à mão
-    return Response.json({ ok: false, reason: "no rows parsed", attempts }, { status: 200 });
+    // Fonte fora do ar não derruba a loja (o staff cadastra à mão), mas
+    // é falha do job: 502 deixa isso visível de fora em vez de fingir
+    // sucesso — foi um 200 aqui que escondeu a loja com zero janelas.
+    return Response.json({ ok: false, reason: "no rows parsed", attempts }, { status: 502 });
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
