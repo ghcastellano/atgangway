@@ -8,7 +8,7 @@ import SiteChrome from "@/components/SiteChrome";
 import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://vesselsupplier.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://vesselsupplierco.vercel.app"),
   title: {
     default: "Vessel Supplier",
     template: "%s · Vessel Supplier",

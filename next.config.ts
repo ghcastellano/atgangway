@@ -17,7 +17,7 @@ import type { NextConfig } from "next";
  */
 const hostDaVariavel = (() => {
   try {
-    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "https://auth.marinerssupplyco.com").hostname;
   } catch {
     return null;
   }
