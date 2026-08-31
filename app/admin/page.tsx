@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { santosTime, shortShipName, usd } from "@/lib/format";
 import { STATUS_LABEL, STATUS_PILL, type OrderStatus } from "@/lib/types";
 import DeliveryProof from "@/components/DeliveryProof";
-import { setOrderStatus } from "./actions";
+import { revertOrderStatus, setOrderStatus } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +10,7 @@ type Row = {
   id: string;
   code: string;
   status: OrderStatus;
+  previous_status: OrderStatus | null;
   payment_method: string | null;
   subtotal_usd: number;
   deposit_usd: number;
@@ -44,12 +45,25 @@ function ActionBtn({ id, to, label, danger }: { id: string; to: OrderStatus; lab
   );
 }
 
+/** Um passo atrás — só aparece quando há o que desfazer. Diz para ONDE
+ *  volta, porque "Undo" sozinho não conta o que vai acontecer. */
+function UndoBtn({ id, back }: { id: string; back: OrderStatus }) {
+  return (
+    <form action={revertOrderStatus}>
+      <input type="hidden" name="id" value={id} />
+      <button className="btn small ghost" type="submit" title={`Back to ${STATUS_LABEL[back]}`}>
+        ↩ Undo — back to {STATUS_LABEL[back]}
+      </button>
+    </form>
+  );
+}
+
 export default async function AdminBoard() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, code, status, payment_method, subtotal_usd, deposit_usd, balance_usd, contact_name, contact_whatsapp, note, created_at, ships(name, berth, eta), order_items(name, qty)"
+      "id, code, status, previous_status, payment_method, subtotal_usd, deposit_usd, balance_usd, contact_name, contact_whatsapp, note, created_at, ships(name, berth, eta), order_items(name, qty)"
     )
     .order("created_at", { ascending: true });
 
@@ -131,6 +145,7 @@ export default async function AdminBoard() {
                   {o.status !== "awaiting_deposit" && (
                     <ActionBtn id={o.id} to="credited" label="↺ Credit (diverted)" />
                   )}
+                  {o.previous_status && <UndoBtn id={o.id} back={o.previous_status} />}
                 </div>
               </div>
             );
@@ -151,6 +166,13 @@ export default async function AdminBoard() {
                 <div className="meta">
                   {o.ships ? shortShipName(o.ships.name) : "—"} · {usd(Number(o.subtotal_usd))}
                 </div>
+                {/* Aqui o board não tinha saída: pedido fechado por
+                    engano só voltava com SQL na mão. */}
+                {o.previous_status && (
+                  <div className="actions">
+                    <UndoBtn id={o.id} back={o.previous_status} />
+                  </div>
+                )}
               </div>
             ))}
           </div>

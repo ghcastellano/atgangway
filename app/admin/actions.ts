@@ -58,7 +58,14 @@ export async function setOrderStatus(formData: FormData) {
   if (!order) return;
   if (!TRANSITIONS[order.status as OrderStatus]?.includes(to)) return;
 
-  const patch: Record<string, unknown> = { status: to };
+  /* O estado anterior fica gravado a cada mudança: é o que o botão
+     "Undo" restaura. Sem isto, `credited`/`cancelled`/`delivered` eram
+     becos sem saída — e o clique errado só se desfazia com SQL na mão. */
+  const patch: Record<string, unknown> = {
+    status: to,
+    previous_status: order.status,
+    status_changed_at: new Date().toISOString(),
+  };
   if (to === "delivered") patch.delivered_at = new Date().toISOString();
 
   const { error } = await supabase.from("orders").update(patch).eq("id", id);
@@ -70,6 +77,59 @@ export async function setOrderStatus(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/admin/shopping-list");
   revalidatePath(`/orders`);
+}
+
+/**
+ * Um passo atrás.
+ *
+ * Restaura o estado que `previous_status` guardou e zera a coluna: um
+ * passo, não uma pilha — desfazer em cadeia esconderia de quem olha o
+ * board o que de fato aconteceu com o pedido.
+ *
+ * Recusa quando o crédito do desvio já virou dinheiro no razão: aí não
+ * é mais um clique errado de status, é saldo na conta de alguém, e
+ * desfazer em silêncio deixaria o crédito órfão. Esse caso pede
+ * estorno explícito, não um botão.
+ *
+ * O e-mail já enviado NÃO é desreivindicado de propósito: se o cliente
+ * recebeu "entregue", mandar de novo depois do conserto é pior que
+ * calar. O livro-razão continua sendo a memória do que saiu.
+ */
+export async function revertOrderStatus(formData: FormData) {
+  const supabase = await adminClient();
+  if (!supabase) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select("status, previous_status")
+    .eq("id", id)
+    .maybeSingle();
+  if (!order?.previous_status) return;
+
+  // Dinheiro já lançado no razão: não se desfaz por botão.
+  const { count } = await supabase
+    .from("credits")
+    .select("id", { count: "exact", head: true })
+    .eq("order_id", id);
+  if ((count ?? 0) > 0) return;
+
+  const patch: Record<string, unknown> = {
+    status: order.previous_status,
+    previous_status: null,
+    status_changed_at: new Date().toISOString(),
+  };
+  // Saiu de "entregue": a data da entrega deixa de valer.
+  if (order.status === "delivered") patch.delivered_at = null;
+
+  const { error } = await supabase.from("orders").update(patch).eq("id", id);
+  if (error) return;
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/shopping-list");
+  revalidatePath("/orders");
 }
 
 /**
@@ -98,6 +158,8 @@ export async function markDelivered(formData: FormData) {
 
   const patch: Record<string, unknown> = {
     status: "delivered",
+    previous_status: order.status,
+    status_changed_at: new Date().toISOString(),
     delivered_at: new Date().toISOString(),
   };
 
