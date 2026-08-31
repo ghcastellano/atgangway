@@ -48,6 +48,23 @@ export default function CheckoutClient({
   const [placed, setPlaced] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  // A chave de idempotência: uma por TENTATIVA de compra. Nasce na
+  // montagem e troca quando o carrinho muda — assim o retry de rede e o
+  // clique duplo reenviam a MESMA tentativa (e recebem o mesmo pedido),
+  // enquanto um carrinho editado é, de verdade, uma compra nova.
+  const [idem, setIdem] = useState(() => crypto.randomUUID());
+  const assinatura = useMemo(
+    () =>
+      Object.entries(items)
+        .map(([id, qty]) => `${id}:${qty}`)
+        .sort()
+        .join("|"),
+    [items]
+  );
+  useEffect(() => {
+    setIdem(crypto.randomUUID());
+  }, [assinatura]);
+
   const ids = useMemo(() => Object.keys(items), [items]);
 
   useEffect(() => {
@@ -104,6 +121,7 @@ export default function CheckoutClient({
     setErr(null);
     startTransition(async () => {
       const res = await placeOrder({
+        idempotencyKey: idem,
         // O navio agora vem do perfil, não do carrinho: é do tripulante,
         // não da compra, e não muda entre um pedido e outro.
         shipId,
