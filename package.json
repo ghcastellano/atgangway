@@ -9,6 +9,7 @@
     "test": "node --experimental-strip-types --test",
     "test:responsivo": "node --experimental-strip-types --test tests/responsivo.test.mjs",
     "fotos:colher": "node scripts/colher-fotos-off.mjs",
+    "fotos:cosmos": "node scripts/colher-fotos-cosmos.mjs",
     "fotos": "node scripts/normalizar-fotos.mjs"
   },
   "dependencies": {
