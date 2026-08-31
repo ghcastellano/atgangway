@@ -1,0 +1,26 @@
+-- FASE B do pedido atômico — o caminho velho fecha.
+-- (aplicada via MCP em 31/08/2026 como `fase_b_lockdown_pedido`,
+--  DEPOIS do E2E verificado em produção)
+--
+-- Verificado antes de aplicar: nenhum código do app insere ou deleta
+-- orders/order_items (só selects e o update do admin); place_order é o
+-- único caminho de criação. Verificado depois: pedido novo continua
+-- nascendo pela RPC, e o insert direto de um cliente autenticado passa
+-- a responder "new row violates row-level security policy".
+--
+--   1. drop da confirm_stripe_deposit de 2 argumentos (a que o app
+--      antigo chamava);
+--   2. a de 4 argumentos passa a aceitar SÓ o stripe_confirm_secret —
+--      o signing secret do Stripe deixa de abrir a porta do banco;
+--   3. claim/release_order_email idem (sobram admin, confirm e cron);
+--   4. delete do app_secrets['stripe_webhook_secret'];
+--   5. drop das policies de escrita direta — o buraco maior da
+--      auditoria: qualquer logado inseria pedido com preço, depósito e
+--      saldo escolhidos por ele, por baixo de toda a validação.
+--
+--        drop policy "orders: customer insert own"         on orders;
+--        drop policy "orders: customer delete own pending" on orders;
+--        drop policy "order_items: customer insert own"    on order_items;
+--
+-- O corpo integral das funções está no projeto; este arquivo é o
+-- registro da mudança (o repo documenta, o banco é a fonte).
