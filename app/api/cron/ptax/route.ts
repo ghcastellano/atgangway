@@ -10,21 +10,27 @@ export const maxDuration = 30;
  *
  * Mesmo desenho do cron do line-up: chave anon mais segredo
  * compartilhado, para não existir chave service_role dentro do app. O
- * segredo mora em app_secrets e a RPC confere.
+ * segredo mora em app_secrets — e agora SÓ lá: o Bearer é conferido no
+ * banco (is_cron_secret), não contra uma cópia em env que pode faltar.
  *
  * Janela de 10 dias para trás, sempre: o PTAX não publica em fim de
  * semana nem feriado, e Carnaval emendado deixa quatro dias sem
  * cotação. Pedir só "hoje" devolveria vazio e o site ficaria sem taxa.
  */
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  const header = request.headers.get("authorization");
-  if (!secret || header !== `Bearer ${secret}`) {
+  const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
+  if (!provided) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
   if (!supabaseConfigured) {
     return Response.json({ ok: false, error: "supabase not configured" }, { status: 503 });
   }
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data: souCron } = await supabase.rpc("is_cron_secret", { p_secret: provided });
+  if (!souCron) {
+    return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+  const secret = provided;
 
   const to = new Date();
   const from = new Date(to.getTime() - 10 * 86_400_000);
@@ -54,7 +60,6 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, error: "no ptax in window" }, { status: 502 });
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const { data, error } = await supabase.rpc("upsert_fx_rate", {
     p_date: rate.quoteDate,
     p_buy: rate.buy,

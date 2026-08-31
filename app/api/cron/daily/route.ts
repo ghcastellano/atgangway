@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../../../lib/env.ts";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfigured } from "../../../../lib/env.ts";
 import { CONTACT_EMAIL } from "../../../../lib/env.ts";
 import { sendMail } from "../../../../lib/mailer.ts";
 
@@ -17,28 +17,27 @@ export const maxDuration = 30;
  *
  * A expiração do New Arrivals roda dentro da MESMA RPC: selo de 30 dias
  * que ninguém tira faz "novo" significar "velho com etiqueta".
- * Segurança no padrão da casa: CRON_SECRET aqui, o mesmo segredo
- * conferido no banco pela RPC — nenhuma chave service_role no app.
+ * Segurança no padrão da casa: o Bearer é conferido no BANCO
+ * (is_cron_secret → app_secrets.cron_secret), o mesmo segredo que a
+ * RPC de trabalho confere — nenhuma chave service_role no app e nenhum
+ * segredo duplicado em env, que foi o que faltou no painel.
  */
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  // 503 para config ausente e header-only, pela mesma razão do lineup:
-  // status honesto é o que o razão do pg_cron consegue ler, e segredo
-  // em query string vaza em log.
-  if (!secret) {
-    return Response.json(
-      { ok: false, reason: "CRON_SECRET ausente no ambiente" },
-      { status: 503 }
-    );
-  }
-
   const auth = request.headers.get("authorization");
+  // Só header Authorization: segredo em query string vaza em log.
   const provided = auth?.replace(/^Bearer\s+/i, "") ?? null;
-  if (provided !== secret) return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!provided) return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!supabaseConfigured) {
+    return Response.json({ ok: false, reason: "supabase não configurado" }, { status: 503 });
+  }
 
   const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const { data: souCron } = await db.rpc("is_cron_secret", { p_secret: provided });
+  if (!souCron) return Response.json({ error: "unauthorized" }, { status: 401 });
+  const secret = provided;
+
   const { data, error } = await db.rpc("ops_daily", { p_secret: secret });
   if (error || !(data as { ok?: boolean })?.ok) {
     return Response.json(

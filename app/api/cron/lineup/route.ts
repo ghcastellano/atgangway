@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../../../../lib/env.ts";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfigured } from "../../../../lib/env.ts";
 import {
   LINEUP_SOURCES,
   fetchLineupHtml,
@@ -13,34 +13,33 @@ import { SITE_URL } from "../../../../lib/env.ts";
 export const maxDuration = 60;
 
 /**
- * Sync do line-up do Porto de Santos (Vercel Cron, de hora em hora).
+ * Sync do line-up do Porto de Santos (pg_cron, de hora em hora).
  *
- * Segurança: exige CRON_SECRET (o Vercel Cron manda no Authorization).
- * O mesmo segredo autoriza sync_ship_eta no banco — nenhuma chave de
- * service role no app.
+ * Segurança: o portador prova que sabe o segredo do cron, e quem
+ * confere é o BANCO (is_cron_secret → app_secrets.cron_secret) — a
+ * mesma pergunta que as RPCs de trabalho já fazem por dentro. A rota
+ * validava contra uma CÓPIA em env (CRON_SECRET), e a cópia é o que
+ * faltou no painel: o agendador mandava o valor certo e levava 401.
+ * Nenhuma chave de service role no app, e nenhum segredo duplicado.
  *
  * ?debug=1 devolve um diagnóstico da fonte (status, tamanho, amostra
  * das tabelas) para calibrar o parser sem gravar nada.
  */
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  // Sem segredo o job não tem como rodar: 503 nomeia "configuração".
-  // Já foi 200 + ok:false "para o alarme ficar limpo" — e o efeito real
-  // era um pipeline morto invisível para qualquer monitor de status,
-  // inclusive o razão do pg_cron em net._http_response.
-  if (!secret) {
-    return Response.json(
-      { ok: false, reason: "CRON_SECRET ausente no ambiente" },
-      { status: 503 }
-    );
-  }
-
   const auth = request.headers.get("authorization");
   const url = new URL(request.url);
   // Só header Authorization. Segredo em ?key= fica em log de acesso,
   // proxy e histórico — e o agendador (pg_cron) já manda o header.
   const provided = auth?.replace(/^Bearer\s+/i, "") ?? null;
-  if (provided !== secret) return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!provided) return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!supabaseConfigured) {
+    return Response.json({ ok: false, reason: "supabase não configurado" }, { status: 503 });
+  }
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data: souCron } = await supabase.rpc("is_cron_secret", { p_secret: provided });
+  if (!souCron) return Response.json({ error: "unauthorized" }, { status: 401 });
+  const secret = provided;
 
   const debug = url.searchParams.get("debug") === "1";
   const dryRun = debug || url.searchParams.get("dry") === "1";
@@ -86,7 +85,6 @@ export async function GET(request: Request) {
     return Response.json({ ok: false, reason: "no rows parsed", attempts }, { status: 502 });
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const summary = { created: 0, eta_changed: 0, new_voyage: 0, unchanged: 0, failed: 0 };
   const changes: Array<Record<string, unknown>> = [];
 
