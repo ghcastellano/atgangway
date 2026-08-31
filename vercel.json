@@ -1,0 +1,19 @@
+{
+  "regions": [
+    "gru1"
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/lineup",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/ptax",
+      "schedule": "30 14 * * 1-5"
+    },
+    {
+      "path": "/api/cron/daily",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}

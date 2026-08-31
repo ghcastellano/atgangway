@@ -1,0 +1,254 @@
+<meta charset="utf-8">
+<title>Vessel Ops</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#040D1A; --panel:#081526; --card:#0B1B30; --card-hi:#10233E;
+    --ink:#EEF4F8; --muted:#9FB4C8; --faint:#5F7690;
+    --amber:#FFB648; --amber-hi:#FFD9A0; --teal:#2EE6C8; --danger:#FF5964; --ok:#25D366;
+    --line:rgba(238,244,248,.08); --line-hi:rgba(238,244,248,.16);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background: var(--night); color: var(--ink);
+    font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.5;
+    min-height: 100vh;
+  }
+  .disp { font-family:"Bricolage Grotesque", Inter, sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  /* ===== top bar ===== */
+  .top {
+    display:flex; align-items:center; gap:20px; padding: 14px 22px;
+    border-bottom:1px solid var(--line); background: var(--panel);
+    position: sticky; top:0; z-index:10; flex-wrap: wrap;
+  }
+  .top .logo { font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:800; font-size:15px;
+    letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+  .top .logo b { color: var(--amber); }
+  .top .logo small { display:block; font-family:ui-monospace,Menlo,monospace; font-size:9.5px;
+    letter-spacing:.22em; color:var(--faint); font-weight:400; }
+  .kpis { display:flex; gap:10px; margin-left:auto; flex-wrap:wrap; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 16px; min-width:110px; }
+  .kpi b { display:block; font-family:ui-monospace,Menlo,monospace; font-size:17px; color:var(--amber-hi);
+    font-variant-numeric: tabular-nums; }
+  .kpi span { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); }
+  .btn-list {
+    border:1px solid var(--line-hi); background:transparent; color:var(--ink); border-radius:10px;
+    font-family:Inter,sans-serif; font-weight:600; font-size:13px; padding:10px 18px; cursor:pointer;
+    transition: all .2s;
+  }
+  .btn-list:hover, .btn-list.on { background: var(--amber); border-color: var(--amber); color:#241802; }
+
+  /* ===== layout ===== */
+  .layout { display:grid; grid-template-columns: 290px 1fr; min-height: calc(100vh - 65px); }
+  @media (max-width: 900px){ .layout { grid-template-columns: 1fr; } }
+
+  /* ===== line-up rail ===== */
+  .rail { border-right:1px solid var(--line); padding: 18px 14px; background: rgba(8,21,38,.5); }
+  @media (max-width:900px){ .rail { border-right:0; border-bottom:1px solid var(--line); } }
+  .rail h2 { font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--faint); margin:0 0 12px 6px; font-weight:600; }
+  .vessel {
+    width:100%; text-align:left; background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:13px 15px; margin-bottom:10px; cursor:pointer; color:var(--ink); font-family:inherit;
+    transition: border-color .2s, background .2s; display:block;
+  }
+  .vessel:hover { border-color: var(--line-hi); background: var(--card-hi); }
+  .vessel.on { border-color: var(--amber); background: var(--card-hi); }
+  .vessel .nm { font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:700; font-size:14.5px;
+    display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .vessel .n-ord { font-family:ui-monospace,Menlo,monospace; font-size:11px; color:var(--amber); }
+  .vessel .meta { font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.06em;
+    color:var(--muted); margin-top:4px; }
+  .vessel .eta-soon { color: var(--teal); }
+  .vessel .eta-now { color: var(--amber); }
+
+  /* ===== board ===== */
+  .board { padding: 18px; overflow-x:auto; }
+  .cols { display:grid; grid-template-columns: repeat(4, minmax(230px, 1fr)); gap:14px; min-width: 960px; }
+  .col h3 {
+    font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 10px 4px; font-weight:600; display:flex; justify-content:space-between;
+  }
+  .col h3 .cnt { color: var(--amber); }
+  .order {
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:13px 14px;
+    margin-bottom:10px; transition: border-color .2s, transform .2s;
+  }
+  .order:hover { border-color: var(--line-hi); }
+  .order .oid { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+  .order .oid b { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--amber-hi); }
+  .order .oid .vs { font-family:ui-monospace,Menlo,monospace; font-size:10px; color:var(--faint);
+    letter-spacing:.06em; }
+  .order .its { font-size:12.5px; color:var(--muted); margin-bottom:8px; line-height:1.45; }
+  .order .foot { display:flex; justify-content:space-between; align-items:center; }
+  .order .val { font-family:ui-monospace,Menlo,monospace; font-size:12px; font-variant-numeric:tabular-nums; }
+  .order .val .dep { color: var(--ok); } .order .val .bal { color: var(--faint); }
+  .adv {
+    border:1px solid var(--line-hi); background:transparent; color:var(--ink); border-radius:8px;
+    font-size:12px; font-weight:600; padding:6px 12px; cursor:pointer; font-family:Inter,sans-serif;
+    transition: all .2s;
+  }
+  .adv:hover { background: var(--teal); border-color: var(--teal); color:#03211B; }
+  .order.delivered { opacity:.55; }
+  .order.delivered .adv { display:none; }
+  .flag {
+    display:inline-block; font-family:ui-monospace,Menlo,monospace; font-size:9.5px; letter-spacing:.1em;
+    text-transform:uppercase; border-radius:99px; padding:2px 8px; margin-top:2px;
+  }
+  .flag.urgent { background: rgba(255,89,100,.12); color: var(--danger); }
+  .flag.window { background: rgba(46,230,200,.1); color: var(--teal); }
+
+  /* ===== shopping drawer ===== */
+  .drawer {
+    position: fixed; top:0; right:-420px; width: min(400px, 92vw); height:100vh; z-index:20;
+    background: var(--panel); border-left:1px solid var(--line-hi);
+    transition: right .35s cubic-bezier(.2,.7,.2,1); display:flex; flex-direction:column;
+    box-shadow: -30px 0 60px rgba(0,0,0,.5);
+  }
+  .drawer.open { right:0; }
+  .drawer header { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .drawer header h2 { font-family:"Bricolage Grotesque",Inter,sans-serif; font-size:17px; margin:0; }
+  .drawer header button { background:none; border:0; color:var(--muted); font-size:22px; cursor:pointer; }
+  .drawer .body { overflow-y:auto; padding: 14px 20px 30px; }
+  .sup { margin-bottom: 20px; }
+  .sup h3 { font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--amber); margin:0 0 8px; font-weight:600; }
+  .sup .it { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px dashed var(--line);
+    font-size:13px; }
+  .sup .it b { font-family:ui-monospace,Menlo,monospace; color:var(--teal); }
+  .drawer .note { font-size:11.5px; color:var(--faint); margin-top:16px; line-height:1.5; }
+
+  @media (prefers-reduced-motion: reduce){ * { transition:none !important; } }
+</style>
+
+<div class="top">
+  <div class="logo">Mariners <b>Ops</b><small>Deck de operação · Santos</small></div>
+  <div class="kpis">
+    <div class="kpi"><b id="kNav">0</b><span>navios hoje</span></div>
+    <div class="kpi"><b id="kOrd">0</b><span>pedidos ativos</span></div>
+    <div class="kpi"><b id="kGmv">$0</b><span>GMV do dia</span></div>
+    <div class="kpi"><b id="kBal">$0</b><span>a receber na prancha</span></div>
+  </div>
+  <button class="btn-list" id="listBtn" onclick="toggleDrawer()">🛒 Lista de compras</button>
+</div>
+
+<div class="layout">
+  <aside class="rail">
+    <h2>Line-up · próximas 48h</h2>
+    <div id="rail"></div>
+  </aside>
+  <main class="board">
+    <div class="cols" id="cols"></div>
+  </main>
+</div>
+
+<div class="drawer" id="drawer" aria-label="Lista de compras consolidada">
+  <header><h2>Lista de compras — consolidada</h2><button onclick="toggleDrawer()" aria-label="Fechar">×</button></header>
+  <div class="body" id="drawerBody"></div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const STAGES = ['Comprar','Separando','Na prancha','Entregue'];
+const VESSELS = [
+  { id:'lorena', nm:'MSC LORENA',        etaH: 9,  berth:39, agency:'Wilson Sons' },
+  { id:'melody', nm:'CMA CGM MELODY',    etaH: 21, berth:33, agency:'Unimar' },
+  { id:'lota',   nm:'MAERSK LOTA',       etaH: 34, berth:37, agency:'Williams' },
+  { id:'nyk',    nm:'NYK CONSTELLATION', etaH: 45, berth:35, agency:'Cargill Ag.' },
+];
+const SUPPLIER = { Food:'Atacado — Assaí Santos', Care:'Farmácia parceira — Centro', Tech:'Distribuidor eletrônicos', Connectivity:'eSIM — digital (sem compra física)' };
+let ORDERS = [
+  { id:'MS-3896', v:'lorena', stage:1, dep:26.40, bal:61.60, its:[['eSIM 20GB','Connectivity',1],['Snack kit','Food',1],['JBL Go 4','Tech',1]], coletivo:false },
+  { id:'MS-3897', v:'lorena', stage:0, dep:54.00, bal:126.00, its:[['Snack kit','Food',4],['Coffee kit','Food',2],['Hygiene kit','Care',2]], coletivo:true },
+  { id:'MS-3899', v:'lorena', stage:2, dep:9.60,  bal:22.40, its:[['Powerbank','Tech',1],['Cabos & adapt.','Tech',1]], coletivo:false },
+  { id:'MS-3901', v:'melody', stage:0, dep:33.30, bal:77.70, its:[['eSIM 50GB','Connectivity',2],['Drinks pack','Food',3]], coletivo:true },
+  { id:'MS-3902', v:'melody', stage:0, dep:12.30, bal:28.70, its:[['Deck kit','Care',1],['Pharmacy','Care',1]], coletivo:false },
+  { id:'MS-3905', v:'lota',   stage:0, dep:16.80, bal:39.20, its:[['Coffee kit','Food',2],['Poker set','Tech',1]], coletivo:false },
+  { id:'MS-3890', v:'lorena', stage:3, dep:15.00, bal:35.00, its:[['Hygiene kit','Care',2]], coletivo:false },
+];
+
+/* ============ STATE ============ */
+let filterV = null;
+
+/* ============ HELPERS ============ */
+const $ = id => document.getElementById(id);
+const usd = v => '$' + v.toFixed(2).replace(/\.00$/,'');
+const total = o => o.dep + o.bal;
+
+/* ============ RENDER ============ */
+function renderRail(){
+  $('rail').innerHTML = VESSELS.map(v => {
+    const n = ORDERS.filter(o=>o.v===v.id && o.stage<3).length;
+    const cls = v.etaH <= 12 ? 'eta-now' : v.etaH <= 24 ? 'eta-soon' : '';
+    return `<button class="vessel ${filterV===v.id?'on':''}" onclick="setFilter('${v.id}')">
+      <span class="nm">${v.nm} <span class="n-ord">${n?n+' ped.':''}</span></span>
+      <span class="meta ${cls}">ETA ${v.etaH}H · BERÇO ${v.berth} · ${v.agency}</span>
+    </button>`;
+  }).join('');
+}
+function setFilter(id){ filterV = (filterV===id) ? null : id; renderRail(); renderBoard(); }
+
+function renderBoard(){
+  const list = ORDERS.filter(o => !filterV || o.v===filterV);
+  $('cols').innerHTML = STAGES.map((st,si) => {
+    const os = list.filter(o=>o.stage===si);
+    return `<div class="col"><h3>${st} <span class="cnt">${os.length}</span></h3>
+      ${os.map(o => {
+        const v = VESSELS.find(x=>x.id===o.v);
+        const urgent = v.etaH <= 12 && o.stage < 2;
+        return `<div class="order ${si===3?'delivered':''}">
+          <div class="oid"><b>#${o.id}</b><span class="vs">${v.nm.split(' ').pop()} · B${v.berth}</span></div>
+          <div class="its">${o.its.map(i=>i[2]+'× '+i[0]).join(' · ')}</div>
+          ${o.coletivo?'<span class="flag window">pedido coletivo</span> ':''}
+          ${urgent?'<span class="flag urgent">ETA '+v.etaH+'h — priorizar</span>':''}
+          <div class="foot" style="margin-top:8px">
+            <span class="val"><span class="dep">✓ ${usd(o.dep)}</span> · <span class="bal">${usd(o.bal)} na prancha</span></span>
+            ${si<3?`<button class="adv" onclick="advance('${o.id}')">${si===2?'Entregue ✓':'Avançar →'}</button>`:''}
+          </div>
+        </div>`;
+      }).join('') || '<p style="color:var(--faint);font-size:12px;margin:6px 4px">—</p>'}
+    </div>`;
+  }).join('');
+  renderKpis();
+}
+function advance(id){
+  const o = ORDERS.find(x=>x.id===id);
+  if (o && o.stage<3) o.stage++;
+  renderBoard(); renderRail(); renderDrawer();
+}
+function renderKpis(){
+  const active = ORDERS.filter(o=>o.stage<3);
+  $('kNav').textContent = VESSELS.filter(v=>v.etaH<=48).length;
+  $('kOrd').textContent = active.length;
+  $('kGmv').textContent = usd(ORDERS.reduce((s,o)=>s+total(o),0));
+  $('kBal').textContent = usd(active.reduce((s,o)=>s+o.bal,0));
+}
+function renderDrawer(){
+  const buy = ORDERS.filter(o=>o.stage===0);
+  const agg = {};
+  buy.forEach(o => o.its.forEach(([nm,cat,q]) => {
+    const sup = SUPPLIER[cat];
+    agg[sup] = agg[sup] || {};
+    agg[sup][nm] = (agg[sup][nm]||0) + q;
+  }));
+  $('drawerBody').innerHTML = Object.keys(agg).length
+    ? Object.entries(agg).map(([sup, items]) => `
+      <div class="sup"><h3>${sup}</h3>
+        ${Object.entries(items).map(([nm,q])=>`<div class="it"><span>${nm}</span><b>×${q}</b></div>`).join('')}
+      </div>`).join('') + `<p class="note">Consolidado dos pedidos em "Comprar". Uma ida por fornecedor — a rota é: atacado → farmácia → distribuidor, nesta ordem, casada com o ETA mais próximo.</p>`
+    : '<p class="note">Nada a comprar agora — tudo separado ou entregue. ⚓</p>';
+}
+function toggleDrawer(){
+  $('drawer').classList.toggle('open');
+  $('listBtn').classList.toggle('on');
+  renderDrawer();
+}
+
+/* ============ INIT ============ */
+renderRail(); renderBoard(); renderDrawer();
+</script>

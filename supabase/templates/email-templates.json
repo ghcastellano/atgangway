@@ -1,0 +1,6 @@
+{
+  "mailer_subjects_confirmation": "Confirm your email — Vessel Supplier",
+  "mailer_templates_confirmation_content": "<h2>Welcome aboard, sailor ⚓</h2><p>Confirm your email to activate your <b>Vessel Supplier</b> account — your kit rides with your ship's ETA.</p><p><a href=\"{{ .SiteURL }}auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}\">Confirm my email</a></p><p style=\"color:#667\">If the button doesn't work, copy this link into your browser:<br>{{ .SiteURL }}auth/confirm?token_hash={{ .TokenHash }}&type=email</p><p style=\"color:#667\">Didn't create this account? Just ignore this email.</p>",
+  "mailer_subjects_recovery": "Reset your password — Vessel Supplier",
+  "mailer_templates_recovery_content": "<h2>Reset your password</h2><p>Happens at sea. Tap below to set a new password for <b>Vessel Supplier</b>:</p><p><a href=\"{{ .SiteURL }}auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password\">Reset my password</a></p><p style=\"color:#667\">If the button doesn't work, copy this link into your browser:<br>{{ .SiteURL }}auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password</p><p style=\"color:#667\">If you didn't ask for this, ignore this email — your password stays the same.</p>"
+}

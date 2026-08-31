@@ -1,0 +1,661 @@
+<meta charset="utf-8">
+<title>Mariners App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:   #040D1A;
+    --panel:   #081526;
+    --card:    #0B1B30;
+    --card-hi: #0F2340;
+    --ink:     #EEF4F8;
+    --muted:   #9FB4C8;
+    --faint:   #5F7690;
+    --amber:   #FFB648;
+    --amber-hi:#FFD9A0;
+    --teal:    #2EE6C8;
+    --wa:      #25D366;
+    --danger:  #FF5964;
+    --line:    rgba(238,244,248,.08);
+    --line-hi: rgba(238,244,248,.16);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: #01060D; color: var(--ink);
+    font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 15px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .disp { font-family: "Bricolage Grotesque", Inter, sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  /* ===== device stage: full-bleed app on phones, framed device on bigger screens ===== */
+  .stage { min-height: 100svh; display: flex; align-items: center; justify-content: center; }
+  .app {
+    position: relative; width: 100%; max-width: 430px; height: 100svh; max-height: 100svh;
+    background: var(--night); display: flex; flex-direction: column; overflow: hidden;
+  }
+  @media (min-width: 500px) {
+    .stage {
+      padding: 32px 20px;
+      background:
+        radial-gradient(50% 40% at 75% 10%, rgba(255,182,72,.06), transparent 60%),
+        radial-gradient(60% 50% at 20% 100%, rgba(46,230,200,.04), transparent 60%),
+        #01060D;
+    }
+    .app {
+      height: min(860px, calc(100svh - 64px));
+      border-radius: 34px; border: 1px solid var(--line-hi);
+      box-shadow: 0 30px 90px -30px rgba(0,0,0,.9), 0 0 0 8px #0A121E;
+    }
+    .stage::after {
+      content: "MARINERS APP · PROTÓTIPO FUNCIONAL · TOQUE / CLIQUE PARA NAVEGAR";
+      position: fixed; bottom: 14px; left: 0; right: 0; text-align: center;
+      font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .22em;
+      color: var(--faint);
+    }
+  }
+
+  /* ===== screens ===== */
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--night); }
+  .screen.on { display: flex; animation: screenIn .32s cubic-bezier(.2,.7,.2,1); }
+  @keyframes screenIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce){ .screen.on { animation: none; } }
+
+  .scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 110px; }
+
+  /* ===== top bar ===== */
+  .top {
+    padding: 18px 20px 14px; display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid var(--line); background: rgba(4,13,26,.9); backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .top .logo { font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight: 800; font-size: 15px;
+    letter-spacing:.06em; text-transform: uppercase; }
+  .top .logo b { color: var(--amber); font-weight: 800; }
+  .vessel-chip {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--line-hi); border-radius: 999px;
+    padding: 7px 13px; font-family: ui-monospace, Menlo, monospace; font-size: 11px;
+    letter-spacing: .08em; color: var(--teal); cursor: pointer; transition: border-color .2s;
+  }
+  .vessel-chip:hover { border-color: var(--teal); }
+  .vessel-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal);
+    box-shadow: 0 0 8px rgba(46,230,200,.9); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 50% { opacity:.35 } }
+  .back {
+    background: none; border: 0; color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px 8px 4px 0;
+    line-height: 1;
+  }
+  .top h1 { font-family:"Bricolage Grotesque",Inter,sans-serif; font-size: 18px; font-weight: 700; margin: 0; }
+
+  /* ===== ship select ===== */
+  .hero-mini { padding: 34px 22px 10px; }
+  .hero-mini .k { font-family: ui-monospace,Menlo,monospace; font-size: 10.5px; letter-spacing:.22em;
+    text-transform: uppercase; color: var(--amber); margin: 0 0 10px; }
+  .hero-mini h2 { font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight: 800;
+    font-size: 30px; line-height: 1.04; margin: 0 0 8px; letter-spacing: -.01em; }
+  .hero-mini p { color: var(--muted); font-size: 14px; margin: 0; }
+  .ships { padding: 20px 16px; display: grid; gap: 12px; }
+  .ship {
+    text-align: left; width: 100%; background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; padding: 17px 18px; cursor: pointer; color: var(--ink);
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+    transition: border-color .2s, transform .2s, background .2s; font-family: inherit;
+  }
+  .ship:hover { border-color: rgba(255,182,72,.5); transform: translateY(-2px); background: var(--card-hi); }
+  .ship:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .ship .nm { grid-column: 1; grid-row: 1; font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight: 700; font-size: 16.5px; }
+  .ship .meta { grid-column: 1; grid-row: 2; font-family: ui-monospace,Menlo,monospace; font-size: 11.5px;
+    color: var(--muted); letter-spacing: .06em; }
+  .ship .win { grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right; max-width: 110px;
+    font-family: ui-monospace,Menlo,monospace; font-size: 10.5px; letter-spacing: .08em; line-height: 1.5; }
+  .win .ok { color: var(--teal); } .win .soon { color: var(--amber); } .win .closed { color: var(--danger); }
+
+  /* ===== catalog ===== */
+  .cats-tabs { display: flex; gap: 8px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; }
+  .cats-tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    border: 1px solid var(--line-hi); background: transparent; color: var(--muted);
+    font-family: Inter, sans-serif; font-weight: 600; font-size: 13px; border-radius: 999px;
+    padding: 8px 16px; cursor: pointer; white-space: nowrap; transition: all .2s;
+  }
+  .tab.on { background: var(--amber); border-color: var(--amber); color: #241802; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 16px; }
+  .prod {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column; transition: border-color .2s, transform .2s;
+  }
+  .prod:hover { border-color: var(--line-hi); transform: translateY(-2px); }
+  .prod .ph { height: 86px; display:flex; align-items:center; justify-content:center; font-size: 34px;
+    background: linear-gradient(160deg, var(--card-hi), var(--card)); }
+  .prod .b { padding: 12px 14px 14px; display: flex; flex-direction: column; flex: 1; gap: 3px; }
+  .prod .nm { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+  .prod .ds { font-size: 11.5px; color: var(--faint); flex: 1; }
+  .prod .row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .prod .pr { font-family: ui-monospace,Menlo,monospace; font-size: 13px; color: var(--amber-hi);
+    font-variant-numeric: tabular-nums; }
+  .add {
+    width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--line-hi);
+    background: transparent; color: var(--ink); font-size: 17px; cursor: pointer; line-height: 1;
+    transition: all .2s; display: flex; align-items: center; justify-content: center;
+  }
+  .add:hover { background: var(--amber); border-color: var(--amber); color: #241802; }
+  .add.inCart { background: var(--amber); border-color: var(--amber); color: #241802; font-weight: 700; font-size: 12px; }
+  .deadline {
+    margin: 4px 16px 0; padding: 10px 14px; border-radius: 12px; background: rgba(255,182,72,.08);
+    border: 1px solid rgba(255,182,72,.25); font-family: ui-monospace,Menlo,monospace;
+    font-size: 11px; letter-spacing: .08em; color: var(--amber-hi); display: flex; gap: 8px; align-items: center;
+  }
+
+  /* ===== bottom nav ===== */
+  .nav {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 6;
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    background: rgba(6,16,30,.92); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+    padding: 10px 8px calc(12px + env(safe-area-inset-bottom));
+  }
+  .nav button {
+    background: none; border: 0; color: var(--faint); font-family: Inter, sans-serif;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative;
+    padding: 4px 0; transition: color .2s;
+  }
+  .nav button .i { font-size: 20px; line-height: 1; }
+  .nav button.on { color: var(--amber-hi); }
+  .nav .badge {
+    position: absolute; top: -2px; right: calc(50% - 22px);
+    min-width: 17px; height: 17px; border-radius: 999px; background: var(--amber); color: #241802;
+    font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; transform: scale(0); transition: transform .25s cubic-bezier(.2,.7,.3,1.4);
+  }
+  .nav .badge.show { transform: scale(1); }
+  .nav .badge.bump { animation: bump .35s cubic-bezier(.2,.7,.3,1.6); }
+  @keyframes bump { 40% { transform: scale(1.45); } 100% { transform: scale(1); } }
+
+  /* ===== cart ===== */
+  .cart-list { padding: 10px 16px; display: grid; gap: 10px; }
+  .ci {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px;
+    display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center;
+  }
+  .ci .em { font-size: 24px; text-align: center; }
+  .ci .nm { font-weight: 600; font-size: 13.5px; }
+  .ci .pr { font-family: ui-monospace,Menlo,monospace; font-size: 11.5px; color: var(--muted); }
+  .qty { display: flex; align-items: center; gap: 10px; }
+  .qty button {
+    width: 27px; height: 27px; border-radius: 8px; border: 1px solid var(--line-hi); background: none;
+    color: var(--ink); cursor: pointer; font-size: 15px; line-height: 1;
+  }
+  .qty button:hover { border-color: var(--amber); color: var(--amber-hi); }
+  .qty b { font-family: ui-monospace,Menlo,monospace; font-size: 14px; min-width: 18px; text-align: center; }
+  .summary {
+    margin: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+  }
+  .summary .r { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--muted); padding: 5px 0; }
+  .summary .r b { font-family: ui-monospace,Menlo,monospace; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .summary .r.total { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 12px; color: var(--ink); font-weight: 600; }
+  .summary .r.total b { color: var(--amber-hi); font-size: 16px; }
+  .summary .hint { font-size: 11.5px; color: var(--faint); margin-top: 10px; line-height: 1.5; }
+  .empty { text-align: center; padding: 70px 30px; color: var(--faint); }
+  .empty .i { font-size: 40px; margin-bottom: 12px; }
+
+  /* ===== CTA bar ===== */
+  .cta-dock {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 7;
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent, rgba(1,6,13,.88) 30%);
+  }
+  .cta {
+    width: 100%; border: 0; border-radius: 14px; padding: 16px; cursor: pointer;
+    font-family: Inter, sans-serif; font-weight: 700; font-size: 15px;
+    background: var(--amber); color: #241802; display: flex; justify-content: space-between; align-items: center;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -10px rgba(255,182,72,.45); }
+  .cta:disabled { opacity: .35; cursor: default; transform: none; box-shadow: none; }
+  .cta .mono { font-size: 13px; }
+
+  /* ===== checkout ===== */
+  .paybox { margin: 14px 16px; display: grid; gap: 12px; }
+  .payopt {
+    display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 15px 16px; cursor: pointer; transition: border-color .2s; font-size: 14px;
+  }
+  .payopt input { accent-color: #FFB648; width: 17px; height: 17px; }
+  .payopt:hover { border-color: var(--line-hi); }
+  .payopt .sub { display: block; font-size: 11.5px; color: var(--faint); }
+  .field { margin: 0 16px 12px; }
+  .field label { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--faint); margin-bottom: 6px; font-weight: 600; }
+  .field input {
+    width: 100%; background: var(--card); border: 1px solid var(--line-hi); border-radius: 12px;
+    color: var(--ink); font-family: ui-monospace,Menlo,monospace; font-size: 14px; padding: 13px 14px;
+  }
+  .field input:focus { outline: 2px solid var(--teal); outline-offset: 1px; border-color: transparent; }
+
+  /* ===== tracking ===== */
+  .okwrap { text-align: center; padding: 44px 20px 10px; }
+  .okring {
+    width: 74px; height: 74px; margin: 0 auto 18px; border-radius: 50%;
+    border: 2px solid var(--teal); display: flex; align-items: center; justify-content: center;
+    font-size: 30px; color: var(--teal); box-shadow: 0 0 34px rgba(46,230,200,.25);
+    animation: ok .5s cubic-bezier(.2,.7,.3,1.4);
+  }
+  @keyframes ok { from { transform: scale(.5); opacity: 0; } }
+  .okwrap h2 { font-family:"Bricolage Grotesque",Inter,sans-serif; font-size: 24px; margin: 0 0 6px; }
+  .okwrap p { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .okwrap .mono { color: var(--amber-hi); }
+  .track { margin: 26px 16px; padding: 4px 0 4px 6px; }
+  .step { display: grid; grid-template-columns: 30px 1fr; gap: 14px; position: relative; padding-bottom: 26px; }
+  .step:last-child { padding-bottom: 0; }
+  .step::before { content: ""; position: absolute; left: 14px; top: 26px; bottom: 0; width: 2px; background: var(--line); }
+  .step:last-child::before { display: none; }
+  .step .n {
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line-hi);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; background: var(--night); z-index: 1;
+  }
+  .step.done .n { border-color: var(--teal); color: var(--teal); }
+  .step.now .n { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 16px rgba(255,182,72,.35); }
+  .step h4 { margin: 3px 0 2px; font-size: 14.5px; }
+  .step p { margin: 0; font-size: 12.5px; color: var(--faint); }
+  .step.done h4 { color: var(--muted); }
+
+  /* ===== crew captain ===== */
+  .crew-hero { text-align:center; padding: 30px 22px 8px; }
+  .crew-hero .cap { font-size: 44px; }
+  .crew-hero h2 { font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:800; font-size:26px;
+    margin: 8px 0 6px; letter-spacing:-.01em; }
+  .crew-hero h2 b { color: var(--amber); }
+  .crew-hero p { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .qrcard {
+    margin: 22px 16px; background: linear-gradient(160deg, rgba(255,182,72,.09), var(--card) 60%);
+    border: 1px solid rgba(255,182,72,.35); border-radius: 18px; padding: 22px;
+    display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center;
+  }
+  .qr {
+    width: 104px; height: 104px; background: #EEF4F8; border-radius: 10px; padding: 9px;
+    display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); gap: 1.5px;
+  }
+  .qr i { background: #0B1B30; border-radius: 1px; }
+  .qr i.off { background: transparent; }
+  .qrcard .info .code { font-family: ui-monospace,Menlo,monospace; font-size: 16px; font-weight: 700;
+    color: var(--amber-hi); letter-spacing: .06em; }
+  .qrcard .info p { font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+  .share {
+    border: 0; border-radius: 10px; background: var(--wa); color: #04240F; font-weight: 700;
+    font-family: Inter,sans-serif; font-size: 13px; padding: 10px 16px; cursor: pointer;
+  }
+  .crew-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 8px; }
+  .cstat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+  .cstat b { display:block; font-family: ui-monospace,Menlo,monospace; font-size: 22px; color: var(--teal);
+    font-variant-numeric: tabular-nums; }
+  .cstat span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+  .tiers { margin: 14px 16px; }
+  .tier { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .tier.on { border-color: rgba(255,182,72,.45); }
+  .tier .em { font-size: 20px; text-align: center; }
+  .tier h4 { margin: 0; font-size: 13.5px; } .tier p { margin: 0; font-size: 11.5px; color: var(--faint); }
+  .tier .pct { font-family: ui-monospace,Menlo,monospace; font-size: 13px; color: var(--amber-hi); }
+  .crew-note { margin: 14px 18px 90px; font-size: 11.5px; color: var(--faint); line-height: 1.55; }
+  .crew-banner {
+    margin: 6px 16px 20px; background: linear-gradient(160deg, rgba(255,182,72,.1), var(--card) 65%);
+    border: 1px solid rgba(255,182,72,.3); border-radius: 14px; padding: 15px 17px;
+    display: flex; gap: 13px; align-items: center; cursor: pointer; transition: border-color .2s;
+  }
+  .crew-banner:hover { border-color: var(--amber); }
+  .crew-banner .em { font-size: 26px; }
+  .crew-banner h4 { margin: 0 0 2px; font-size: 14px; }
+  .crew-banner p { margin: 0; font-size: 12px; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="stage">
+<div class="app" id="app">
+
+  <!-- ========== SCREEN: SHIP SELECT ========== -->
+  <div class="screen on" id="s-ship">
+    <div class="top">
+      <span class="logo">Mariners <b>Supply</b></span>
+    </div>
+    <div class="scroll">
+      <div class="hero-mini">
+        <p class="k">Porto de Santos · by Mariner's Bar</p>
+        <h2>Which ship are you on, sailor?</h2>
+        <p>Your order rides with your vessel's ETA. Pick your ship — we handle the rest.</p>
+      </div>
+      <div class="ships" id="shipList"></div>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: SHOP ========== -->
+  <div class="screen" id="s-shop">
+    <div class="top">
+      <span class="logo">Mariners <b>Supply</b></span>
+      <button class="vessel-chip" onclick="go('s-ship')" title="Trocar navio">
+        <span class="dot"></span><span id="chipTxt">—</span>
+      </button>
+    </div>
+    <div class="scroll">
+      <div class="deadline" id="deadline">⏱ —</div>
+      <div class="cats-tabs" id="tabs"></div>
+      <div class="grid" id="grid"></div>
+    </div>
+    <nav class="nav" style="grid-template-columns:repeat(4,1fr)" aria-label="Navegação">
+      <button class="on" data-nav="s-shop" onclick="go('s-shop')"><span class="i">⚓</span>Shop</button>
+      <button data-nav="s-cart" onclick="go('s-cart')" style="position:relative"><span class="i">🛒</span>Cart<span class="badge" id="badge">0</span></button>
+      <button data-nav="s-crew" onclick="go('s-crew')"><span class="i">🧢</span>Captain</button>
+      <button data-nav="s-track" onclick="go('s-track')"><span class="i">📦</span>Orders</button>
+    </nav>
+  </div>
+
+  <!-- ========== SCREEN: CART ========== -->
+  <div class="screen" id="s-cart">
+    <div class="top">
+      <button class="back" onclick="go('s-shop')" aria-label="Voltar">‹</button>
+      <h1>Your order</h1>
+      <button class="vessel-chip" onclick="go('s-ship')"><span class="dot"></span><span id="chipTxt2">—</span></button>
+    </div>
+    <div class="scroll" id="cartBody"></div>
+    <div class="cta-dock" id="cartCta"></div>
+  </div>
+
+  <!-- ========== SCREEN: CHECKOUT ========== -->
+  <div class="screen" id="s-pay">
+    <div class="top">
+      <button class="back" onclick="go('s-cart')" aria-label="Voltar">‹</button>
+      <h1>Deposit — secure your window</h1>
+    </div>
+    <div class="scroll">
+      <div class="summary" id="paySummary"></div>
+      <div class="paybox">
+        <label class="payopt"><input type="radio" name="pm" checked>
+          <span><b>International card</b><span class="sub">Visa · Mastercard · Amex — charged in BRL by your issuer</span></span></label>
+        <label class="payopt"><input type="radio" name="pm">
+          <span><b>Apple Pay / Google Pay</b><span class="sub">One tap, on-ship friendly</span></span></label>
+        <label class="payopt"><input type="radio" name="pm">
+          <span><b>PIX</b><span class="sub">For BRL accounts</span></span></label>
+      </div>
+      <div class="field"><label for="cardn">Card number</label><input id="cardn" inputmode="numeric" placeholder="4111 1111 1111 1111" autocomplete="off"></div>
+      <div class="field"><label for="cardd">Expiry / CVC</label><input id="cardd" placeholder="12/28 · 123" autocomplete="off"></div>
+      <p style="margin:4px 18px 90px; font-size:11.5px; color:var(--faint)">Protótipo — nenhum dado é enviado ou armazenado. No produto real, o pagamento é processado por adquirente certificado (PCI-DSS).</p>
+    </div>
+    <div class="cta-dock">
+      <button class="cta" onclick="confirmPay()"><span>Pay deposit</span><span class="mono" id="payAmt">USD 0.00</span></button>
+    </div>
+  </div>
+
+  <!-- ========== SCREEN: TRACKING ========== -->
+  <div class="screen" id="s-track">
+    <div class="top">
+      <span class="logo">Mariners <b>Supply</b></span>
+      <button class="vessel-chip" onclick="go('s-ship')"><span class="dot"></span><span id="chipTxt3">—</span></button>
+    </div>
+    <div class="scroll" id="trackBody"></div>
+    <nav class="nav" style="grid-template-columns:repeat(4,1fr)" aria-label="Navegação">
+      <button data-nav="s-shop" onclick="go('s-shop')"><span class="i">⚓</span>Shop</button>
+      <button data-nav="s-cart" onclick="go('s-cart')" style="position:relative"><span class="i">🛒</span>Cart<span class="badge" id="badge2">0</span></button>
+      <button data-nav="s-crew" onclick="go('s-crew')"><span class="i">🧢</span>Captain</button>
+      <button class="on" data-nav="s-track" onclick="go('s-track')"><span class="i">📦</span>Orders</button>
+    </nav>
+  </div>
+
+  <!-- ========== SCREEN: CREW CAPTAIN ========== -->
+  <div class="screen" id="s-crew">
+    <div class="top">
+      <span class="logo">Mariners <b>Supply</b></span>
+      <button class="vessel-chip" onclick="go('s-ship')"><span class="dot"></span><span id="chipTxt4">—</span></button>
+    </div>
+    <div class="scroll">
+      <div class="crew-hero">
+        <div class="cap">🧢</div>
+        <h2>Be your ship's <b>Captain</b></h2>
+        <p>Your crew orders with your code — you earn <b>5% in credit</b> on every order. Forever.</p>
+      </div>
+      <div class="qrcard">
+        <div class="qr" id="qrBox" aria-label="QR code de indicação"></div>
+        <div class="info">
+          <div class="code" id="refCode">MS-ANDRES-39</div>
+          <p>No boné, no camarote, no grupo do navio — quem escanear compra no seu nome.</p>
+          <button class="share" onclick="shareCode()">Share on WhatsApp</button>
+        </div>
+      </div>
+      <div class="crew-stats">
+        <div class="cstat"><b id="cRef">7</b><span>orders via your code</span></div>
+        <div class="cstat"><b id="cCred">$23.90</b><span>credit earned</span></div>
+      </div>
+      <div class="tiers">
+        <div class="tier"><span class="em">⚓</span><div><h4>Deckhand</h4><p>0–4 orders</p></div><span class="pct">5%</span></div>
+        <div class="tier on"><span class="em">🧭</span><div><h4>Bosun — you are here</h4><p>5–14 orders</p></div><span class="pct">6%</span></div>
+        <div class="tier"><span class="em">🧢</span><div><h4>Captain</h4><p>15+ orders · cap do programa + brinde por escala</p></div><span class="pct">7%</span></div>
+      </div>
+      <p class="crew-note">Crédito vale em qualquer escala futura em Santos e não expira. Programa aberto e às claras — o comandante do navio sabe e aprova. Comissão é só para tripulantes; nunca para funcionários de terminal, agência ou autoridade.</p>
+    </div>
+    <nav class="nav" style="grid-template-columns:repeat(4,1fr)" aria-label="Navegação">
+      <button data-nav="s-shop" onclick="go('s-shop')"><span class="i">⚓</span>Shop</button>
+      <button data-nav="s-cart" onclick="go('s-cart')" style="position:relative"><span class="i">🛒</span>Cart<span class="badge" id="badge3">0</span></button>
+      <button class="on" data-nav="s-crew" onclick="go('s-crew')"><span class="i">🧢</span>Captain</button>
+      <button data-nav="s-track" onclick="go('s-track')"><span class="i">📦</span>Orders</button>
+    </nav>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* ================= DATA ================= */
+const RATE = 5.30;
+const SHIPS = [
+  { id:'lorena',  nm:'MSC LORENA',        eta: Date.now() + 62*3600e3,  berth: 39 },
+  { id:'melody',  nm:'CMA CGM MELODY',    eta: Date.now() + 110*3600e3, berth: 33 },
+  { id:'lota',    nm:'MAERSK LOTA',       eta: Date.now() + 150*3600e3, berth: 37 },
+  { id:'nyk',     nm:'NYK CONSTELLATION', eta: Date.now() + 175*3600e3, berth: 35 },
+];
+const CATS = ['All','Connectivity','Food','Care','Tech'];
+const PRODUCTS = [
+  { id:'esim20', cat:'Connectivity', em:'📶', nm:'eSIM Brasil 20 GB', ds:'Activates on docking · 30 days', pr:18 },
+  { id:'esim50', cat:'Connectivity', em:'🛰️', nm:'eSIM Brasil 50 GB', ds:'Heavy calls & streaming', pr:32 },
+  { id:'snack',  cat:'Food', em:'🍫', nm:'Snack kit grande', ds:'Chocolate, biscoitos, castanhas', pr:25 },
+  { id:'coffee', cat:'Food', em:'☕', nm:'Brazilian coffee kit', ds:'500g moído + filtros', pr:18 },
+  { id:'soda',   cat:'Food', em:'🥤', nm:'Drinks pack (no-alc)', ds:'12 latas sortidas, geladas', pr:16 },
+  { id:'hyg',    cat:'Care', em:'🧴', nm:'Hygiene kit', ds:'Shampoo, sabonete, pasta, barbear', pr:22 },
+  { id:'pharma', cat:'Care', em:'🩹', nm:'First-need pharmacy', ds:'Analgésico, band-aid, vitamina C', pr:19 },
+  { id:'sun',    cat:'Care', em:'🧢', nm:'Deck kit', ds:'Protetor solar FPS50 + boné', pr:21 },
+  { id:'jbl',    cat:'Tech', em:'🎧', nm:'JBL Go 4 speaker', ds:'Lacrada, NF incluída', pr:45 },
+  { id:'power',  cat:'Tech', em:'🔋', nm:'Powerbank 20.000 mAh', ds:'Carrega 4 celulares', pr:29 },
+  { id:'cable',  cat:'Tech', em:'🔌', nm:'Cable & adapter kit', ds:'USB-C, Lightning, tomada BR', pr:15 },
+  { id:'cards',  cat:'Tech', em:'🃏', nm:'Poker set compacto', ds:'Para a próxima perna de viagem', pr:14 },
+];
+
+/* ================= STATE ================= */
+let state = { ship: null, cat: 'All', cart: {}, order: null };
+
+/* ================= HELPERS ================= */
+const $ = id => document.getElementById(id);
+const usd = v => 'USD ' + v.toFixed(2);
+const brl = v => 'R$ ' + (v*RATE).toFixed(0);
+const hrs = ms => Math.max(0, Math.round(ms/3600e3));
+const items = () => Object.entries(state.cart).map(([id,q]) => ({...PRODUCTS.find(p=>p.id===id), q}));
+const subtotal = () => items().reduce((s,i)=>s+i.pr*i.q, 0);
+const count = () => Object.values(state.cart).reduce((a,b)=>a+b,0);
+const orderCloseMs = () => state.ship ? (state.ship.eta - 26*3600e3) - Date.now() : 0;
+
+/* ================= NAV ================= */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  $(id).classList.add('on');
+  document.querySelectorAll('.nav button[data-nav]').forEach(b =>
+    b.classList.toggle('on', b.dataset.nav === id));
+  if (id==='s-cart') renderCart();
+  if (id==='s-pay') renderPay();
+  if (id==='s-track') renderTrack();
+}
+
+/* ================= RENDER: SHIPS ================= */
+function renderShips(){
+  $('shipList').innerHTML = SHIPS.map(s => {
+    const h = hrs(s.eta - Date.now());
+    const closeH = hrs((s.eta - 26*3600e3) - Date.now());
+    const cls = closeH > 48 ? 'ok' : closeH > 0 ? 'soon' : 'closed';
+    const txt = closeH > 0 ? `ORDERS CLOSE IN ${closeH}H` : 'ORDERS CLOSED';
+    return `<button class="ship" onclick="pickShip('${s.id}')">
+      <span class="nm">${s.nm}</span>
+      <span class="meta">ETA IN ${h}H · BERTH ${s.berth}</span>
+      <span class="win"><span class="${cls}">${txt}</span></span>
+    </button>`;
+  }).join('');
+}
+function pickShip(id){
+  state.ship = SHIPS.find(s=>s.id===id);
+  const short = state.ship.nm.split(' ').slice(-1)[0];
+  ['chipTxt','chipTxt2','chipTxt3','chipTxt4'].forEach(c => $(c).textContent = short + ' · B' + state.ship.berth);
+  $('deadline').innerHTML = `⏱ ORDERS FOR <b>&nbsp;${state.ship.nm}&nbsp;</b> CLOSE IN ${hrs(orderCloseMs())}H — delivery at the gangway on docking`;
+  go('s-shop');
+}
+
+/* ================= RENDER: SHOP ================= */
+function renderTabs(){
+  $('tabs').innerHTML = CATS.map(c =>
+    `<button class="tab ${c===state.cat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');
+}
+function setCat(c){ state.cat = c; renderTabs(); renderGrid(); }
+function renderGrid(){
+  const list = PRODUCTS.filter(p => state.cat==='All' || p.cat===state.cat);
+  $('grid').innerHTML = list.map(p => {
+    const q = state.cart[p.id]||0;
+    return `<article class="prod">
+      <div class="ph">${p.em}</div>
+      <div class="b">
+        <div class="nm">${p.nm}</div>
+        <div class="ds">${p.ds}</div>
+        <div class="row">
+          <span class="pr">${usd(p.pr)}</span>
+          <button class="add ${q?'inCart':''}" onclick="addItem('${p.id}')" aria-label="Adicionar ${p.nm}">${q?('×'+q):'+'}</button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+}
+function addItem(id){
+  state.cart[id] = (state.cart[id]||0)+1;
+  renderGrid(); syncBadge(true);
+}
+function syncBadge(bump){
+  const n = count();
+  ['badge','badge2','badge3'].forEach(b => {
+    const el = $(b); el.textContent = n;
+    el.classList.toggle('show', n>0);
+    if (bump){ el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  });
+}
+
+/* ================= RENDER: CART ================= */
+function renderCart(){
+  const list = items();
+  if (!list.length){
+    $('cartBody').innerHTML = `<div class="empty"><div class="i">🛒</div>Your kit is empty, sailor.<br>Everything you order rides with your ship's ETA.</div>`;
+    $('cartCta').innerHTML = `<button class="cta" disabled><span>Continue to deposit</span><span class="mono">USD 0.00</span></button>`;
+    return;
+  }
+  const st = subtotal(), dep = st*0.3;
+  $('cartBody').innerHTML = `
+    <div class="cart-list">${list.map(i=>`
+      <div class="ci">
+        <div class="em">${i.em}</div>
+        <div><div class="nm">${i.nm}</div><div class="pr">${usd(i.pr)} each</div></div>
+        <div class="qty">
+          <button onclick="chg('${i.id}',-1)" aria-label="Menos">−</button><b>${i.q}</b>
+          <button onclick="chg('${i.id}',1)" aria-label="Mais">+</button>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="summary">
+      <div class="r"><span>Subtotal</span><b>${usd(st)}</b></div>
+      <div class="r"><span>Gangway delivery — ${state.ship ? state.ship.nm : 'select ship'}</span><b>USD 0.00</b></div>
+      <div class="r total"><span>Deposit now (30%)</span><b>${usd(dep)}</b></div>
+      <div class="r"><span>Balance at the gangway</span><b>${usd(st-dep)}</b></div>
+      <p class="hint">≈ ${brl(dep)} no cartão agora. Se o navio desviar de Santos, o depósito vira crédito integral para a próxima escala — sem burocracia.</p>
+    </div>`;
+  $('cartCta').innerHTML = `<button class="cta" onclick="go('s-pay')"><span>Continue to deposit</span><span class="mono">${usd(dep)}</span></button>`;
+}
+function chg(id,d){
+  state.cart[id] = (state.cart[id]||0)+d;
+  if (state.cart[id]<=0) delete state.cart[id];
+  renderCart(); renderGrid(); syncBadge(false);
+}
+
+/* ================= RENDER: PAY ================= */
+function renderPay(){
+  const st = subtotal(), dep = st*0.3;
+  $('paySummary').innerHTML = `
+    <div class="r"><span>${count()} items · ${state.ship ? state.ship.nm : '—'}</span><b>${usd(st)}</b></div>
+    <div class="r"><span>Delivery window</span><b>${state.ship ? 'BERTH '+state.ship.berth+' · ETA '+hrs(state.ship.eta-Date.now())+'H' : '—'}</b></div>
+    <div class="r total"><span>Deposit now</span><b>${usd(dep)}</b></div>
+    <p class="hint">Charged in BRL (≈ ${brl(dep)}) by your card's own FX — transparent, no house spread.</p>`;
+  $('payAmt').textContent = usd(dep);
+}
+function confirmPay(){
+  state.order = { id: 'MS-' + Math.floor(1000+Math.random()*9000), items: items(), total: subtotal(), ship: state.ship, at: Date.now() };
+  state.cart = {};
+  syncBadge(false); renderGrid();
+  go('s-track');
+}
+
+/* ================= RENDER: TRACK ================= */
+function renderTrack(){
+  if (!state.order){
+    $('trackBody').innerHTML = `<div class="empty"><div class="i">📦</div>No orders yet.<br>Your deliveries will show up here.</div>`;
+    return;
+  }
+  const o = state.order;
+  $('trackBody').innerHTML = `
+    <div class="okwrap">
+      <div class="okring">✓</div>
+      <h2>Order confirmed, sailor.</h2>
+      <p>Order <span class="mono">#${o.id}</span> · ${o.items.reduce((a,i)=>a+i.q,0)} items · ${usd(o.total)}</p>
+      <p style="margin-top:4px">${o.ship.nm} · BERTH ${o.ship.berth} · gangway delivery on docking</p>
+    </div>
+    <div class="crew-banner" onclick="go('s-crew')" role="button" tabindex="0">
+      <span class="em">🧢</span>
+      <div><h4>Your whole crew ordering = 5% credit for you</h4>
+      <p>Become the ship's Captain — share your code, earn on every order.</p></div>
+    </div>
+    <div class="track">
+      <div class="step done"><div class="n">✓</div><div><h4>Deposit received</h4><p>30% · ${usd(o.total*0.3)} — card</p></div></div>
+      <div class="step now"><div class="n">●</div><div><h4>We shop & pack</h4><p>Buying fresh in Santos, matched to your ETA</p></div></div>
+      <div class="step"><div class="n">3</div><div><h4>At the gangway</h4><p>Waiting when lines are fast · photo proof</p></div></div>
+      <div class="step"><div class="n">4</div><div><h4>Delivered on board</h4><p>Balance ${usd(o.total*0.7)} by card at delivery</p></div></div>
+    </div>`;
+}
+
+/* ================= CREW CAPTAIN ================= */
+function renderQR(){
+  // stylized QR placeholder (real QR generated server-side in production)
+  const seed = 'MSANDRES39';
+  let cells = '';
+  for (let i=0; i<81; i++){
+    const r = Math.floor(i/9), c = i%9;
+    const finder = (r<3&&c<3)||(r<3&&c>5)||(r>5&&c<3);
+    const on = finder ? !((r===1&&c===1)||(r===1&&c===7)||(r===7&&c===1)) === false || (r%3!==1||c%3!==1)
+      : ((seed.charCodeAt((r*9+c)%seed.length) + r*7 + c*13) % 3 !== 0);
+    cells += `<i class="${(finder ? !(r===1&&(c===1||c===7))&&!(r===7&&c===1) : on) ? '' : 'off'}"></i>`;
+  }
+  $('qrBox').innerHTML = cells;
+}
+function shareCode(){
+  const msg = 'Order from Vessel Supplier with my code MS-ANDRES-39 — delivered at the gangway in Santos. app.marinerssupply.com/r/MS-ANDRES-39';
+  if (navigator.clipboard) navigator.clipboard.writeText(msg).catch(()=>{});
+  const btn = document.querySelector('.share');
+  btn.textContent = 'Copied! ✓';
+  setTimeout(()=>{ btn.textContent = 'Share on WhatsApp'; }, 1800);
+}
+
+/* ================= INIT ================= */
+renderShips(); renderTabs(); renderGrid(); syncBadge(false); renderQR();
+</script>

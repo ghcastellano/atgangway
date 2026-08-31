@@ -1,0 +1,120 @@
+<meta charset="utf-8">
+<title>Mariners Price List</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night:#040D1A; --card:#0B1B30; --ink:#EEF4F8; --muted:#9FB4C8; --faint:#5F7690;
+    --amber:#FFB648; --amber-hi:#FFD9A0; --teal:#2EE6C8; --wa:#25D366;
+    --line:rgba(238,244,248,.09);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#01060D; color:var(--ink);
+    font-family:Inter,system-ui,sans-serif; font-size:15px; line-height:1.5;
+    display:flex; justify-content:center; padding:0; }
+  .page { width:100%; max-width:430px; background:var(--night); min-height:100vh; }
+
+  header { padding:30px 24px 20px; border-bottom:2px solid var(--amber);
+    background:linear-gradient(170deg, #030A14, var(--night) 70%); position:relative; overflow:hidden; }
+  header::after { content:""; position:absolute; top:-40px; right:-20px; width:150px; height:150px;
+    border-radius:50%; background:radial-gradient(circle, rgba(255,182,72,.16), transparent 70%); }
+  .brand { font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:800; font-size:26px;
+    letter-spacing:.08em; text-transform:uppercase; margin:0; }
+  .brand b { color:var(--amber-hi); text-shadow:0 0 8px rgba(255,182,72,.7), 0 0 22px rgba(255,182,72,.4); }
+  .sub { font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--teal); margin:8px 0 0; }
+  .promise { font-size:13.5px; color:var(--muted); margin:12px 0 0; max-width:30em; }
+  .promise b { color:var(--ink); }
+
+  .cat { padding:6px 0 2px; }
+  .cat h2 { font-family:ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.2em;
+    text-transform:uppercase; color:var(--amber); margin:16px 24px 8px; font-weight:600; }
+  .item { display:grid; grid-template-columns:34px 1fr auto; gap:12px; align-items:center;
+    padding:10px 24px; border-bottom:1px solid var(--line); }
+  .item:last-child { border-bottom:0; }
+  .item .em { font-size:21px; text-align:center; }
+  .item .nm { font-weight:600; font-size:14px; }
+  .item .ds { font-size:11.5px; color:var(--faint); }
+  .item .pr { font-family:ui-monospace,Menlo,monospace; font-weight:700; font-size:14px;
+    color:var(--amber-hi); font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+  .how { margin:18px 16px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .how h3 { font-family:"Bricolage Grotesque",Inter,sans-serif; font-size:15px; margin:0 0 10px; }
+  .how ol { margin:0; padding-left:20px; font-size:13px; color:var(--muted); }
+  .how li { margin:5px 0; } .how b { color:var(--ink); }
+
+  .captain { margin:0 16px 18px; background:linear-gradient(160deg, rgba(255,182,72,.1), var(--card) 65%);
+    border:1px solid rgba(255,182,72,.35); border-radius:14px; padding:14px 18px;
+    display:flex; gap:12px; align-items:center; }
+  .captain .em { font-size:26px; }
+  .captain p { margin:0; font-size:12.5px; color:var(--muted); } .captain b { color:var(--amber-hi); }
+
+  .cta { display:block; margin:0 16px 14px; background:var(--wa); color:#04240F; text-align:center;
+    font-weight:700; font-size:15px; border-radius:12px; padding:15px; text-decoration:none; }
+  footer { text-align:center; padding:4px 20px 26px; }
+  footer p { font-family:ui-monospace,Menlo,monospace; font-size:10px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--faint); margin:4px 0; }
+  @media print {
+    body { background:#fff; }
+    .page { max-width:100%; }
+    .cta { display:none; }
+  }
+</style>
+
+<div class="page">
+<header>
+  <h1 class="brand">Mariners <b>Supply</b></h1>
+  <p class="sub">// Price list · Porto de Santos · by Mariner's Bar</p>
+  <p class="promise"><b>Delivered at the gangway — you never leave the ship.</b><br>
+  Order 3 days before ETA · pay 30% by card · balance at delivery. No cash needed.</p>
+</header>
+
+<div class="cat">
+  <h2>📶 Connectivity — first thing ashore</h2>
+  <div class="item"><span class="em">📶</span><span><span class="nm">eSIM Brasil 20 GB / 30 days</span><br><span class="ds">Activates when you dock — call home first</span></span><span class="pr">USD 18</span></div>
+  <div class="item"><span class="em">🛰️</span><span><span class="nm">eSIM Brasil 50 GB / 30 days</span><br><span class="ds">Video calls & streaming</span></span><span class="pr">USD 32</span></div>
+</div>
+<div class="cat">
+  <h2>🍫 Comfort & Food</h2>
+  <div class="item"><span class="em">🍫</span><span><span class="nm">Big snack kit</span><br><span class="ds">Chocolate, biscuits, nuts</span></span><span class="pr">USD 25</span></div>
+  <div class="item"><span class="em">☕</span><span><span class="nm">Brazilian coffee kit 500g</span><br><span class="ds">Ground + filters</span></span><span class="pr">USD 18</span></div>
+  <div class="item"><span class="em">🥤</span><span><span class="nm">Drinks pack — 12 cans</span><br><span class="ds">Soft drinks, cold at delivery</span></span><span class="pr">USD 16</span></div>
+</div>
+<div class="cat">
+  <h2>🧴 Personal care</h2>
+  <div class="item"><span class="em">🧴</span><span><span class="nm">Full hygiene kit</span><br><span class="ds">Shampoo, soap, toothpaste, razors</span></span><span class="pr">USD 22</span></div>
+  <div class="item"><span class="em">🩹</span><span><span class="nm">First-need pharmacy</span><br><span class="ds">Painkillers, band-aids, vitamin C</span></span><span class="pr">USD 19</span></div>
+  <div class="item"><span class="em">🧢</span><span><span class="nm">Deck kit</span><br><span class="ds">SPF50 sunscreen + cap</span></span><span class="pr">USD 21</span></div>
+</div>
+<div class="cat">
+  <h2>🎧 Electronics — sealed, with invoice</h2>
+  <div class="item"><span class="em">🎧</span><span><span class="nm">JBL Go 4 speaker</span><br><span class="ds">Sealed + official invoice</span></span><span class="pr">USD 45</span></div>
+  <div class="item"><span class="em">🔋</span><span><span class="nm">Powerbank 20,000 mAh</span><br><span class="ds">Charges 4 phones</span></span><span class="pr">USD 29</span></div>
+  <div class="item"><span class="em">🔌</span><span><span class="nm">Cables & BR adapter kit</span><br><span class="ds">USB-C, Lightning, BR plug</span></span><span class="pr">USD 15</span></div>
+  <div class="item"><span class="em">🃏</span><span><span class="nm">Compact poker set</span><br><span class="ds">For the next leg</span></span><span class="pr">USD 14</span></div>
+</div>
+
+<div class="how">
+  <h3>How it works</h3>
+  <ol>
+    <li><b>WhatsApp us</b> your ship's name + ETA + your list</li>
+    <li>Pay <b>30% by card</b> (Visa/Mastercard/Apple Pay — charged in your currency)</li>
+    <li>We meet you <b>at the gangway</b> when you dock — photo proof, balance by card</li>
+    <li>Ship diverted? Your deposit becomes <b>full credit</b> — no bureaucracy</li>
+  </ol>
+</div>
+
+<div class="captain">
+  <span class="em">🧢</span>
+  <p><b>Be your ship's Captain:</b> your crew orders with your code, you earn <b>5% in credit</b> on every order. Ask at the bar or on WhatsApp.</p>
+</div>
+
+<a class="cta" href="#">💬 Order on WhatsApp — reply in 5 min</a>
+
+<footer>
+  <p>Mariner's Bar · Paquetá · Santos</p>
+  <p>All prices USD · card payment · invoice included</p>
+</footer>
+</div>

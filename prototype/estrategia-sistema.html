@@ -1,0 +1,228 @@
+<meta charset="utf-8">
+<title>Mariners como Sistema</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #F2F4F5; --surface: #FFFFFF; --ink: #152A40; --muted: #51677C;
+    --line: #D6DDE2; --accent: #D95B21; --accent-deep: #B34715;
+    --ok: #2E7D4F; --warn: #A97710; --bad: #B3362B;
+    --chip-ok: #E3F0E8; --chip-warn: #F6EDDA; --chip-bad: #F7E3E0;
+    --night: #0B222E; --code-bg: #E9EDF0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1B29; --surface: #16293A; --ink: #E8EDF1; --muted: #9FB2C2;
+      --line: #2B4257; --accent: #F08A4B; --accent-deep: #F6A778;
+      --ok: #5CBF8A; --warn: #DFB554; --bad: #E4685C;
+      --chip-ok: #1B3A2C; --chip-warn: #3A311A; --chip-bad: #3D2220;
+      --night: #071820; --code-bg: #1E3346;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1B29; --surface: #16293A; --ink: #E8EDF1; --muted: #9FB2C2;
+    --line: #2B4257; --accent: #F08A4B; --accent-deep: #F6A778;
+    --ok: #5CBF8A; --warn: #DFB554; --bad: #E4685C;
+    --chip-ok: #1B3A2C; --chip-warn: #3A311A; --chip-bad: #3D2220;
+    --night: #071820; --code-bg: #1E3346;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); margin: 0; padding: 0 20px 80px;
+    font-family: Charter, Georgia, "Iowan Old Style", serif; font-size: 17px; line-height: 1.65;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1,h2,h3,h4,th,.eyebrow,.tagchip { font-family: "Avenir Next", Avenir, Futura, "Segoe UI", sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  header { padding: 56px 0 8px; }
+  .eyebrow { font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing:.14em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+  h1 { font-size: clamp(30px,5.5vw,44px); font-weight:700; line-height:1.08; letter-spacing:-.015em;
+    margin:0 0 10px; text-wrap: balance; }
+  .sub { font-size: 19px; color: var(--muted); margin: 0 0 20px; max-width: 42em; }
+  .rule { height:3px; background: var(--accent); width:72px; border:0; margin:0; }
+  blockquote {
+    margin: 26px 0; padding: 18px 24px; background: var(--surface); border-left: 4px solid var(--accent);
+    border-radius: 6px; font-style: italic; color: var(--muted); font-size: 17px;
+  }
+  blockquote b { color: var(--ink); font-style: normal; }
+  section { margin-top: 52px; }
+  .secnum { font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing:.14em;
+    color: var(--accent-deep); display:block; margin-bottom:6px; }
+  h2 { font-size: 24px; font-weight: 700; margin: 0 0 6px; letter-spacing:-.01em; text-wrap: balance; }
+  h3 { font-size: 17px; font-weight: 600; margin: 26px 0 6px; }
+  p { margin: 12px 0; max-width: 44em; }
+  ul, ol { max-width: 44em; padding-left: 1.3em; } li { margin: 6px 0; }
+  .tablewrap { overflow-x: auto; margin: 18px 0; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 660px; font-size: 15px; }
+  th { text-align: left; font-size: 12.5px; letter-spacing:.08em; text-transform: uppercase; color: var(--muted);
+    font-weight: 700; padding: 12px 14px; border-bottom: 2px solid var(--line); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.5; }
+  tr:last-child td { border-bottom: 0; }
+  .chip { display:inline-block; font-family:"Avenir Next",Avenir,sans-serif; font-size:12px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:2px 10px; }
+  .chip.f1 { background: var(--chip-ok); color: var(--ok); }
+  .chip.f2 { background: var(--chip-warn); color: var(--warn); }
+  .chip.f3 { background: var(--chip-bad); color: var(--bad); }
+
+  /* ecosystem map */
+  .eco { margin: 26px 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 700px){ .eco { grid-template-columns: 1fr 1fr; } }
+  .node { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .node h4 { margin: 0 0 4px; font-size: 14px; font-weight: 700; }
+  .node p { margin: 0; font-size: 12.5px; color: var(--muted); max-width: none; }
+  .node .fl { display:block; margin-top: 8px; font-family: ui-monospace, Menlo, monospace; font-size: 11px;
+    color: var(--accent-deep); letter-spacing:.03em; }
+  .node.center { grid-column: 2; background: var(--night); border-color: var(--night); color: #EEF4F8; }
+  @media (max-width: 700px){ .node.center { grid-column: 1 / -1; } }
+  .node.center h4 { color: #FFD9A0; text-transform: uppercase; letter-spacing:.08em; }
+  .node.center p { color: #9FB4C8; }
+
+  /* loops */
+  .loops { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+  @media (max-width: 700px){ .loops { grid-template-columns: 1fr; } }
+  .loop { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+  .loop h4 { margin: 0 0 8px; font-size: 13px; letter-spacing:.08em; text-transform: uppercase; }
+  .loop.r h4 { color: var(--ok); } .loop.b h4 { color: var(--warn); }
+  .loop p { margin: 0; font-size: 14.5px; color: var(--muted); max-width: none; }
+  .loop .chain { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; color: var(--ink);
+    display: block; margin-bottom: 10px; line-height: 1.8; }
+  .loop .chain b { color: var(--accent-deep); }
+
+  .callout { background: var(--code-bg); border-radius: 6px; padding: 16px 20px; margin: 18px 0;
+    font-size: 15.5px; max-width: 46em; }
+  .callout p { max-width: none; margin: 8px 0; }
+  footer { margin-top: 64px; border-top: 1px solid var(--line); padding-top: 18px; font-size: 13.5px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Modelo de negócio · Pensamento sistêmico · Agosto 2026</p>
+  <h1>O Mariners como sistema, não como loja</h1>
+  <p class="sub">Modelo de operação e defesa competitiva desenhados à maneira de Russell Ackoff: começando pelo ideal, olhando as interações antes das partes, e dissolvendo problemas em vez de resolvê-los.</p>
+  <hr class="rule">
+  <blockquote>"O desempenho de um sistema nunca é a soma do desempenho de suas partes — é o <b>produto de suas interações</b>." A pergunta certa não é "como monto uma loja?", e sim: <b>que interação está faltando no sistema do Porto de Santos, que só nós podemos ocupar?</b></blockquote>
+</header>
+
+<section>
+  <span class="secnum">01</span>
+  <h2>O sistema contentor: onde o negócio vive</h2>
+  <p>Ackoff ensina a entender qualquer coisa olhando primeiro o sistema <em>maior</em> que a contém. O Vessel Supplier não vende produtos: ele ocupa uma posição vazia na malha de interações do porto — a interface entre a cidade e o tripulante. Cada ator abaixo já existe; nenhum deles faz essa ponte.</p>
+  <div class="eco">
+    <div class="node"><h4>Tripulante</h4><p>Tem dólar e desejo, não tem tempo nem acesso à cidade.</p><span class="fl">→ nos dá: pedido, pagamento, boca-a-boca</span></div>
+    <div class="node"><h4>Navio / Comandante</h4><p>Controla quem sobe a bordo e o que entra pela prancha.</p><span class="fl">→ nos dá: autorização de entrega</span></div>
+    <div class="node"><h4>Agência marítima</h4><p>Sabe o ETA real, o berço e o line-up antes de todo mundo.</p><span class="fl">→ nos dá: informação + acesso · ← comissão</span></div>
+    <div class="node"><h4>Mariner's Bar</h4><p>A comunidade. Confiança acumulada tripulação a tripulação.</p><span class="fl">→ nos dá: marca, canal, demanda</span></div>
+    <div class="node center"><h4>Vessel Supplier</h4><p>A interação que falta: cidade ⇄ navio, na janela da escala, 100% formal.</p></div>
+    <div class="node"><h4>Fornecedores locais</h4><p>Atacado, farmácia, eletrônica, telecom — estoque da cidade.</p><span class="fl">→ nos dão: produto, NF, prazo</span></div>
+    <div class="node"><h4>Terminal / Aut. Portuária</h4><p>Controla o portão e o credenciamento ISPS.</p><span class="fl">→ nos dá: acesso físico (fase 2)</span></div>
+    <div class="node"><h4>Receita Federal</h4><p>Controla a zona primária e o regime de bordo.</p><span class="fl">→ nos dá: a licença que vira barreira</span></div>
+    <div class="node"><h4>Stella Maris / welfare</h4><p>Cuida do marítimo em terra; aliado natural, não concorrente.</p><span class="fl">→ nos dá: legitimidade e indicação</span></div>
+  </div>
+  <p><strong>Leitura sistêmica:</strong> quem tentar competir conosco precisa reconstruir <em>todas</em> essas interações ao mesmo tempo. Nossa defesa não será um segredo — será a malha.</p>
+</section>
+
+<section>
+  <span class="secnum">02</span>
+  <h2>Idealized design: começar do fim</h2>
+  <p>Ackoff não planeja do presente para frente; ele desenha o ideal e trabalha de trás para frente. O ideal do nosso sistema:</p>
+  <div class="callout">
+    <p><strong>Qualquer tripulante, em qualquer navio com escala em Santos, pede em 2 minutos na língua dele, paga no cartão sem sair do camarote, e recebe na prancha na primeira hora de atracação — com nota fiscal, sem dólar em espécie, sem ninguém descer.</strong></p>
+  </div>
+  <h3>Análise de obstruções (o que separa o hoje do ideal)</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Obstrução</th><th>Tipo</th><th>Como se dissolve (não se "resolve")</th></tr>
+    <tr><td>Não sabemos o ETA real com precisão</td><td>Informação</td><td>Parceria com agências marítimas + line-up público da Autoridade Portuária; o pedido vinculado ao navio transforma o cliente em sensor (ele nos conta o ETA)</td></tr>
+    <tr><td>Não podemos entrar na zona primária</td><td>Acesso</td><td>Fase 1 entrega no portão/agente (não precisa entrar); fase 2 credenciamento ISPS; fase 3 habilitação RFB — cada fase <em>usa</em> a barreira em vez de lutar contra ela</td></tr>
+    <tr><td>Tripulante não tem real, nós não podemos tocar dólar</td><td>Financeira</td><td>Cartão internacional/link: a bandeira faz o câmbio. A obstrução desaparece do nosso sistema — vira problema do emissor do cartão, que já o resolveu</td></tr>
+    <tr><td>Confiança: pagar adiantado a um desconhecido</td><td>Relacional</td><td>Não somos desconhecidos — somos o bar onde ele já bebeu. A marca herda a confiança; foto-comprovante e política de crédito fecham o resto</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <span class="secnum">03</span>
+  <h2>A operação: quem, quando, onde, com quem</h2>
+  <h3>Quem entrega</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Fase</th><th>Entregador</th><th>Alcance</th><th>Custo/estrutura</th></tr>
+    <tr><td><span class="chip f1">Fase 1 · 0–6m</span></td><td>1 entregador próprio (moto + carro compartilhado com o bar), em dupla com o comprador</td><td>Portão do terminal e agente marítimo; Santos e Guarujá</td><td>~R$ 4–6 mil/mês; plantão casado com o line-up, não horário comercial</td></tr>
+    <tr><td><span class="chip f2">Fase 2 · 6–18m</span></td><td>2 entregadores credenciados ISPS (crachá de acesso), turnos cobrindo 24/7</td><td>Prancha de embarque nos terminais principais (Tecon, BTP, DP World)</td><td>Credenciamento + EPI + veículo dedicado</td></tr>
+    <tr><td><span class="chip f3">Fase 3 · 18m+</span></td><td>Equipe própria + lancha de serviço parceira</td><td>Navios ao largo (fundeio) — onde ninguém entrega hoje</td><td>Contrato por corrida com operador de lancha autorizado</td></tr>
+  </table></div>
+  <h3>Quando entrega</h3>
+  <ul>
+    <li><strong>A janela é a atracação, não o expediente.</strong> Navio atraca 3h da manhã de domingo? A entrega é 3h da manhã de domingo. O plantão segue o line-up do porto — é isso que nenhum varejo da cidade consegue imitar.</li>
+    <li><strong>Pedido fecha em ETA−26h</strong> (folga sobre as 48h do rito aduaneiro formal na fase 3); compra consolidada em ETA−12h; kit lacrado e conferido em ETA−4h; entrega na primeira hora após a liberação da prancha ("lines fast").</li>
+    <li><strong>Se o navio desviar</strong>: depósito vira crédito integral, e o kit não-perecível volta ao estoque — o risco de perecível fica no fornecedor (compramos fresco contra pedido).</li>
+  </ul>
+  <h3>Onde entrega</h3>
+  <ul>
+    <li><strong>Fase 1:</strong> portão do terminal (mão a mão com o tripulante de folga) e escritório do agente marítimo — zero exigência de acesso.</li>
+    <li><strong>Fase 2:</strong> prancha de embarque, com foto-comprovante — o padrão Sunny.</li>
+    <li><strong>Fase 3:</strong> a bordo via lancha no fundeio + terminais de Guarujá — o mercado que ninguém atende.</li>
+  </ul>
+  <h3>Quais fornecedores (regra: dois por categoria, sempre com NF)</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Categoria</th><th>Fonte primária</th><th>Redundância</th><th>Por quê</th></tr>
+    <tr><td>Snacks & mantimentos</td><td>Atacarejo (Assaí/Atacadão Santos)</td><td>Distribuidor regional</td><td>Margem: compra no atacado, vende conveniência</td></tr>
+    <tr><td>eSIM / dados</td><td>Plataforma white-label de eSIM</td><td>Chip físico de operadora</td><td>Margem alta, entrega digital, zero logística</td></tr>
+    <tr><td>Higiene & farmácia básica</td><td>Farmácia parceira em Santos</td><td>Atacado de perfumaria</td><td>Farmacêutico responsável resolve a fronteira ANVISA</td></tr>
+    <tr><td>Eletrônicos</td><td>Distribuidor oficial (NF + garantia)</td><td>Varejo grande (Fast Shop/ML)</td><td>Lacrado + NF é o argumento contra o camelô</td></tr>
+    <tr><td>Perecíveis/encomendas</td><td>Mercado municipal + padarias locais</td><td>—</td><td>Só contra pedido; risco zero de estoque</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <span class="secnum">04</span>
+  <h2>O motor do sistema: loops de reforço e de equilíbrio</h2>
+  <div class="loops">
+    <div class="loop r"><h4>R1 · Loop da linha regular</h4>
+      <span class="chain">entrega boa → boca-a-boca <b>na mesma armadora</b> → próximo navio da linha já chega pedindo → densidade de rota → entrega ainda melhor ↺</span>
+      <p>Linhas de contêiner voltam a Santos todo mês com tripulações que se conhecem. Cada escala bem servida planta a próxima.</p></div>
+    <div class="loop r"><h4>R2 · Loop dos dados</h4>
+      <span class="chain">mais pedidos → histórico ETA × consumo por linha/nacionalidade → estoque e plantão certos → SLA imbatível → mais pedidos ↺</span>
+      <p>Saber que navio filipino da linha X pede café, chocolate e eSIM de 50 GB é um ativo que nenhum entrante tem no dia 1.</p></div>
+    <div class="loop r"><h4>R3 · Loop do pedido coletivo</h4>
+      <span class="chain">1 tripulante compra → vira "agente de bordo" informal → consolida o pedido do navio → ticket 5–10× → comissão/brinde pra ele ↺</span>
+      <p>O cliente vira canal. Efeito de rede dentro do próprio navio.</p></div>
+    <div class="loop b"><h4>B1 · Freio de capacidade</h4>
+      <span class="chain">mais navios/dia → janelas simultâneas → risco de SLA ↓ → limita crescimento</span>
+      <p>Antídoto: recusar pedido além da capacidade (proteger o SLA vale mais que o GMV do dia) e escalar entregadores por line-up previsto.</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="secnum">05</span>
+  <h2>Matar a oportunidade dos entrantes: barreiras desenhadas, não defendidas</h2>
+  <p>Ackoff diria: não se defende um sistema brigando com concorrentes — <strong>redesenha-se o sistema para que a posição deles já esteja ocupada quando chegarem.</strong> Seis camadas, na ordem em que se constroem:</p>
+  <div class="tablewrap"><table>
+    <tr><th>#</th><th>Barreira</th><th>Por que o entrante não replica</th><th>Quando se ergue</th></tr>
+    <tr><td>1</td><td><strong>A comunidade do bar</strong></td><td>Confiança tripulação-a-tripulação não se compra com capital; leva anos de balcão. É o nosso ativo de nascença</td><td>Já existe</td></tr>
+    <tr><td>2</td><td><strong>Contratos de canal com agências</strong></td><td>Acordo de indicação + comissão com as 4–5 agências principais fecha a fonte do ETA e do acesso. Quem chega depois negocia contra um incumbente que já paga</td><td>Fase 1</td></tr>
+    <tr><td>3</td><td><strong>Dados proprietários (R2)</strong></td><td>Consumo × linha × nacionalidade × sazonalidade. O entrante erra estoque e plantão por 12 meses até aprender o que já sabemos</td><td>Cresce sozinha</td></tr>
+    <tr><td>4</td><td><strong>Conta do tripulante com crédito de escala</strong></td><td>Depósito que vira crédito, histórico, 1-clique de recompra: custo de troca individual. O marítimo volta a Santos 4×/ano — e a conta já está aberta</td><td>Fase 1–2</td></tr>
+    <tr><td>5</td><td><strong>Credenciamento ISPS + habilitação RFB</strong></td><td>12–18 meses de burocracia que nós já teremos atravessado. A barreira regulatória que hoje nos atrasa vira o fosso que protege</td><td>Fase 2–3</td></tr>
+    <tr><td>6</td><td><strong>Densidade de rota</strong></td><td>Com 20 entregas/dia o custo marginal por entrega despenca; o entrante começa pagando frete cheio por 2 pedidos. Economia de densidade é a barreira final de todo last-mile</td><td>Fase 2+</td></tr>
+  </table></div>
+  <div class="callout">
+    <p><strong>E o entrante mais perigoso não é outro empreendedor</strong> — é um ship chandler estabelecido acordando para o B2C. Antídoto específico: velocidade nas barreiras 2 e 4 (canal e conta), que são as que ele não tem, e eventualmente <em>parceria</em> em vez de guerra — ele tem acesso e desembaraço, nós temos a comunidade e a marca. Ackoff chamaria isso de dissolver o conflito: transformar o concorrente potencial em fornecedor de infraestrutura.</p>
+  </div>
+</section>
+
+<section>
+  <span class="secnum">06</span>
+  <h2>Painel de controle do sistema (não da loja)</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Indicador</th><th>O que mede no sistema</th><th>Meta ano 1</th></tr>
+    <tr><td class="mono">Penetração de escala</td><td>% dos navios atracados que geram ≥1 pedido — saúde do loop R1</td><td class="mono">10%</td></tr>
+    <tr><td class="mono">Ticket por navio</td><td>Força do pedido coletivo (R3)</td><td class="mono">USD 400+</td></tr>
+    <tr><td class="mono">Recompra por linha</td><td>% de linhas regulares com 2+ escalas compradoras — o dado que vira barreira</td><td class="mono">50%</td></tr>
+    <tr><td class="mono">SLA de janela</td><td>% entregas na 1ª hora pós-liberação — a promessa inteira do negócio</td><td class="mono">95%</td></tr>
+    <tr><td class="mono">NPS do comandante</td><td>Quem autoriza a prancha é um stakeholder, não um espectador</td><td class="mono">Medir desde o dia 1</td></tr>
+  </table></div>
+</section>
+
+<footer>
+  <p><strong>Referencial:</strong> Russell L. Ackoff — <em>Redesigning the Future</em> (1974), <em>Creating the Corporate Future</em> (1981): idealized design, análise de obstruções, sistemas propositais, dissolução de problemas. Aplicado sobre a análise de viabilidade e o protótipo de produto deste projeto.</p>
+  <p>Documento de trabalho para discussão entre sócios — não substitui parecer jurídico/contábil.</p>
+</footer>
+</div>

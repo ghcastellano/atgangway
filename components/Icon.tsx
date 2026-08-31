@@ -1,0 +1,143 @@
+/**
+ * Ícones de traço, em SVG.
+ *
+ * Substituem os emoji que estavam no cabeçalho. Emoji parece atalho
+ * barato e cobra caro: cada sistema desenha o seu (o 👤 sai azul no
+ * iOS e cinza no Android), não obedecem currentColor, têm pesos de
+ * traço diferentes entre si, e não dá para alinhar opticamente um
+ * conjunto que nem foi desenhado junto. No print do celular o ícone
+ * de conta aparecia azul no meio de uma paleta âmbar e navy.
+ *
+ * Traço de 1.7 e caixa de 24 para todos: é o que faz os três lerem
+ * como uma família.
+ */
+
+type Props = { size?: number; className?: string };
+
+const base = (size: number) => ({
+  width: size,
+  height: size,
+  viewBox: "0 0 24 24",
+  fill: "none" as const,
+  stroke: "currentColor",
+  strokeWidth: 1.7,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+  focusable: false as const,
+});
+
+export function IconMenu({ size = 22, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />
+    </svg>
+  );
+}
+
+export function IconUser({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.8 20c.7-3.7 3.7-5.8 7.2-5.8s6.5 2.1 7.2 5.8" />
+    </svg>
+  );
+}
+
+export function IconHeart({ size = 21, className, filled = false }: Props & { filled?: boolean }) {
+  return (
+    <svg {...base(size)} className={className} fill={filled ? "currentColor" : "none"}>
+      <path d="M12 20.2s-7.4-4.4-7.4-9.4A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.4 3.2c0 5-7.4 9.4-7.4 9.4Z" />
+    </svg>
+  );
+}
+
+export function IconCart({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M2.8 3.6h2.3l2.2 10.6h9.6l2.1-7.5H6.2" />
+      <circle cx="9.4" cy="19" r="1.5" />
+      <circle cx="16.6" cy="19" r="1.5" />
+    </svg>
+  );
+}
+
+export function IconSearch({ size = 20, className }: Props) {
+  return (
+    <svg {...base(size)} className={className} strokeWidth={2}>
+      <circle cx="10.6" cy="10.6" r="6.4" />
+      <path d="m15.4 15.4 4.3 4.3" />
+    </svg>
+  );
+}
+
+export function IconClose({ size = 18, className }: Props) {
+  return (
+    <svg {...base(size)} className={className} strokeWidth={2}>
+      <path d="m5.5 5.5 13 13M18.5 5.5l-13 13" />
+    </svg>
+  );
+}
+
+export function IconTrash({ size = 17, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M4.5 6.6h15M9.4 6.6V4.8h5.2v1.8M6.6 6.6l.9 12.1h9l.9-12.1M10.3 10v5.4M13.7 10v5.4" />
+    </svg>
+  );
+}
+
+/** Casco da marca — o vessel do Vessel Supplier (mastro, casco e linha
+ *  d'água). Mantém o nome IconAnchor para não mexer nos imports; é só o
+ *  símbolo do logotipo, com uma casa só. */
+export function IconAnchor({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className} strokeWidth={1.9}>
+      <path d="M12 3.4V11 M4 11H20L17.4 16.6Q15 19 12 19 9 19 6.6 16.6Z M3 21.4H21" />
+    </svg>
+  );
+}
+
+/** Caixa de mantimento. Substitui o 📦 nos lugares onde falta foto:
+ *  emoji colorido sobre o painel branco lia como conteúdo, não como
+ *  ausência — e cada sistema desenhava uma caixa diferente. */
+export function IconPackage({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="m12 3.2 8.2 4.1v9.4L12 20.8l-8.2-4.1V7.3Z" />
+      <path d="M3.8 7.3 12 11.4l8.2-4.1M12 11.4v9.4M7.9 5.3l8.2 4.1" />
+    </svg>
+  );
+}
+
+/** Bússola dos estados de busca: "nada encontrado" aponta um rumo. */
+export function IconCompass({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <circle cx="12" cy="12" r="8.4" />
+      <path d="m15.4 8.6-2 5-5 2 2-5Z" />
+    </svg>
+  );
+}
+
+/** Quepe do Captain — o programa de indicação tem posto, não emoji. */
+export function IconCap({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M5.2 12.6c0-3.5 3-5.6 6.8-5.6s6.8 2.1 6.8 5.6" />
+      <path d="M3.8 12.6h16.4l-.9 3.2H4.7Z" />
+      <path d="M12 9.8h.1" />
+    </svg>
+  );
+}
+
+/** Porta com seta: sair da conta. O ⎋ que morava aqui é tecla de
+ *  escape em fonte de sistema — cada aparelho desenhava um glifo. */
+export function IconLogout({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M10 4.5H5.5v15H10" />
+      <path d="m14.8 8.5 3.5 3.5-3.5 3.5M18.3 12H9.6" />
+    </svg>
+  );
+}
