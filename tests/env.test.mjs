@@ -46,10 +46,14 @@ test("fora da Vercel, sem env: NÃO configurado — nada de cair em produção",
   assert.equal(m.u, "");
 });
 
+/* A retaguarda deixou de ser o domínio customizado (auth.marinerssupplyco.com):
+   ele caiu no instante em que outro domínio customizado entrou em verificação
+   no mesmo projeto, e levou junto as fotos e a API do navegador. O endereço
+   nativo do projeto não depende de domínio customizado nenhum. */
 test("na Vercel, painel em branco cai para os valores públicos de produção", () => {
   const m = carrega({ ...LIMPO, NEXT_PUBLIC_ON_VERCEL: "1" });
   assert.equal(m.c, true);
-  assert.equal(m.u, "https://auth.marinerssupplyco.com");
+  assert.equal(m.u, "https://cuaocjxofaizefzcxlyc.supabase.co");
 });
 
 test("valor explícito ganha da retaguarda, dentro e fora da Vercel", () => {
