@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { imageUrl } from "@/lib/catalog";
 import CheckoutClient from "./CheckoutClient";
 import { currentFxRate } from "@/lib/fxrate";
+import { orderCloseAt, santosTime } from "@/lib/format";
+import { callState } from "@/lib/callstate";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +23,10 @@ type ProfileRow = {
   vessel_flag: string | null;
   crew_ranks: { name: string } | null;
   ports: { name: string } | null;
-  ships: { name: string; flag: string | null; image_path: string | null } | null;
+  ships: {
+    name: string; flag: string | null; image_path: string | null;
+    eta: string | null; ata: string | null; cutoff_hours: number | null;
+  } | null;
 };
 
 /**
@@ -51,7 +56,7 @@ export default async function CheckoutPage() {
       `full_name, whatsapp, ship_id, vessel_name, vessel_flag,
        crew_ranks!profiles_rank_slug_fkey(name),
        ports!profiles_port_id_fkey(name),
-       ships!profiles_ship_id_fkey(name, flag, image_path)`
+       ships!profiles_ship_id_fkey(name, flag, image_path, eta, ata, cutoff_hours)`
     )
     .eq("id", user.id)
     .maybeSingle();
@@ -72,6 +77,45 @@ export default async function CheckoutPage() {
   const email = user.email ?? "";
   const phone = row?.whatsapp?.trim() ?? "";
   const shipPhoto = imageUrl(shipRow?.image_path);
+
+  // O portão da janela, ANTES do formulário. Quem chega com a escala
+  // fechada ou o navio já partido não deve preencher nada — deve trocar
+  // de escala. O guard do placeOrder continua valendo (defesa em
+  // profundidade), mas ninguém deveria chegar a vê-lo disparar: o "não"
+  // vem o mais cedo possível, e sempre com o próximo "sim" do lado.
+  const estado = shipRow?.eta
+    ? callState({ eta: shipRow.eta, ata: shipRow.ata, cutoff_hours: shipRow.cutoff_hours })
+    : null;
+
+  if (estado === "sailed" || estado === "closed") {
+    const nome = (shipRow?.name ?? row?.vessel_name ?? "your vessel").toUpperCase();
+    const fecha = shipRow?.eta ? orderCloseAt(shipRow.eta, shipRow.cutoff_hours ?? 24) : null;
+    return (
+      <main className="pg-checkout">
+        <Breadcrumb trail={[{ label: "Shopping Cart", href: "/cart" }, { label: "Checkout" }]} />
+        <h1 className="secttl left">Checkout</h1>
+
+        <section className="sumcard framed" aria-labelledby="janela">
+          <h3 id="janela">
+            {estado === "sailed" ? `${nome} has sailed` : `Orders for ${nome} have closed`}
+          </h3>
+          <p style={{ margin: "10px 0 0", lineHeight: 1.55 }}>
+            {estado === "sailed"
+              ? "Crews change vessels — kits ride along. Everything in your cart is saved and will be waiting on your next call."
+              : `The window closed ${fecha ? santosTime(fecha) : "already"} and the chandler is now buying against this call. Your kit is saved — it will be ready for the next one.`}
+          </p>
+          <p style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 18 }}>
+            <Link href="/account" className="btn">
+              {estado === "sailed" ? "I'm on a new vessel" : "Pick my next call"}
+            </Link>
+            <Link href="/ports" className="alink">
+              See the delivery schedule
+            </Link>
+          </p>
+        </section>
+      </main>
+    );
+  }
 
   // Bloqueia o pagamento só no que quebra de verdade: navio e porto (a
   // entrega não acontece sem eles), telefone (o placeOrder valida o

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { orderCloseAt, santosTime, usd } from "@/lib/format";
+import { callState, canOrder } from "@/lib/callstate";
 
 /**
  * O navio da pessoa, com o que ela precisa saber antes de pedir.
@@ -48,20 +49,14 @@ function restante(ms: number): string {
 export default function VesselPanel({ v, credit = 0 }: { v: VesselFacts; credit?: number }) {
   const fecha = orderCloseAt(v.eta, v.cutoffHours);
   const faltaMs = fecha.getTime() - Date.now();
-  const aberto = faltaMs > 0;
-  /* O terceiro estado, que faltava: a escala ACABOU. Mesma régua da
-     rotação e do crédito de desvio no banco — o navio esteve e foi,
-     coalesce(ata, eta) + 48h. Sem este estado o painel mostrava a
-     escala morta como "Closed" para sempre: tripulante troca de casco a
-     cada contrato, e o perfil envelhecia junto com o navio. Havia até
-     um comentário na home dizendo que navio inativo some do join e a
-     tira vira convite — a RLS garante o CONTRÁRIO (o próprio navio é
-     sempre visível), então aquele ramo nunca rodava. */
-  const encerrada = new Date(v.ata ?? v.eta).getTime() + 48 * 3600e3 < Date.now();
-  // Mesmo limiar do e-mail de última chamada: abaixo de 12h o bloco do
-  // prazo esquenta. Um limiar só nos dois lugares — se o aviso chega às
-  // 12h e o cartão só esquentasse às 6, os dois pareceriam desconexos.
-  const urgente = aberto && faltaMs <= 12 * 3600e3;
+  /* Os quatro estados da escala saem da régua única de lib/callstate —
+     a mesma do checkout, da rotação no banco e do e-mail de última
+     chamada. O estado "sailed" nasceu neste painel; agora mora na
+     régua, e aqui só se pergunta. */
+  const estado = callState({ eta: v.eta, ata: v.ata, cutoff_hours: v.cutoffHours });
+  const aberto = canOrder(estado);
+  const encerrada = estado === "sailed";
+  const urgente = estado === "closing";
   const alongside = Boolean(v.ata) || new Date(v.eta).getTime() <= Date.now();
 
   // A barra mede a janela inteira de pedidos, do momento em que o navio
