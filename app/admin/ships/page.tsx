@@ -5,6 +5,7 @@ import type { Ship } from "@/lib/types";
 import { santosTime } from "@/lib/format";
 import { delayLabel } from "@/lib/types";
 import { saveShip, toggleShipActive } from "../actions";
+import BotaoAcao from "@/components/admin/BotaoAcao";
 
 export const dynamic = "force-dynamic";
 
@@ -45,10 +46,24 @@ function ShipForm({ ship }: { ship?: Ship }) {
         <input type="checkbox" name="active" defaultChecked={ship ? ship.active : true} />
         Visible in the line-up
       </label>
-      <button className="btn small" type="submit">
-        {ship ? "Save changes" : "+ Add vessel"}
-      </button>
+      <BotaoAcao ocupado="Salvando…">{ship ? "Save changes" : "+ Add vessel"}</BotaoAcao>
     </form>
+  );
+}
+
+/** Linha compacta: nome, quando atraca, quando fecha o pedido. */
+function LinhaNavio({ ship }: { ship: Ship }) {
+  const closeH = hoursUntil(orderCloseAt(ship.eta, ship.cutoff_hours));
+  return (
+    <div className="nm">
+      {ship.name}
+      {delayLabel(ship) && <b className="delay-tag">{delayLabel(ship)}</b>}
+      <span className="meta" style={{ display: "block", fontWeight: 400 }}>
+        ETA {santosTime(ship.eta)} ·{" "}
+        {closeH > 0 ? `fecha em ${closeH}h` : "pedidos fechados"}
+        {ship.berth ? ` · berço ${ship.berth}` : ""}
+      </span>
+    </div>
   );
 }
 
@@ -60,18 +75,22 @@ export default async function AdminShips() {
     .order("eta", { ascending: true });
   const ships = (data ?? []) as Ship[];
 
+  /* A régua única de lib/callstate decide as três pilhas — a mesma do
+     checkout, do carrinho e da rotação no banco.
+
+     A página abria com 122 escalas publicadas e desenhava um FORMULÁRIO
+     INTEIRO para cada uma: ~850 campos no HTML, todos montados a cada
+     clique, porque a server action revalida a rota toda. Era essa a
+     lentidão relatada — não a rede nem o banco, mas o tamanho da
+     árvore que precisa ser reconstruída para trocar um booleano.
+
+     Agora publicado vira LINHA, e o formulário só existe no HTML de
+     quem o abriu; e escala com ETA no passado sai da lista principal
+     para um <details> — continua acessível, para de custar. */
   const live = ships.filter((s) => s.active);
+  const vendendo = live.filter((s) => canOrder(callState({ eta: s.eta, cutoff_hours: s.cutoff_hours })));
+  const passadas = live.filter((s) => !vendendo.includes(s));
 
-  /* A fila era `!s.active` e mais nada — então mostrava as 147 escalas
-     que o sync já trouxe, 101 delas com ETA no passado, todas com
-     "em 0h" e um botão Publicar que criaria uma escala natimorta: sem
-     janela, ninguém compra. O rodapé ainda prometia que "o resto some
-     sozinho quando a escala passa", o que não acontecia.
-
-     Quem decide é a régua única de lib/callstate — a mesma do checkout,
-     do carrinho e da rotação no banco. Fila = o que ainda dá para
-     vender. O que venceu continua no banco (é histórico, e o sync usa
-     para reconhecer o navio na volta), só sai da tela. */
   const naFila = ships.filter((s) => !s.active);
   const queue = naFila.filter((s) =>
     canOrder(callState({ eta: s.eta, cutoff_hours: s.cutoff_hours }))
@@ -80,9 +99,7 @@ export default async function AdminShips() {
 
   return (
     <main className="pb-nav">
-      <p className="subhead">
-        Line-up do porto · fila de revisão ({queue.length})
-      </p>
+      <p className="subhead">Line-up do porto · fila de revisão ({queue.length})</p>
       {queue.length === 0 ? (
         <p className="finehint" style={{ margin: "0 18px 8px" }}>
           Nada aguardando com janela aberta. O sync roda de hora em hora.
@@ -105,9 +122,7 @@ export default async function AdminShips() {
               <form action={toggleShipActive}>
                 <input type="hidden" name="id" value={s.id} />
                 <input type="hidden" name="active" value="1" />
-                <button className="btn small" type="submit">
-                  Publicar
-                </button>
+                <BotaoAcao ocupado="Publicando…">Publicar</BotaoAcao>
               </form>
             </div>
           ))}
@@ -120,26 +135,50 @@ export default async function AdminShips() {
         </p>
       )}
 
-      <p className="subhead">Publicados para o cliente ({live.length})</p>
-      {live.map((s) => {
-        const closeH = hoursUntil(orderCloseAt(s.eta, s.cutoff_hours));
-        return (
-          <div key={s.id}>
-            <p className="subhead" style={{ paddingTop: 6 }}>
-              {s.name} — {closeH > 0 ? `fecha em ${closeH}h` : "pedidos fechados"}
-              {delayLabel(s) ? ` · ${delayLabel(s)}` : ""}
-            </p>
-            <ShipForm ship={s} />
-            <form action={toggleShipActive} style={{ margin: "0 16px 14px" }}>
-              <input type="hidden" name="id" value={s.id} />
-              <input type="hidden" name="active" value="0" />
-              <button className="btn small ghost" type="submit">
-                Esconder do app
-              </button>
-            </form>
+      <p className="subhead">Publicados e vendendo ({vendendo.length})</p>
+      <div className="cart-list">
+        {vendendo.map((s) => (
+          <div key={s.id} className="queue-row">
+            <LinhaNavio ship={s} />
+            <div className="linha-acoes">
+              <form action={toggleShipActive}>
+                <input type="hidden" name="id" value={s.id} />
+                <input type="hidden" name="active" value="0" />
+                <BotaoAcao className="btn small ghost" ocupado="Escondendo…">
+                  Esconder
+                </BotaoAcao>
+              </form>
+            </div>
+            <details className="adm-edit">
+              <summary>Editar escala</summary>
+              <ShipForm ship={s} />
+            </details>
           </div>
-        );
-      })}
+        ))}
+      </div>
+
+      {passadas.length > 0 && (
+        <details className="adm-edit" style={{ margin: "10px 18px" }}>
+          <summary>
+            {passadas.length} publicada{passadas.length === 1 ? "" : "s"} com janela
+            já fechada
+          </summary>
+          <div className="cart-list">
+            {passadas.map((s) => (
+              <div key={s.id} className="queue-row">
+                <LinhaNavio ship={s} />
+                <form action={toggleShipActive}>
+                  <input type="hidden" name="id" value={s.id} />
+                  <input type="hidden" name="active" value="0" />
+                  <BotaoAcao className="btn small ghost" ocupado="Escondendo…">
+                    Esconder
+                  </BotaoAcao>
+                </form>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       <p className="subhead">Cadastrar navio à mão</p>
       <ShipForm />

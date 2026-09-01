@@ -769,6 +769,22 @@ input:-webkit-autofill:focus {
 .queue-row .nm { font-weight: 600; font-size: 13.5px; }
 .queue-row .meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
 
+/* Escala publicada é LINHA, e o formulário de edição só entra no HTML
+   de quem abriu o <details>. A página abria com 122 formulários
+   montados de uma vez — ~850 campos que a server action precisava
+   reconstruir inteiros para trocar um booleano. Era essa a lentidão. */
+.queue-row > .adm-edit { grid-column: 1 / -1; }
+.queue-row .adm-form { margin: 8px 0 0; }
+.adm-edit > summary {
+  cursor: pointer; list-style: none; padding: 4px 0;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--faint);
+}
+.adm-edit > summary::-webkit-details-marker { display: none; }
+.adm-edit > summary::before { content: "▸"; color: var(--amber); margin-right: 7px; }
+.adm-edit[open] > summary::before { content: "▾"; }
+.adm-edit > summary:hover { color: var(--amber-hi); }
+
 /* .page mantém display:block. O palco de QR que morava aqui saiu — no
    desktop a loja é a loja, não um cartaz com QR ao lado. */
 .page { display: block; }
