@@ -19,7 +19,34 @@ type VesselRow = {
   flag: string | null;
   image_path: string | null;
   verified: boolean;
+  /** ETA da escala — ver `rotulo` abaixo. */
+  eta: string | null;
 };
+
+/**
+ * O que escrever ao lado do nome na lista.
+ *
+ * Era `IMO ${imo}` ou, na falta dele, o literal "no IMO" — e como a
+ * fonte do line-up do porto publica nome, ETA e berço mas NÃO o IMO,
+ * as 253 escalas do banco estão sem ele. Ou seja: "no IMO" aparecia em
+ * 100% das linhas. Rótulo que nunca varia não desambigua nada; só
+ * parece defeito para quem está escolhendo o próprio navio.
+ *
+ * O que separa duas linhas para quem está a bordo é a data de atracação.
+ * O IMO continua aparecendo quando existe — aí ele é a identidade do
+ * casco e vale mais que a data.
+ */
+function rotulo(r: VesselRow): string {
+  if (r.imo) return `IMO ${r.imo}${r.flag ? ` · ${r.flag}` : ""}`;
+  if (!r.eta) return r.flag ?? "";
+  const d = new Date(r.eta);
+  const quando = d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "America/Sao_Paulo",
+  });
+  return `${d.getTime() < Date.now() ? "was due" : "due"} ${quando}${r.flag ? ` · ${r.flag}` : ""}`;
+}
 
 /** A RPC só busca a partir de 3 caracteres — repetimos aqui para não bater à toa. */
 const MIN_QUERY = 3;
@@ -307,10 +334,7 @@ export default function VesselSearch({
                   onClick={() => pick(r)}
                 >
                   <span style={{ flex: 1, minWidth: 0 }}>{r.name}</span>
-                  <span className="sub">
-                    {r.imo ? `IMO ${r.imo}` : "no IMO"}
-                    {r.flag ? ` · ${r.flag}` : ""}
-                  </span>
+                  <span className="sub">{rotulo(r)}</span>
                 </button>
               ))
             )}

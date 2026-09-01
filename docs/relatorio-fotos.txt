@@ -1,0 +1,54 @@
+(node:2370) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/user/vesselsupplier/lib/fotonormaliza.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/user/vesselsupplier/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+trocadas 1 | já boas 34 | sem foto de estúdio 42 | sem fonte 0
+
+== TROCADAS
+  7898943163035 580×580 canto=255 var=0 (era canto=232 var=15)
+
+== PRECISAM DE PACK SHOT DE VERDADE
+  0070847038979 1689×1230 canto=115 var=44 — nenhuma das 1 está sobre branco
+  4005900601971 1750×2623 canto=55 var=74 — nenhuma das 1 está sobre branco
+  4006000137995 2894×3361 canto=104 var=35 — nenhuma das 1 está sobre branco
+  4006000138022 641×1086 canto=99 var=81 — nenhuma das 1 está sobre branco
+  40061337 1403×3543 canto=154 var=54 — nenhuma das 3 está sobre branco
+  40062075 1485×3739 canto=155 var=53 — nenhuma das 3 está sobre branco
+  7622300988517 1491×2442 canto=74 var=125 — nenhuma das 8 está sobre branco
+  7622300991456 3136×1384 canto=125 var=26 — nenhuma das 6 está sobre branco
+  78908901 1060×3461 canto=86 var=108 — nenhuma das 6 está sobre branco
+  7891000073537 2111×2937 canto=35 var=127 — nenhuma das 5 está sobre branco
+  7891000329665 1800×1044 canto=110 var=98 — nenhuma das 5 está sobre branco
+  7891024134610 1080×353 canto=30 var=64 — nenhuma das 2 está sobre branco
+  7891048038123 3534×2791 canto=127 var=45 — nenhuma das 6 está sobre branco
+  7891079000229 2369×2554 canto=125 var=61 — nenhuma das 8 está sobre branco
+  7891079012208 3024×4032 canto=137 var=64 — nenhuma das 3 está sobre branco
+  7891079013335 3552×2654 canto=72 var=102 — nenhuma das 3 está sobre branco
+  7891098000170 1836×2612 canto=120 var=53 — nenhuma das 7 está sobre branco
+  7891098040893 580×580 canto=127 var=128 — nenhuma das 1 está sobre branco
+  7891167011847 600×600 canto=0 var=0 — nenhuma das 1 está sobre branco
+  7891528038568 1895×1661 canto=122 var=45 — nenhuma das 3 está sobre branco
+  78918566 2000×1512 canto=63 var=26 — nenhuma das 2 está sobre branco
+  7892840252748 3008×4878 canto=60 var=115 — nenhuma das 4 está sobre branco
+  7892840814472 2780×3684 canto=44 var=16 — nenhuma das 3 está sobre branco
+  7894900027006 1069×708 canto=71 var=46 — nenhuma das 2 está sobre branco
+  7894900030013 2142×4080 canto=34 var=142 — nenhuma das 5 está sobre branco
+  7894900530056 1722×2000 canto=145 var=71 — nenhuma das 2 está sobre branco
+  7894900680508 1060×3629 canto=66 var=138 — nenhuma das 8 está sobre branco
+  7894900681017 1235×2633 canto=107 var=76 — nenhuma das 2 está sobre branco
+  7896005808016 3024×4032 canto=114 var=108 — nenhuma das 3 está sobre branco
+  7896019206785 765×1662 canto=51 var=185 — nenhuma das 4 está sobre branco
+  7896058507188 2136×3282 canto=90 var=28 — nenhuma das 3 está sobre branco
+  7896089011357 2448×3264 canto=183 var=34 — nenhuma das 5 está sobre branco
+  7896224814126 3060×4080 canto=118 var=28 — nenhuma das 4 está sobre branco
+  7898292888993 2352×3091 canto=80 var=26 — nenhuma das 3 está sobre branco
+  7898919902897 1832×4571 canto=175 var=41 — nenhuma das 4 está sobre branco
+  8683130019269 1024×1024 canto=37 var=218 — nenhuma das 1 está sobre branco
+  8683130019290 1024×1024 canto=37 var=218 — nenhuma das 1 está sobre branco
+  8683130020265 1024×1024 canto=37 var=218 — nenhuma das 1 está sobre branco
+  8683130036099 1024×1024 canto=66 var=189 — nenhuma das 2 está sobre branco
+  8683130093436 1024×1024 canto=28 var=227 — nenhuma das 2 está sobre branco
+  8720182256836 1024×1024 canto=70 var=185 — nenhuma das 2 está sobre branco
+  93036052 3072×928 canto=181 var=10 — nenhuma das 3 está sobre branco
+
+(relatório apenas — rode com --gravar para aplicar)
