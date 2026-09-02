@@ -44,7 +44,9 @@ function refresh() {
   // "catalog". Sem invalidar aqui, editar produto no painel levaria até
   // cinco minutos para aparecer na home — tempo suficiente para alguém
   // achar que o salvamento não funcionou e salvar de novo.
-  revalidateTag("catalog");
+  // Next 16 exige o perfil de cache junto com a tag; "max" é o mesmo
+  // comportamento de antes: invalida o que estiver guardado sob a tag.
+  revalidateTag("catalog", "max");
 }
 
 /* ------------------------------------------------------------------ */
