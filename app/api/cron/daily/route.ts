@@ -110,9 +110,18 @@ export async function GET(request: Request) {
     html: "",
   });
 
+  /* O MOTIVO viaja junto com o `sent`.
+   *
+   * A resposta dizia só `sent: false`, e isso empata três coisas
+   * diferentes que pedem ações opostas: SMTP não configurado (falta
+   * env), credencial recusada (senha errada) e servidor fora do ar
+   * (esperar). Descobrir qual exigia log de runtime — que na Vercel
+   * exige plano com observabilidade. Um campo de texto resolve, e
+   * quem lê o digest é a mesma pessoa que consertaria o problema. */
   return Response.json({
     ok: true,
     sent: enviado.sent,
+    ...(enviado.sent ? {} : { motivo: enviado.skipped ?? enviado.error ?? "desconhecido" }),
     totais: r.totais,
     escalas: r.escalas.length,
     janelas_abertas: r.janelas_abertas,
