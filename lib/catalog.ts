@@ -167,10 +167,11 @@ export type ListArgs = {
 };
 
 type Rpc = {
-  rpc: (
-    fn: string,
-    args: Record<string, unknown>
-  ) => PromiseLike<{ data: unknown; error: unknown }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- adaptador
+  // estrutural: o cliente tipado (createClient<Database>) só aceita nomes do
+  // schema em rpc(), e este tipo existe justamente para a vitrine não se
+  // acoplar ao supabase-js — o teste passa um objeto com rpc() de mentira.
+  rpc: (fn: any, args?: any) => PromiseLike<{ data: unknown; error: unknown }>;
 };
 
 export async function listProducts(

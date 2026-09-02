@@ -6,6 +6,7 @@ import { localInputToIso } from "@/lib/format";
 import { sendOrderEmail } from "@/lib/mailer";
 import type { EmailKind } from "@/lib/emails";
 import { DELIVERY_BUCKET, type OrderStatus } from "@/lib/types";
+import type { TablesUpdate } from "@/lib/database.types";
 
 async function adminClient() {
   const supabase = await createClient();
@@ -61,7 +62,7 @@ export async function setOrderStatus(formData: FormData) {
   /* O estado anterior fica gravado a cada mudança: é o que o botão
      "Undo" restaura. Sem isto, `credited`/`cancelled`/`delivered` eram
      becos sem saída — e o clique errado só se desfazia com SQL na mão. */
-  const patch: Record<string, unknown> = {
+  const patch: TablesUpdate<"orders"> = {
     status: to,
     previous_status: order.status,
     status_changed_at: new Date().toISOString(),
@@ -116,7 +117,7 @@ export async function revertOrderStatus(formData: FormData) {
     .eq("order_id", id);
   if ((count ?? 0) > 0) return;
 
-  const patch: Record<string, unknown> = {
+  const patch: TablesUpdate<"orders"> = {
     status: order.previous_status,
     previous_status: null,
     status_changed_at: new Date().toISOString(),
@@ -156,7 +157,7 @@ export async function markDelivered(formData: FormData) {
   if (!order) return;
   if (!TRANSITIONS[order.status as OrderStatus]?.includes("delivered")) return;
 
-  const patch: Record<string, unknown> = {
+  const patch: TablesUpdate<"orders"> = {
     status: "delivered",
     previous_status: order.status,
     status_changed_at: new Date().toISOString(),

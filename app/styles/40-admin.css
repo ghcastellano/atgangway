@@ -1,0 +1,140 @@
+/* ===== admin ===== */
+.admtabs {
+  display: flex; gap: 8px; padding: 12px 16px 4px; overflow-x: auto; scrollbar-width: none;
+  position: sticky; top: 57px; z-index: 15; background: rgba(4,13,26,.92);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.admtabs::-webkit-scrollbar { display: none; }
+.subhead {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--faint); padding: 18px 18px 8px; margin: 0;
+}
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 16px 4px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.kpi b {
+  display: block; font-family: var(--font-mono); font-size: 21px; color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+.kpi.amber b { color: var(--amber-hi); }
+.kpi span { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-form {
+  margin: 8px 16px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 16px; padding: 16px; display: grid; gap: 12px;
+}
+.form2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.checkline { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--muted); }
+.checkline input { accent-color: #FFB648; width: 17px; height: 17px; }
+.shoprow {
+  display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px;
+}
+.shoprow .em { font-size: 22px; text-align: center; }
+.shoprow .qtybig { font-family: var(--font-mono); font-size: 18px; color: var(--amber-hi); font-variant-numeric: tabular-nums; }
+.shoprow .per { font-size: 11.5px; color: var(--faint); }
+
+/* ===== footer / staff access ===== */
+.foot {
+  margin-top: auto; padding: 26px 20px calc(26px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line); display: grid; gap: 10px; text-align: center;
+}
+.foot .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--faint); }
+.foot a { color: var(--muted); font-size: 12.5px; }
+.foot a:hover { color: var(--amber-hi); }
+
+/* ===== admin em telas grandes: painel largo =====
+   O cap era 960px fixo, e como `.shell:has(.admin-wide)` tem
+   especificidade maior que `.shell`, ele vencia o --page-w do bloco de
+   desktop em QUALQUER largura. Num notebook de 16" o painel virava uma
+   coluna estreita no meio da tela: os quatro KPIs quebravam o rótulo em
+   três linhas, o resumo do pedido quebrava em três, e "Deposit paid" e
+   "Cancel" empilhavam por falta de 40px.
+
+   Agora o painel acompanha a largura da página, e a grade de pedidos é
+   auto-fill: o número de colunas sai da largura disponível em vez de
+   uma tabela de breakpoints que envelhece a cada monitor novo. */
+@media (min-width: 960px) {
+  /* O painel tem teto PROPRIO, e nao o da loja. --page-w para em 1520px
+     porque vitrine com linha longa demais cansa; retaguarda tem o
+     problema oposto — quanto mais pedido cabe na tela de uma vez, menos
+     rolagem entre atender um navio e o seguinte. min() em vez de valor
+     fixo: em 1920 preenche, em ultrawide para antes de virar campo de
+     futebol. */
+  .shell:has(.admin-wide) { max-width: min(96vw, 1800px); }
+
+  /* Os KPIs são quatro números curtos: lado a lado sempre, e o mínimo de
+     200px garante que o rótulo caiba numa linha só. */
+  .shell:has(.admin-wide) .kpis {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  /* 340px é a largura em que o resumo do pedido ("1× eSIM Brasil 20 GB ·
+     1× Snack kit grande") cabe em duas linhas e os dois botões de ação
+     ficam lado a lado. Abaixo disso o card volta a empilhar. */
+  .shell:has(.admin-wide) .cart-list {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    align-items: start;
+  }
+
+  /* Formulário continua estreito de propósito: campo de texto largo
+     demais é mais difícil de ler e de preencher, não mais fácil. */
+  .shell:has(.admin-wide) .adm-form { max-width: 620px; }
+
+  /* Uma folga maior nas bordas quando o painel é largo — 16px num
+     container de 1400px cola o conteúdo na borda. */
+  .shell:has(.admin-wide) .kpis,
+  .shell:has(.admin-wide) .cart-list,
+  .shell:has(.admin-wide) .admtabs,
+  .shell:has(.admin-wide) .subhead { padding-inline: 24px; }
+}
+
+/* ===== util ===== */
+.spin {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--line-hi); border-top-color: var(--amber);
+  animation: rot .8s linear infinite; margin: 40px auto;
+}
+@keyframes rot { to { transform: rotate(1turn); } }
+.center { text-align: center; }
+.mt0 { margin-top: 0; }
+
+/* Foco de teclado da casa: âmbar, 2px de folga, em TODO interativo.
+   Âmbar e não teal: âmbar já é a cor de "isto age" (botão, link, aba
+   ativa), e o anel de foco é exatamente essa promessa. O offset deixa
+   o fundo escuro respirar entre o elemento e o anel — é o que mantém
+   o anel legível até sobre o próprio botão âmbar. Teal segue sendo
+   cor de DADO (estoque, status, KPI), nunca de interação. */
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+/* Texto selecionado na cor da casa — o azul default do sistema é o
+   único momento em que a página deixa de parecer nossa. */
+::selection { background: var(--amber); color: var(--amber-ink); }
+
+/* Dígito de largura fixa em toda coluna de número que se compara:
+   subtotal, selo do carrinho, contador. Número que dança na vírgula
+   obriga a ler um a um em vez de conferir de relance. */
+.sumrow b, .mchead b, .disc-line b, .cartbadge, .drawer-count,
+.qty b, .qty span, .buydock .pr, .sumlines b { font-variant-numeric: tabular-nums; }
+
+/* Barra de rolagem dos painéis internos (gaveta, mega-menu, filtros):
+   a do sistema sai larga e clara demais para um painel escuro. Fina e
+   na cor do fio, ela informa sem desenhar uma régua branca no meio. */
+.minicart-list, .drawer-list, .megapanel, .facets, .ta-panel,
+.impissues, .pdp-buy, .ptable .wrap {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-hi) transparent;
+}
+:is(.minicart-list, .drawer-list, .megapanel, .facets, .ta-panel, .impissues, .pdp-buy, .ptable .wrap)::-webkit-scrollbar {
+  width: 8px; height: 8px;
+}
+:is(.minicart-list, .drawer-list, .megapanel, .facets, .ta-panel, .impissues, .pdp-buy, .ptable .wrap)::-webkit-scrollbar-thumb {
+  background: var(--line-hi); border-radius: 4px;
+}
+:is(.minicart-list, .drawer-list, .megapanel, .facets, .ta-panel, .impissues, .pdp-buy, .ptable .wrap)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+

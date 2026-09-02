@@ -61,8 +61,8 @@ const DEBOUNCE_MS = 300;
 export async function createVessel(v: VesselValue): Promise<string> {
   const { data, error } = await createClient().rpc("create_vessel", {
     p_name: v.name,
-    p_imo: v.imo,
-    p_flag: v.flag,
+    p_imo: v.imo ?? undefined,
+    p_flag: v.flag ?? undefined,
   });
   if (error) throw new Error(error.message);
   return data as string;

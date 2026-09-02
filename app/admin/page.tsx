@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { santosTime, shortShipName, usd } from "@/lib/format";
 import { STATUS_LABEL, STATUS_PILL, type OrderStatus } from "@/lib/types";
 import DeliveryProof from "@/components/DeliveryProof";
+import SaudeStrip, { type Saude } from "@/components/admin/Saude";
 import { revertOrderStatus, setOrderStatus } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -68,6 +69,11 @@ export default async function AdminBoard() {
     .order("created_at", { ascending: true });
 
   const orders = (data ?? []) as unknown as Row[];
+
+  /* A RPC recusa quem não é admin antes de ler qualquer coisa; aqui só
+     chega quem passou pelo layout. Se falhar (rede, permissão), a faixa
+     some e o painel continua — saúde é leitura, não pré-requisito. */
+  const { data: saude } = await supabase.rpc("ops_health");
   const active = orders.filter((o) => ACTIVE.includes(o.status));
   const done = orders.filter((o) => !ACTIVE.includes(o.status)).slice(-12).reverse();
 
@@ -81,6 +87,7 @@ export default async function AdminBoard() {
 
   return (
     <main className="pb-nav">
+      {saude && <SaudeStrip s={saude as unknown as Saude} />}
       <div className="kpis">
         <div className="kpi">
           <b>{active.length}</b>

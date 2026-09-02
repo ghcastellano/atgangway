@@ -1,0 +1,158 @@
+/* ===== catálogo ===== */
+.deadline {
+  margin: 14px 16px 0; padding: 10px 14px; border-radius: 12px;
+  background: rgba(255,182,72,.08); border: 1px solid rgba(255,182,72,.25);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+  color: var(--amber-hi); display: flex; gap: 8px; align-items: center;
+}
+.deadline.urgent {
+  background: rgba(255,89,100,.1); border-color: rgba(255,89,100,.45);
+  color: #FFC2C7; animation: pulse 1.6s infinite;
+}
+.cats-tabs { display: flex; gap: 8px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; }
+.cats-tabs::-webkit-scrollbar { display: none; }
+.tab {
+  border: 1px solid var(--line-hi); background: transparent; color: var(--muted);
+  font-weight: 600; font-size: 13px; border-radius: 999px;
+  padding: 8px 16px; cursor: pointer; white-space: nowrap; transition: all .2s;
+}
+/* a pílula inativa responde como o resto da família âmbar */
+.tab:hover:not(.on) { border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
+.tab.on { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 16px; }
+.prod {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+  display: flex; flex-direction: column; transition: border-color .2s, transform .2s;
+}
+.prod:hover { border-color: var(--line-hi); transform: translateY(-2px); }
+.prod .ph {
+  height: 86px; display: flex; align-items: center; justify-content: center; font-size: 34px;
+  background: linear-gradient(160deg, var(--card-hi), var(--card));
+}
+.prod .b { padding: 12px 14px 14px; display: flex; flex-direction: column; flex: 1; gap: 3px; }
+.prod .nm { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.prod .ds { font-size: 11.5px; color: var(--faint); flex: 1; }
+.prod .row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.prod .pr {
+  font-family: var(--font-mono); font-size: 13px; color: var(--amber-hi);
+  font-variant-numeric: tabular-nums;
+}
+.add {
+  width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--line-hi);
+  background: transparent; color: var(--ink); font-size: 17px; cursor: pointer; line-height: 1;
+  transition: all .2s; display: flex; align-items: center; justify-content: center;
+}
+.add:hover { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
+.add.inCart { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); font-weight: 700; font-size: 12px; }
+
+/* ===== bottom nav (fixa, centrada, com safe area) ===== */
+.nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+  margin: 0 auto; width: 100%; max-width: var(--shell-w);
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  background: rgba(6,16,30,.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding: 10px 8px calc(12px + env(safe-area-inset-bottom));
+}
+.nav a, .nav button {
+  background: none; border: 0; color: var(--faint);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  position: relative; padding: 4px 0; transition: color .2s;
+}
+.nav .i { font-size: 19px; line-height: 1; }
+@media (max-width: 380px) { .nav a, .nav button { font-size: 9.5px; } }
+.nav .on { color: var(--amber-hi); }
+.badge {
+  position: absolute; top: -2px; right: calc(50% - 22px);
+  min-width: 17px; height: 17px; border-radius: 999px; background: var(--amber); color: var(--amber-ink);
+  font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  padding: 0 4px; transform: scale(0); transition: transform .25s cubic-bezier(.2,.7,.3,1.4);
+}
+.badge.show { transform: scale(1); }
+
+/* ===== carrinho ===== */
+.cart-list { padding: 10px 16px; display: grid; gap: 10px; }
+.ci {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px;
+  display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center;
+}
+.ci .em { font-size: 24px; text-align: center; }
+.ci .nm { font-weight: 600; font-size: 13.5px; }
+.ci .pr { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); }
+.qty { display: flex; align-items: center; gap: 10px; }
+.qty button {
+  width: 27px; height: 27px; border-radius: 8px; border: 1px solid var(--line-hi); background: none;
+  color: var(--ink); cursor: pointer; font-size: 15px; line-height: 1;
+}
+.qty button:hover { border-color: var(--amber); color: var(--amber-hi); }
+.qty b { font-family: var(--font-mono); font-size: 14px; min-width: 18px; text-align: center; }
+
+.summary {
+  margin: 14px 16px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 18px;
+}
+.summary .r { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; color: var(--muted); padding: 5px 0; }
+.summary .r b { font-family: var(--font-mono); color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.summary .r.total { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 12px; color: var(--ink); font-weight: 600; }
+.summary .r.total b { color: var(--amber-hi); font-size: 16px; }
+.summary .hint { font-size: 11.5px; color: var(--faint); margin: 10px 0 0; line-height: 1.5; }
+
+.empty { text-align: center; padding: 70px 30px; color: var(--faint); }
+/* Altura reservada para o carrinho enquanto ele não resolve. 300px é a
+   altura do estado vazio — com isso o caso mais comum (chegou, não tem
+   nada) para de empurrar o rodapé, e o caso com itens empurra menos. */
+.cartslot { min-height: 300px; }
+.empty .i { font-size: 40px; margin-bottom: 12px; }
+
+/* ---- estado vazio com voz -------------------------------------
+   Emoji + uma frase era o rascunho. A anatomia agora: ícone de traço
+   da família do cabeçalho num anel fino, um título na tipografia de
+   título, uma linha de apoio e — quando existe caminho — UM botão.
+   O anel é só contorno (regra da casa: preenchimento OU contorno) e o
+   :has(svg) preserva os estados antigos de emoji, que seguem no
+   admin e nas páginas de porto sem mudar de cara. */
+.empty .i:has(svg) {
+  width: 64px; height: 64px; margin: 0 auto 16px;
+  border: 1px solid var(--line-hi); border-radius: 50%;
+  display: grid; place-items: center; color: var(--faint);
+}
+.empty .t {
+  font-family: var(--font-disp); font-weight: 700; font-size: 18px;
+  color: var(--ink); margin: 0 0 6px; text-wrap: balance;
+}
+.empty .d {
+  font-size: 13px; line-height: 1.55; color: var(--faint);
+  margin: 0 auto; max-width: 38ch;
+}
+.empty .btn { margin-top: 20px; }
+
+/* ===== CTA dock (fixo, centrado, com safe area) ===== */
+.cta-dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  margin: 0 auto; width: 100%; max-width: var(--shell-w);
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, rgba(1,6,13,.9) 34%);
+  pointer-events: none;
+}
+/* CTA convivendo com o menu fixo: flutua logo acima dele */
+.cta-dock.above-nav {
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  padding-bottom: 12px;
+  z-index: 29;
+}
+.pb-both { padding-bottom: calc(205px + env(safe-area-inset-bottom)); }
+.cta-dock > * { pointer-events: auto; }
+.cta {
+  width: 100%; border: 0; border-radius: 14px; padding: 16px; cursor: pointer;
+  font-weight: 700; font-size: 15px;
+  background: var(--amber); color: var(--amber-ink);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+}
+.cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -10px rgba(255,182,72,.45); }
+.cta:active { transform: translateY(0); box-shadow: none; transition-duration: .05s; }
+.cta:disabled { opacity: .35; cursor: default; transform: none; box-shadow: none; }
+.cta .mono { font-size: 13px; }
+

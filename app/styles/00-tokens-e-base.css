@@ -1,0 +1,116 @@
+/* ============================================================
+   VESSEL SUPPLIER — "Hull & Chart" design system (app real)
+   Portado do protótipo (prototype/app.html) com as correções
+   de viewport mobile:
+
+   1. O fundo escuro fica em html/body — NUNCA só num container
+      com altura fixa. Assim não existe "faixa branca" sobrando
+      quando o viewport do navegador varia (barra do Safari etc).
+   2. Alturas usam 100dvh (viewport dinâmico), não 100vh/100svh
+      fixos, e nada de overflow:hidden na raiz.
+   3. Barras fixas respeitam env(safe-area-inset-bottom).
+   ============================================================ */
+
+@import "../fonts.css";
+
+:root {
+  --night:   #040D1A;
+  --abyss:   #01060D;
+  --panel:   #081526;
+  --card:    #0B1B30;
+  --card-hi: #0F2340;
+  --ink:     #EEF4F8;
+  --muted:   #9FB4C8;
+  --faint:   #7A8FA8; /* ≥4.5:1 sobre card/night — AA */
+  --amber:   #FFB648;
+  --amber-hi:#FFD9A0;
+  --amber-ink:#241802;
+  --teal:    #2EE6C8;
+  --wa:      #25D366;
+  --danger:  #FF5964;
+  --line:    rgba(238,244,248,.08);
+  --line-hi: rgba(238,244,248,.16);
+  --font-disp: "Bricolage Grotesque", Inter, system-ui, sans-serif;
+  --font-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --shell-w: 430px;
+
+  /* ---- escala de espaço ----------------------------------------
+     Uma escala de 8 pontos, e nenhum número solto fora dela. Antes o
+     espaço era decidido bloco a bloco — 30px no herói, 22 no título,
+     14 na faixa do Captain, 4 na grade — e quando duas margens
+     vizinhas discordavam, uma vencia. Era daí que vinha o
+     "componente grudado", e não de nenhum componente em especial.
+
+     --gut é o recuo lateral da PÁGINA. Cada grade carregava o seu
+     (14, 16 ou 20px, conforme quem escreveu), então nada alinhava com
+     nada. Agora quem recua é o <main>; quem precisa sangrar até a
+     borda usa .bleed.
+
+     --stack é o compasso entre blocos empilhados. Ele existe num
+     lugar só, e tests/ritmo.test.mjs falha se algum intervalo da
+     página sair dele. */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-9: 96px;
+  --gut:   16px;
+  --stack: var(--sp-6);
+
+  /* ---- movimento -----------------------------------------------
+     UMA curva para tudo que se move (gaveta, painel, card, botão).
+     Cada animação com a própria cubic-bezier é o equivalente cinético
+     das margens soltas: perto uma da outra, a diferença lê como
+     defeito. Durações ficam entre 150 e 300ms — abaixo não se vê,
+     acima o site parece esperar por si mesmo. */
+  --ease: cubic-bezier(.22, .61, .36, 1);
+}
+
+/* tablet: coluna um pouco mais generosa */
+@media (min-width: 768px) {
+  :root { --shell-w: 500px; }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html {
+  background: var(--abyss);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* teclado, controles nativos e autofill escuros em TODOS os browsers
+     do iOS (Safari, Chrome, Edge — todos WebKit por baixo) */
+  color-scheme: dark;
+}
+html, body { padding: 0; margin: 0; }
+body { overflow-x: clip; }
+
+body {
+  background: var(--abyss);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 500px) {
+  body {
+    background:
+      radial-gradient(50% 40% at 75% 0%, rgba(255,182,72,.05), transparent 60%),
+      radial-gradient(60% 50% at 20% 100%, rgba(46,230,200,.04), transparent 60%),
+      var(--abyss);
+  }
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+.disp { font-family: var(--font-disp); }
+.mono { font-family: var(--font-mono); }
+

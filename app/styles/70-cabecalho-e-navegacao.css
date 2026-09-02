@@ -1,0 +1,304 @@
+/* ==================================================================
+   Paridade de navegação com o Sunny
+   A tripulação já sabe usar aquele fluxo. Espelhamos a estrutura;
+   o que muda é a pele (nosso escuro) e o desempenho.
+   ================================================================== */
+
+/* --- barra de anúncio, topo absoluto --- */
+.announce {
+  display: block; background: var(--amber); color: var(--amber-ink);
+  text-align: center; font-size: 13px; font-weight: 700; padding: 10px 14px;
+  text-decoration: underline; text-underline-offset: 2px;
+  transition: background .2s;
+}
+.announce:hover { background: var(--amber-hi); }
+
+/* --- cabeçalho fixo, duas fileiras --- */
+.sunhead {
+  position: sticky; top: 0; z-index: 70;
+  background: var(--night); border-bottom: 1px solid var(--line-hi);
+}
+/* Grade de três colunas com as laterais idênticas (minmax(0,1fr) dos
+   dois lados) em vez de flex. Com flex o logo era centralizado no
+   espaço QUE SOBRA, e sobra assimétrica: um ícone à esquerda contra
+   três à direita. A diferença de largura virava 38px de desvio, que a
+   olho lê como defeito de alinhamento. Na grade o centro é o centro. */
+.sunhead-row {
+  display: grid;
+  /* min-content nas laterais, e NÃO minmax(0, 1fr).
+     Com 0 de mínimo a faixa dos ícones encolhe abaixo do próprio
+     conteúdo; como o item tem justify-self: end, ele mantém a borda
+     direita e transborda para a ESQUERDA — por cima do logotipo
+     centralizado. Era isso que colava o ícone de conta no "SUPPLY".
+     Com min-content a faixa nunca fica menor que o que carrega, e
+     quem cede espaço é o logotipo, que tem por onde ceder. */
+  grid-template-columns: minmax(min-content, 1fr) auto minmax(min-content, 1fr);
+  align-items: center; gap: 10px;
+  padding: 7px 10px 8px; min-height: 56px;
+}
+/* O logotipo pode encolher; sem isto ele mantém a largura de conteúdo
+   e devolve o transbordo para o mesmo lugar. */
+.sunhead-row > .sunlogo { min-width: 0; }
+.sunhead-row > .hamb { justify-self: start; }
+.sunhead-row > .sunlogo { justify-self: center; }
+.sunhead-row > .headicons { justify-self: end; }
+
+.hamb, .headicon {
+  display: grid; place-items: center; flex: none;
+  width: 40px; height: 40px; border-radius: 10px;
+  background: none; border: 0; color: var(--ink); font-size: 19px;
+  cursor: pointer; text-decoration: none; position: relative;
+}
+/* Área de toque fixa em 44×44 — o mínimo do Apple HIG — independente
+   do tamanho VISUAL do ícone. Feita por pseudo-elemento centrado para
+   o alvo não empurrar o layout: com 44px reais de caixa, três ícones
+   mais o logotipo não cabem em 360px sem colidir. Assim o dedo tem os
+   44 e o desenho fica com o espaço que sobra. */
+.hamb::after, .headicon::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
+  border-radius: 12px;
+}
+.hamb:hover, .headicon:hover { background: var(--card); }
+
+/* Logotipo compacto, em duas linhas.
+   A conta que obriga: para o centro ser simétrico, cada lateral
+   precisa caber os três ícones (120px). Isso deixa 118px para a
+   marca, e "At Gangway" numa linha ocupa 136px — não cabe sem
+   colidir com o ícone de conta, que era o que acontecia. Empilhado,
+   o conjunto ocupa ~88px, fica centrado de verdade e ainda lê como
+   logotipo em vez de mais um rótulo entre ícones. */
+.sunlogo {
+  text-decoration: none; color: var(--ink);
+  display: inline-flex; align-items: center; gap: 7px;
+  line-height: 1;
+}
+.sunlogo .mark { flex: none; width: 21px; height: 21px; color: var(--amber); }
+/* Uma linha, e maior.
+   Medido no iPhone 15: a marca saía em 12px — o MENOR texto do
+   cabeçalho — empilhada em duas linhas, ao lado de um campo de busca de
+   314x44. Hierarquia visual é relativa, não absoluta: o olho ordena por
+   tamanho e peso comparados, e nessa conta a busca vencia a marca. Pior,
+   palavra que quebra em duas linhas lê como falta de espaço, não como
+   projeto.
+
+   A conta do espaço em 390px: 40 do hambúrguer + 120 dos três ícones +
+   32 de padding + 16 de folga = 208 usados, sobram 182 para a marca. Em
+   15px com esta entreletra, "VESSEL SUPPLIER" mede cerca de 150 com a
+   âncora — cabe com sobra, numa linha só. */
+.sunlogo .word {
+  display: flex; flex-direction: row; align-items: baseline; gap: .34em;
+  white-space: nowrap;
+}
+.sunlogo .l1, .sunlogo .l2 {
+  font-family: var(--font-disp); font-weight: 800; font-size: 15px;
+  letter-spacing: .07em; text-transform: uppercase;
+}
+.sunlogo .l1 { color: var(--ink); }
+.sunlogo .l2 { color: var(--amber); }
+/* A âncora cresce junto: âncora pequena ao lado de texto maior deixa a
+   marca desequilibrada, com o desenho parecendo um acessório. */
+.sunlogo .mark { width: 24px; height: 24px; }
+
+/* Tela estreita de verdade (iPhone SE, 375px): a marca continua numa
+   linha só, meio ponto menor, e os ícones já encolhem para 36px pela
+   regra abaixo. */
+@media (max-width: 380px) {
+  .sunlogo .l1, .sunlogo .l2 { font-size: 13.5px; letter-spacing: .05em; }
+  .sunlogo .mark { width: 21px; height: 21px; }
+}
+/* Faixa estreita (iPhone SE e afins): o desenho dos ícones encolhe
+   para 36px, a área de toque continua 44, e o nome da marca sobrevive.
+   A conta: 3×36 = 108 de cada lado deixa 112px para o logotipo, que
+   ocupa 104. Com 40px colidia por 2px. */
+@media (max-width: 380px) {
+  .sunhead-row { padding-left: 8px; padding-right: 8px; gap: 4px; }
+  .hamb, .headicon { width: 36px; height: 36px; }
+  .sunlogo { gap: 6px; }
+  .sunlogo .l1, .sunlogo .l2 { letter-spacing: .09em; }
+}
+
+/* Abaixo disso a âncora sozinha identifica a marca — melhor perder o
+   nome que espremer alvo de toque. */
+@media (max-width: 330px) { .sunlogo .word { display: none; } }
+.sunlogo b { color: var(--amber); font-weight: 800; }
+.headicons { display: flex; align-items: center; gap: 0; flex: none; }
+.cartbadge {
+  position: absolute; top: 2px; right: 2px;
+  min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+  background: var(--amber); color: var(--amber-ink);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  display: grid; place-items: center;
+}
+/* Mesmo selo, cor do coração: dois âmbares lado a lado viram um número
+   só de relance, e o que se quer saber é qual dos dois tem item.
+   "wishcount", e não "wish": .wish já é o BOTÃO coração dos cards, com
+   44px de largura e fonte 16 — e por vir depois no arquivo estava
+   esticando o selo até cobrir o ícone do cabeçalho. */
+.cartbadge.wishcount { background: var(--danger); color: #FFFFFF; }
+
+/* fileira 2: busca de largura cheia, botão âmbar colado */
+/* 6px de respiro entre a fileira dos ícones e a busca: elas estavam
+   coladas, e dois blocos interativos encostados leem como um só. */
+.sunsearch { display: flex; padding: 6px 12px 10px; gap: 0; }
+.sunsearch input {
+  flex: 1; min-width: 0; border: 0; outline: none;
+  background: #FFFFFF; color: #0B1B30;
+  border-radius: 10px 0 0 10px; padding: 12px 14px;
+  font-size: 16px; /* 16px trava o zoom automático do iOS */
+  font-family: var(--font-body);
+}
+.sunsearch input::placeholder { color: #6B8199; }
+.sunsearch button {
+  flex: none; width: 52px; border: 0; cursor: pointer;
+  background: var(--amber); color: var(--amber-ink);
+  border-radius: 0 10px 10px 0; font-size: 17px;
+  transition: filter .15s;
+}
+.sunsearch button:hover { filter: brightness(1.06); }
+.sunsearch:focus-within input { box-shadow: inset 0 0 0 2px var(--amber); }
+
+/* --- drawer de categorias, drill-down --- */
+.drawer-ovl {
+  position: fixed; inset: 0; z-index: 90; background: rgba(1,6,13,.66);
+  backdrop-filter: blur(2px); border: 0; padding: 0; cursor: pointer;
+  animation: fade .18s var(--ease);
+}
+@keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+/* Painel que cai do topo (menu da conta, typeahead, mega-menu): mesmo
+   gesto, mesma curva. Vive no escopo base porque o menu da conta abre
+   em qualquer largura. */
+@keyframes dropIn { from { opacity: 0; transform: translateY(-6px); } }
+.drawer {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 91;
+  width: min(86vw, 380px); background: var(--panel);
+  border-right: 1px solid var(--line-hi);
+  display: flex; flex-direction: column;
+  animation: slidein .24s var(--ease);
+}
+@keyframes slidein { from { transform: translateX(-100%) } to { transform: translateX(0) } }
+.drawer-top {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 12px 12px 18px; border-bottom: 1px solid var(--line);
+}
+.drawer-top .sunlogo { text-align: left; }
+.drawer-x {
+  flex: none; width: 38px; height: 38px; border: 0; border-radius: 9px;
+  background: var(--amber); color: var(--amber-ink); font-size: 17px; cursor: pointer;
+  transition: filter .15s;
+}
+.drawer-x:hover { filter: brightness(1.06); }
+.drawer-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.drawer-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 15px 18px; background: none; border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink); font-size: 14.5px; font-family: var(--font-body);
+  text-align: left; text-decoration: none; cursor: pointer;
+}
+.drawer-item:hover { background: var(--card); }
+.drawer-item .ic { font-size: 17px; flex: none; }
+.drawer-item .nm { flex: 1; min-width: 0; }
+.drawer-item .chev { flex: none; color: var(--faint); font-size: 17px; }
+.drawer-item form { display: contents; }
+.drawer-count {
+  flex: none; min-width: 22px; padding: 2px 7px; border-radius: 999px;
+  background: rgba(255,182,72,.14); color: var(--amber);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-align: center;
+}
+
+/* No celular o cabeçalho fica com hambúrguer · marca · carrinho.
+   Três ícones à direita mais a marca centralizada não cabem em 360px:
+   sobravam 4px entre o "SUPPLY" e o ícone de conta, que a olho lê como
+   colado — e era colado de fato antes da correção da grade. Conta e
+   lista de desejos passam para a gaveta, que é onde toda loja de
+   celular séria as guarda, e a marca ganha o espaço. */
+@media (max-width: 767.98px) {
+  .headicons > .acctwrap,
+  .headicons > a.headicon { display: none; }
+}
+.drawer-back {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 14px 18px; background: var(--card-hi); border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink); font-size: 14.5px; font-weight: 700;
+  font-family: var(--font-body); text-align: left; cursor: pointer;
+}
+.drawer-foot {
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+}
+.drawer-foot .btn { margin: 0; }
+
+/* --- menu da conta --- */
+.acctwrap { position: relative; }
+.acctmenu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 95;
+  min-width: 218px; background: var(--card);
+  border: 1px solid var(--line-hi); border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(1,6,13,.6); overflow: hidden;
+  animation: dropIn .16s var(--ease);
+}
+.acctmenu a, .acctmenu button {
+  display: block; width: 100%; text-align: left;
+  padding: 12px 15px; color: var(--ink); font-size: 13.5px;
+  text-decoration: none; background: none; border: 0;
+  font-family: var(--font-body); cursor: pointer;
+}
+.acctmenu a:hover, .acctmenu button:hover { background: var(--card-hi); }
+.acctmenu hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+/* --- rodapé em acordeão --- */
+.sunfoot { background: var(--night); border-top: 1px solid var(--line-hi); margin-top: 26px; }
+.sunfoot-sec { border-bottom: 1px solid var(--line); }
+.sunfoot-sec > summary {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; cursor: pointer; list-style: none;
+  color: var(--ink); font-size: 14px; font-weight: 700;
+  transition: color .15s;
+}
+.sunfoot-sec > summary:hover { color: var(--amber-hi); }
+.sunfoot-sec > summary::-webkit-details-marker { display: none; }
+.sunfoot-sec > summary::after { content: "⌄"; color: var(--faint); font-size: 15px; }
+.sunfoot-sec[open] > summary::after { content: "⌃"; }
+.sunfoot-body { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 9px; }
+.sunfoot-body a, .sunfoot-body span {
+  color: var(--muted); font-size: 13px; text-decoration: none; line-height: 1.5;
+}
+.sunfoot-body a:hover { color: var(--amber); }
+/* Chips de pagamento no padrão de mercado: mesmo tamanho, contorno
+   discreto, marca desenhada em um tom só. Nem as pastilhas brancas da
+   primeira versão (o elemento mais claro da página inteira), nem o
+   texto corrido da segunda (lia como saída de terminal). */
+.paywall {
+  margin: 0; padding: 18px var(--gut) 4px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+}
+.paywall .lb {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--faint); margin-right: 4px;
+}
+.paychip {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 28px; min-width: 48px; padding: 0 9px;
+  border: 1px solid var(--line-hi); border-radius: 6px;
+  color: var(--muted);
+}
+.sunfoot-legal {
+  text-align: center; padding: 12px 18px calc(24px + env(safe-area-inset-bottom));
+  color: var(--faint); font-size: 11.5px; line-height: 1.9;
+}
+.sunfoot-legal a { color: var(--faint); }
+
+/* --- migalha de pão --- */
+.crumb {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  font-size: 12px; color: var(--faint);
+}
+.crumb a { color: var(--faint); text-decoration: none; }
+.crumb a:hover { color: var(--amber); }
+.crumb .sep { opacity: .5; }
+/* a página atual meio tom acima dos ancestrais: o olho acha "onde
+   estou" sem ler a trilha inteira */
+.crumb [aria-current="page"] { color: var(--muted); }
+

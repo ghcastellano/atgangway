@@ -1,0 +1,134 @@
+/* ===== shell: coluna mobile-first, full-bleed no celular =====
+
+   Sem fio nas laterais, em largura nenhuma. Ele existia por herança do
+   desenho original, em que a casca imitava a moldura de um aparelho —
+   e sobreviveu ao refactoring em três tratamentos diferentes: fio de
+   500 a 767px, nada de 768 a 1599px, fio de novo acima de 1600px.
+   Um mesmo elemento com três identidades conforme a largura é
+   exatamente o que a onda 1 se comprometeu a não fazer.
+
+   E acima de 1600px ele ainda produzia um defeito visível: .sunhead e
+   .sunfoot sangram a janela inteira (margin-inline: calc(50% - 50vw)),
+   então o fio passava POR TRÁS do cabeçalho e do rodapé e só aparecia
+   no trecho do meio — lê como risco na tela, não como margem da
+   página. Quem delimita a página é o espaço em volta dela. */
+.shell {
+  position: relative;
+  width: 100%;
+  max-width: var(--shell-w);
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--night);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- a pilha da página --------------------------------------------
+   É AQUI que o espaço vertical mora, e em nenhum componente.
+
+   <main> empilha em grade com um row-gap só. Filho nenhum declara
+   margem vertical própria, e filho nenhum declara recuo lateral: os
+   dois vêm daqui. Quem precisa encostar na borda pede .bleed, que é
+   uma exceção declarada em vez de um padding a menos por descuido.
+
+   `align-content: start` porque grade com uma coluna e conteúdo curto
+   distribui a sobra entre as fileiras — o carrinho vazio abriria vãos
+   de 200px entre os blocos. */
+.shell > main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  row-gap: var(--stack);
+  padding: var(--sp-5) var(--gut) var(--sp-8);
+}
+/* Sem isto, um filho de conteúdo largo (trilho, tabela) estica a
+   coluna em vez de rolar dentro dela. */
+.shell > main > * { min-width: 0; }
+
+/* Sangra até a borda da casca e devolve o recuo por dentro. É o único
+   jeito de um trilho horizontal terminar rente à borda sem que o
+   primeiro card fique colado nela. */
+.bleed { margin-inline: calc(var(--gut) * -1); }
+
+/* conteúdo que convive com barras fixas embaixo */
+.pb-nav  { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.pb-dock { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+
+/* ===== top bar ===== */
+.top {
+  padding: 16px 20px 13px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(4,13,26,.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  position: sticky; top: 0; z-index: 20;
+}
+.logo {
+  font-family: var(--font-disp); font-weight: 800; font-size: 15px;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
+}
+.logo b { color: var(--amber); font-weight: 800; }
+.top h1 { font-family: var(--font-disp); font-size: 17px; font-weight: 700; margin: 0; }
+.back {
+  background: none; border: 0; color: var(--muted); font-size: 22px;
+  cursor: pointer; padding: 2px 8px 2px 0; line-height: 1;
+  transition: color .2s;
+}
+.back:hover { color: var(--amber-hi); }
+.top-side { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.iconbtn {
+  background: none; border: 1px solid var(--line-hi); border-radius: 999px;
+  width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; color: var(--muted); cursor: pointer; transition: border-color .2s, color .2s;
+}
+.iconbtn:hover { border-color: var(--amber); color: var(--amber-hi); }
+
+.vessel-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--line-hi); border-radius: 999px;
+  padding: 7px 13px; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: .08em; color: var(--teal); cursor: pointer; transition: border-color .2s;
+}
+.vessel-chip:hover { border-color: var(--teal); }
+.vessel-chip .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--teal);
+  box-shadow: 0 0 8px rgba(46,230,200,.9); animation: pulse 2.4s infinite;
+}
+@keyframes pulse { 50% { opacity: .35; } }
+
+/* ===== hero ===== */
+.hero-mini { padding: 32px 22px 8px; }
+.kicker {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--amber); margin: 0 0 10px;
+}
+.hero-mini h2 {
+  font-family: var(--font-disp); font-weight: 800; font-size: 30px;
+  line-height: 1.06; margin: 0 0 8px; letter-spacing: -.01em;
+}
+.hero-mini p { color: var(--muted); font-size: 14px; margin: 0; }
+
+/* ===== ship select ===== */
+.ships { padding: 20px 16px 8px; display: grid; gap: 12px; }
+.ship {
+  text-align: left; width: 100%; background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 17px 18px; cursor: pointer; color: var(--ink);
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+  transition: border-color .2s, transform .2s var(--ease), background .2s;
+}
+.ship:hover { border-color: rgba(255,182,72,.5); transform: translateY(-2px); background: var(--card-hi); }
+/* o foco vem do anel âmbar global — regra própria aqui só divergiria */
+.ship:disabled { opacity: .5; cursor: default; transform: none; }
+.ship .nm { grid-column: 1; grid-row: 1; font-family: var(--font-disp); font-weight: 700; font-size: 16.5px; }
+.ship .meta {
+  grid-column: 1; grid-row: 2; font-family: var(--font-mono); font-size: 11.5px;
+  color: var(--muted); letter-spacing: .06em;
+}
+.ship .win {
+  grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right; max-width: 110px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; line-height: 1.5;
+}
+.win .ok { color: var(--teal); } .win .soon { color: var(--amber); } .win .closed { color: var(--danger); }
+.win .urgent { color: var(--danger); font-weight: 700; animation: pulse 1.6s infinite; }
+

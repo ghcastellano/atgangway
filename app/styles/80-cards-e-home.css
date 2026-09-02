@@ -1,0 +1,819 @@
+/* ===== cartão de departamento =====
+   Substitui a fileira de cartõezinhos com seta. Com dois departamentos
+   ativos, aquela fileira deixava mil pixels vazios à direita numa tela
+   de 16" — e o que ela dizia (o nome da categoria) a barra de cima já
+   dizia. O cartão de departamento usa a mesma largura para dizer algo
+   novo: quais corredores existem lá dentro e quantos itens cada um tem.
+   É a informação que decide o clique. */
+.deptgrid { display: grid; gap: var(--sp-3); align-items: start; }
+@media (min-width: 620px) { .deptgrid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); } }
+
+.dept {
+  display: flex; flex-direction: column;
+  background: var(--card); border-radius: 14px; overflow: hidden;
+}
+.dept-top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  color: var(--ink); text-decoration: none;
+}
+.dept-top .nm { font-family: var(--font-disp); font-weight: 700; font-size: 16px; letter-spacing: -.01em; }
+.dept-top .ct {
+  margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--faint);
+  white-space: nowrap;
+}
+.dept-top:hover .nm { color: var(--amber); }
+.dept-top svg { color: var(--amber); flex: none; }
+
+/* Os corredores em quantas colunas couberem.
+   Com dois departamentos numa tela de 16", cada cartão fica com 700px —
+   e uma lista de uma coluna ali deixa 500px entre o nome e a contagem,
+   que é o mesmo defeito de fileira vazia, só que dentro do cartão. Em
+   duas colunas o cartão fica cheio de informação em vez de cheio de ar. */
+.dept-sub {
+  list-style: none; margin: 0; padding: 0 var(--sp-2) var(--sp-2);
+  display: grid; gap: 1px var(--sp-2);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.dept-sub a {
+  display: flex; align-items: center; gap: var(--sp-3);
+  min-height: 44px; padding: 0 var(--sp-2) 0 var(--sp-3);
+  border-radius: 9px; color: var(--muted); font-size: 13.5px;
+  transition: background .14s, color .14s;
+}
+.dept-sub a:hover { background: var(--card-hi); color: var(--ink); }
+/* Contagem em coluna própria, alinhada à direita: é número que se
+   compara entre linhas, e número que não alinha obriga a ler um por um. */
+.dept-sub .nm { flex: 1; min-width: 0; }
+.dept-sub .ct {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Prateleira do cartão-coleção. Departamento folha (New Arrivals) nao
+   tem corredor para listar: mostra as tres primeiras pecas. Foto de
+   produto segue a regra da casa — fundo branco e contain, para nao
+   recortar a embalagem. align-items:start no grid acima garante que o
+   cartao encolha ate o conteudo em vez de esticar ate o vizinho. */
+.dept-shelf {
+  list-style: none; margin: 0; padding: 0 var(--sp-2) var(--sp-2);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2);
+}
+.dept-shelf a {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: var(--sp-2); border-radius: 10px;
+  color: var(--muted); text-decoration: none;
+  transition: background .14s, color .14s;
+}
+.dept-shelf a:hover { background: var(--card-hi); color: var(--ink); }
+.dept-shelf .th {
+  position: relative; aspect-ratio: 1;
+  background: #FFFFFF; border-radius: 8px; overflow: hidden;
+  display: grid; place-items: center; color: var(--faint);
+}
+.dept-shelf .nm {
+  font-size: 11.5px; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== admin: fila de revisão do line-up =====
+   Linhas com colunas alinhadas: nome+atraso | ETA | ação. No celular o
+   .queue-row original (flex) continua valendo; a partir do regime largo
+   a fileira vira grade para duzentos navios serem varridos em coluna,
+   com o botão sempre no mesmo lugar. */
+@media (min-width: 768px) and (min-height: 520px) {
+  .queue-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center; gap: var(--sp-4);
+  }
+  .queue-row .meta { font-variant-numeric: tabular-nums; }
+}
+
+/* ===== faixa do Captain na home =====
+   Âmbar contido, não âmbar de faixa promocional: o programa é uma
+   condição permanente da conta, não uma oferta que expira, e tratar
+   como promoção ensina a ignorar. O código é o maior texto do bloco
+   porque é ele que a pessoa vai ditar para o colega no refeitório. */
+.capstrip {
+  display: grid; gap: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255,182,72,.10), rgba(255,182,72,.03) 62%), var(--card);
+  box-shadow: inset 0 0 0 1px rgba(255,182,72,.22);
+}
+.capstrip .kick {
+  margin: 0 0 6px; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--amber);
+}
+.capstrip h3 {
+  margin: 0; font-family: var(--font-disp); font-size: 17px; line-height: 1.28;
+  font-weight: 700; color: var(--ink); text-wrap: balance;
+}
+.capstrip h3 b { color: var(--amber); }
+.capstrip .sub { margin: 7px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+
+.capcode {
+  display: grid; gap: 9px; justify-items: start;
+  padding: 13px 14px; border-radius: 11px;
+  background: rgba(1,6,13,.34);
+}
+.capcode .lbl {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--faint);
+}
+.capcode .code {
+  font-family: var(--font-mono); font-size: 25px; font-weight: 700;
+  letter-spacing: .12em; color: var(--ink); line-height: 1;
+  /* Quebra em tela estreita em vez de estourar a caixa. */
+  overflow-wrap: anywhere;
+}
+.capcode .share { width: 100%; }
+.capmore { color: var(--amber); font-size: 12.5px; font-weight: 600; }
+.capmore:hover { color: var(--amber-hi); }
+
+@media (min-width: 620px) {
+  .capstrip { grid-template-columns: minmax(0, 1fr) minmax(230px, 300px); align-items: center; gap: 20px; }
+  .capcode .share { width: auto; }
+}
+
+/* ===== card de produto ==========================================
+   Uma definição só. Antes eram duas: um bloco base no começo do
+   arquivo e um bloco "anatomia do Sunny" seiscentas linhas abaixo,
+   redefinindo metade das mesmas classes. Duas verdades sobre o mesmo
+   card é como nasce bug de especificidade, e este arquivo já teve
+   dois (.shell:has(.admin-wide) e .form2).
+
+   DUAS colunas no celular. Estavam em uma, copiando a navegação do
+   Sunny — que é loja de roupa, onde a foto é o produto. Loja de
+   mantimento (Ocado, Amazon Fresh, Instacart, iFood, Zé) usa duas,
+   porque quem faz rancho compara preço entre itens vizinhos, e uma
+   coluna gasta uma tela por produto: com 10 a 15 por categoria são 15
+   telas para ver um corredor. O argumento anterior era não mexer no
+   que a tripulação já sabe usar; não existe tripulação usando ainda —
+   o banco foi zerado antes do lançamento.
+   ============================================================== */
+.pgrid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3);
+}
+@media (min-width: 620px) { .pgrid { grid-template-columns: repeat(3, 1fr); gap: 12px; } }
+/* Acima de 768 o regime de tablet troca por auto-fill: a grade passa a
+   medir o container, não a janela. */
+
+/* Preenchimento OU contorno, nunca os dois. O card tem fundo, logo não
+   tem fio. Era fundo + borda + sombra — três sinais dizendo "isto é um
+   bloco", e é dessa dupla codificação que vem o peso que a tela tem. */
+.pcard {
+  display: flex; flex-direction: column;
+  background: var(--card); border-radius: 14px; overflow: hidden;
+  /* Sombra baixa para ASSENTAR, não para decorar. O painel de foto é
+     branco puro sobre fundo quase preto — salto de 20:1 — e sem
+     nenhuma transição o card lia como adesivo colado na página. O
+     painel não pode escurecer (a foto normalizada é branca e um painel
+     tingido mostraria o retângulo do JPEG), então quem faz a ponte é a
+     sombra: o card ganha chão. */
+  box-shadow: 0 1px 2px rgba(1, 6, 13, .55), 0 10px 28px -18px rgba(1, 6, 13, .9);
+  transition: background .18s var(--ease), transform .18s var(--ease);
+}
+.pcard.out { opacity: .55; }
+@media (hover: hover) {
+  .pcard:hover { background: var(--card-hi); transform: translateY(-2px); }
+  /* A foto cresce um fio dentro do painel. É o único movimento do card
+     e serve para dizer "isto abre", que o cursor sozinho não diz. */
+  .pcard:hover .pcard-img { transform: scale(1.04); }
+}
+
+.pcard-top { position: relative; }
+.pcard-media {
+  position: relative; display: block; aspect-ratio: 1 / 1;
+  /* Branco puro, não um cinza de marca: a foto normalizada já vem com
+     fundo branco e 6% de folga embutida, então painel e foto viram a
+     mesma superfície. Painel tingido deixaria um retângulo claro
+     visível atrás de cada JPEG. */
+  background: #FFFFFF; line-height: 0; overflow: hidden;
+}
+.pcard-img { object-fit: contain; padding: 4px; transition: transform .3s var(--ease); }
+/* Sem foto: o ícone de caixa da família, num cinza-ardósia que
+   sussurra sobre o painel branco. O emoji que morava aqui saía colorido
+   e diferente em cada sistema — lia como produto, não como falta dele. */
+.pcard-noimg {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 34px; color: #AFC0D0;
+}
+
+/* Empilhados: um item pode ser promo E ter desconto, e dois selos
+   disputando o mesmo canto se sobrepõem. */
+.pflags {
+  position: absolute; top: 9px; left: 9px; z-index: 2;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 5px;
+}
+.pbadge, .poff {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase; line-height: 1.2;
+  padding: 4px 8px; border-radius: 6px;
+}
+.pbadge.promo  { background: var(--amber);  color: var(--amber-ink); }
+.pbadge.new    { background: var(--teal);   color: #04231E; }
+.pbadge.outlet { background: #C9D6E4;       color: #0B1B30; }
+/* O vermelho do --danger (#FF5964) dava 3.06:1 com o texto branco — o
+   Lighthouse reprovou o badge "-26%" por contraste. --danger continua
+   certo para ERRO sobre fundo escuro; aqui o badge fica sobre a foto
+   clara do produto e precisa de vermelho mais fechado. #C1121F dá
+   6.22:1, folgado no AA, e ainda lê como vermelho de promoção. */
+.poff { background: #C1121F; color: #FFFFFF; letter-spacing: .04em; }
+
+/* Esgotado cobre o painel inteiro. Era uma tarja preta no rodapé da
+   foto, que some contra embalagem escura e ainda esconde o produto na
+   única faixa onde costuma estar o nome da marca. */
+.pout {
+  position: absolute; inset: 0; z-index: 3;
+  display: grid; place-items: center; background: rgba(4,13,26,.6);
+}
+.pout b {
+  background: rgba(4,13,26,.94); color: var(--ink);
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+  padding: 7px 12px; border-radius: 999px;
+}
+
+/* Texto à esquerda. O centralizado veio do Sunny e é o que faz a grade
+   parecer catálogo de fim de ano: com nome de uma linha ao lado de um
+   de duas, cada bloco começa num ponto diferente e o olho não tem
+   margem para descer. Alinhar é o que deixa varrer trinta itens. */
+.pcard-body { display: flex; flex-direction: column; gap: 3px; padding: 11px 12px 12px; flex: 1; }
+.pbrand {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* Reservada mesmo vazia, como a linha do tamanho: card com marca ao
+     lado de card sem marca desalinhava a fileira inteira dali para
+     baixo — nome, preço e botão, cada um num nível. */
+  min-height: 1.3em;
+}
+.pname {
+  color: var(--ink); font-size: 13.5px; font-weight: 600; line-height: 1.3;
+  letter-spacing: -.005em; text-decoration: none;
+  /* Duas linhas fixas para os cards da mesma fileira terminarem
+     alinhados — grade desalinhada parece defeito. */
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; min-height: 2.6em;
+}
+.pname:hover { color: var(--amber-hi); }
+/* Reservada mesmo vazia: sem isto o card com tamanho e o sem tamanho
+   terminam com alturas diferentes e o botão dança de coluna a coluna. */
+.punit { font-family: var(--font-mono); font-size: 11px; color: var(--faint); min-height: 1.45em; }
+
+.pprice { margin-top: auto; padding-top: 8px; display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+.pprice .now {
+  font-family: var(--font-disp); font-size: 18px; font-weight: 700;
+  color: var(--ink); letter-spacing: -.01em;
+  /* Dígito de largura fixa: preço em coluna que não alinha na vírgula
+     obriga a ler número por número em vez de comparar de relance. */
+  font-variant-numeric: tabular-nums;
+}
+.pprice .was {
+  font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums;
+  text-decoration-thickness: 1px;
+}
+.pprice .from { font-style: normal; font-size: 11px; color: var(--faint); font-weight: 500; }
+
+.padd {
+  margin-top: 10px; width: 100%; border: 0; border-radius: 10px;
+  background: var(--amber); color: var(--amber-ink);
+  font-family: var(--font-body); font-size: 13px; font-weight: 700;
+  min-height: 40px; padding: 10px 12px; cursor: pointer;
+  transition: filter .15s, background .15s;
+}
+.padd:hover { filter: brightness(1.06); }
+.padd:active { filter: brightness(.94); }
+/* Contorno por box-shadow e não por border: com border o botão fantasma
+   nasce 2px mais alto que o cheio e a fileira desalinha. */
+.padd.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--line-hi); color: var(--ink); }
+.padd.ghost:hover { background: var(--card-hi); filter: none; }
+.padd:disabled {
+  background: transparent; box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--faint); cursor: not-allowed;
+}
+
+/* Contador ocupa o lugar exato do botão — mesma altura, mesmo raio,
+   mesma margem — para a grade não pular quando um card entra no
+   carrinho. */
+.pstep {
+  margin-top: 10px; width: 100%; min-height: 40px;
+  display: grid; grid-template-columns: 40px 1fr 40px; align-items: stretch;
+  border-radius: 10px; overflow: hidden;
+  /* Só o preenchimento: o anel âmbar por cima do fundo âmbar era o
+     mesmo par duplo que o resto do card já perdeu. O fundo tingido
+     sozinho já diz "isto está no carrinho". */
+  background: rgba(255,182,72,.14);
+}
+.pstep-b {
+  border: 0; background: none; color: var(--amber);
+  font-size: 17px; line-height: 1; cursor: pointer;
+  display: grid; place-items: center; transition: background .14s;
+}
+.pstep-b:hover { background: rgba(255,182,72,.16); }
+.pstep-b:active { background: rgba(255,182,72,.26); }
+.pstep-n {
+  display: grid; place-items: center;
+  font-family: var(--font-disp); font-size: 14px; font-weight: 700;
+  color: var(--ink); font-variant-numeric: tabular-nums;
+}
+
+/* Coração da FICHA: ao lado do botão, que é onde a decisão de "agora
+   não, mas depois" acontece com o produto já aberto. */
+/* Preenchimento OU contorno — a regra da casa, aplicada ao último par
+   que sobrava. O coração da ficha tinha fundo âmbar E borda; ficou o
+   contorno, que é como os botões secundários da mesma fileira falam. */
+.wish {
+  flex: none; width: 44px; border-radius: 11px; cursor: pointer;
+  background: transparent; border: 1px solid var(--line-hi);
+  color: var(--faint); font-size: 16px; display: grid; place-items: center;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.wish:hover { color: var(--amber); border-color: rgba(255,182,72,.5); }
+.wish.on { color: var(--danger); border-color: rgba(255,89,100,.5); background: transparent; }
+.wish:disabled { opacity: .5; cursor: default; }
+
+/* Coração da GRADE: no canto da foto. Ao lado do botão ele disputava a
+   ação primária de igual para igual, sendo secundário — e roubava
+   largura do único alvo que a pessoa quer acertar com o navio
+   balançando. Fundo claro com desfoque porque ele pousa sobre foto de
+   produto, que pode ser clara ou escura no canto.
+   `.pcard-top > .wish.on` e não `.pcard-top > .wish`: empataria em
+   especificidade com `.wish.on` acima e o vermelho não apareceria. */
+.pcard-top > .wish {
+  position: absolute; top: 8px; right: 8px; z-index: 2;
+  width: 34px; height: 34px; border-radius: 50%; border: 0;
+  background: rgba(255,255,255,.84); color: #46617A; font-size: 15px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  transition: background .15s, color .15s, transform .15s var(--ease);
+}
+.pcard-top > .wish:hover { color: var(--danger); background: #FFFFFF; transform: scale(1.08); }
+.pcard-top > .wish.on { color: var(--danger); background: #FFFFFF; border: 0; }
+
+/* Grade de categorias: uma coluna no celular, como a home do Sunny.
+   Duas colunas espremem o nome de categoria longa em duas linhas. */
+.catgrid { grid-template-columns: 1fr; gap: 8px; }
+@media (min-width: 620px) { .catgrid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) { .catgrid { grid-template-columns: repeat(3, 1fr); } }
+.catcard { padding: 15px 14px; border-radius: 12px; }
+.catcard .nm { font-size: 14px; }
+.catcard .chev { margin-left: auto; color: var(--faint); font-size: 17px; flex: none; }
+
+/* Trilho horizontal das faixas da home (promo, novidades). */
+.rail {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 74%;
+  gap: var(--sp-3); overflow-x: auto;
+  /* O card seguinte aparece cortado a 26%, mas cortado SECO lê como
+     defeito de layout, não como rolagem. O desvanecimento na borda
+     direita é a convenção que diz "continua" — fica ali mesmo no fim do
+     trilho, onde custa um fio do último card; é o preço de a afordância
+     existir sem JavaScript. */
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  /* Sangra e devolve o recuo por DENTRO: assim o trilho rola de borda a
+     borda e o primeiro card ainda começa alinhado com o resto da
+     página. Padding só nos lados — o vão vertical é da pilha. */
+  margin-inline: calc(var(--gut) * -1); padding-inline: var(--gut);
+  scroll-snap-type: x mandatory; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { scroll-snap-align: start; }
+@media (min-width: 620px) { .rail { grid-auto-columns: 46%; } }
+@media (min-width: 900px) { .rail { grid-auto-columns: 30%; } }
+
+/* Título de seção centralizado, como o "Categories" deles. */
+/* À esquerda em TODA largura. Era centralizado no celular e à esquerda
+   no desktop — dois tratamentos para o mesmo elemento, o que faz a mesma
+   loja parecer dois projetos. E título centralizado sobre grade alinhada
+   à esquerda não tem eixo comum com nada.
+
+   Sem margem superior: quem separa do bloco de cima é o row-gap da
+   página. Só a margem de BAIXO fica, porque ela não separa seções — ela
+   prende o título ao conteúdo dele. */
+.secttl {
+  text-align: left; font-family: var(--font-disp); font-weight: 800;
+  font-size: 21px; color: var(--ink); margin: 0; letter-spacing: -.01em;
+  text-wrap: balance;
+}
+/* A margem de baixo existe para PRENDER o título ao conteúdo dele, e só
+   faz sentido quando os dois estão na mesma <section>. Solto como filho
+   direto do <main> — que é o caso do título de /shop — ela vira um vão
+   fora do compasso, somado ao row-gap da página. */
+:is(section, .sec) > .secttl { margin-bottom: var(--sp-3); }
+
+/* Aviso azul-claro do Sunny (pedido mínimo, wishlist vazia). */
+.infobox {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: var(--sp-3) var(--sp-4); border-radius: 11px;
+  background: rgba(46,230,200,.08); border: 1px solid rgba(46,230,200,.34);
+  color: var(--ink); font-size: 13px; line-height: 1.5;
+}
+.infobox button {
+  margin-left: auto; background: none; border: 0; color: var(--faint);
+  font-size: 16px; cursor: pointer; line-height: 1; padding: 0 2px;
+}
+
+/* Cartão "Summary" do carrinho e "Personal details" do checkout. */
+.sumcard {
+  margin: 12px 16px; padding: 16px; border-radius: 16px;
+  background: var(--card); border: 1px solid var(--line);
+}
+.sumcard.framed { border-color: rgba(255,182,72,.45); }
+.sumcard h3 {
+  font-family: var(--font-disp); font-size: 17px; font-weight: 700;
+  color: var(--ink); margin: 0 0 12px;
+}
+.sumrow {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; padding: 9px 0;
+}
+.sumrow + .sumrow { border-top: 1px solid var(--line); }
+.sumrow span { color: var(--faint); font-size: 13px; }
+.sumrow b { color: var(--ink); font-size: 13.5px; font-family: var(--font-mono); }
+.sumrow.grand { border-top: 1px solid var(--line-hi); padding-top: 13px; margin-top: 4px; }
+/* "Pay now" nunca quebra em "Pay / now": rótulo partido ao lado de um
+   número grande lê como defeito — e é a linha mais olhada do resumo. */
+.sumrow.grand span { color: var(--ink); font-size: 15.5px; font-weight: 700; white-space: nowrap; }
+/* E o VALOR também não. O nowrap acima protegia só o rótulo, então quem
+   quebrava era o número: "USD" numa linha e "12.00" na outra, com o selo
+   "charged in USD" disputando a mesma linha. Valor partido é pior que
+   rótulo partido — é o número que a pessoa confere antes de pagar. O
+   min-width: 0 no selo deixa ELE ceder espaço primeiro, que é o papel
+   de um adorno. */
+.sumrow.grand b { white-space: nowrap; }
+.sumrow.grand .sumcur { min-width: 0; }
+.sumrow.grand b { font-size: 20px; font-weight: 700; }
+.sumcard .btn { margin: 10px 0 0; }
+.sumcard .btn.navy {
+  background: var(--card-hi); color: var(--ink); border: 1px solid var(--line-hi);
+}
+/* botão secundário não ganha o brilho âmbar do primário no hover —
+   dois botões brilhando igual anulam a hierarquia que os separa */
+.sumcard .btn.navy:hover { box-shadow: none; border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
+
+/* Ficha de dados do perfil no checkout. */
+.factrow { padding: 10px 0; border-top: 1px solid var(--line); }
+.factrow:first-of-type { border-top: 0; }
+.factrow dt { color: var(--faint); font-size: 11.5px; margin: 0 0 3px; }
+.factrow dd { color: var(--ink); font-size: 14.5px; font-weight: 700; margin: 0; }
+.factrow.missing dt { color: var(--danger); }
+.factrow.missing dd { color: var(--danger); font-size: 13px; font-weight: 500; }
+.factrow.missing dd a { color: var(--danger); font-weight: 700; }
+/* Recomendado não é bloqueio. Em vermelho igual ao obrigatório, "Rank is
+   recommended" lê como impedimento e a pessoa acha que não vai passar
+   daqui — quando o pagamento já estava liberado. */
+.factrow.missing.soft dt { color: var(--faint); }
+.factrow.missing.soft dd { color: var(--muted); }
+.factrow.missing.soft dd a { color: var(--amber); }
+.factship { display: flex; align-items: center; gap: 10px; }
+.factship .ph {
+  position: relative; width: 52px; height: 40px; flex: none; border-radius: 8px;
+  overflow: hidden; background: var(--night); display: grid; place-items: center;
+  font-size: 17px; border: 1px solid var(--line-hi);
+}
+
+/* Busca de navio e select com busca (cadastro e perfil). */
+.typeahead { position: relative; }
+.ta-panel {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 40;
+  background: var(--card); border: 1px solid var(--line-hi); border-radius: 12px;
+  max-height: 264px; overflow-y: auto; box-shadow: 0 16px 40px rgba(1,6,13,.6);
+  animation: dropIn .16s var(--ease);
+}
+.ta-opt {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 11px 13px; background: none; border: 0; border-bottom: 1px solid var(--line);
+  color: var(--ink); font-size: 13.5px; text-align: left; cursor: pointer;
+  font-family: var(--font-body);
+}
+.ta-opt:last-child { border-bottom: 0; }
+.ta-opt:hover, .ta-opt[aria-selected="true"] { background: var(--card-hi); }
+.ta-opt .sub { color: var(--faint); font-size: 11px; font-family: var(--font-mono); }
+.ta-opt.create { color: var(--amber); font-weight: 700; }
+.ta-hint { padding: 11px 13px; color: var(--faint); font-size: 12px; }
+.ta-group {
+  padding: 7px 13px; color: var(--faint); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; background: var(--night);
+}
+
+/* Medidor de força de senha e toggle do cadastro. */
+.pwmeter { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.pwbar { flex: 1; height: 4px; border-radius: 999px; background: var(--line-hi); overflow: hidden; }
+.pwbar i { display: block; height: 100%; transition: width .2s, background .2s; }
+.pwlabel { font-size: 11px; color: var(--faint); flex: none; }
+.pweye {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: 0; color: var(--faint); font-size: 15px; cursor: pointer; padding: 6px;
+}
+.field.haseye { position: relative; }
+.field.haseye input { padding-right: 40px; }
+
+.switch { display: flex; align-items: center; gap: 10px; margin: 6px 0; cursor: pointer; }
+.switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch .track {
+  width: 40px; height: 22px; border-radius: 999px; background: var(--line-hi);
+  position: relative; flex: none; transition: background .16s;
+}
+.switch .track::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--ink); transition: transform .16s;
+}
+.switch input:checked + .track { background: var(--amber); }
+.switch input:checked + .track::after { transform: translateX(18px); background: var(--amber-ink); }
+.switch input:focus-visible + .track { outline: 2px solid var(--amber); outline-offset: 2px; }
+.switch .lbl { color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+/* Tabela da página de portos. */
+.ptable { margin: 12px 16px; border: 1px solid var(--line); border-radius: 13px; overflow: hidden; }
+.ptable table { width: 100%; border-collapse: collapse; }
+.ptable th, .ptable td {
+  padding: 10px 11px; text-align: left; font-size: 12.5px;
+  border-bottom: 1px solid var(--line);
+}
+.ptable th {
+  background: var(--panel); color: var(--faint); font-weight: 600;
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+}
+.ptable td { color: var(--ink); }
+.ptable tr:last-child td { border-bottom: 0; }
+.ptable .wrap { overflow-x: auto; }
+
+/* Título "Description / NOME" da ficha, como o deles. */
+.pdp-block :is(h2, h3) .slash { color: var(--faint); font-weight: 500; }
+.pdp-block .prodname {
+  color: var(--amber); font-size: 14px; font-weight: 700; margin: 0 0 10px;
+  text-transform: uppercase; letter-spacing: .01em;
+}
+
+.deadline.compact { margin: 8px 16px; padding: 9px 12px; font-size: 12px; }
+
+/* --- mini-carrinho (painel pela direita) --- */
+.minicart {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 91;
+  width: min(90vw, 400px); background: var(--panel);
+  border-left: 1px solid var(--line-hi);
+  display: flex; flex-direction: column;
+  animation: slideright .24s var(--ease);
+}
+@keyframes slideright { from { transform: translateX(100%) } to { transform: translateX(0) } }
+.minicart-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 13px; border-bottom: 1px solid var(--line);
+}
+.minicart-top h2 {
+  margin: 0; font-family: var(--font-disp); font-size: 19px; font-weight: 800; color: var(--ink);
+}
+.minicart-x {
+  width: 34px; height: 34px; border: 0; border-radius: 50%;
+  background: var(--card-hi); color: var(--ink); font-size: 14px; cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.minicart-x:hover { color: var(--amber-hi); background: var(--line-hi); }
+.minicart-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px 0; }
+.mcline { display: flex; gap: 11px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.mcbody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.mchead { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.mchead .nm {
+  color: var(--ink); font-size: 13px; font-weight: 700; text-transform: uppercase;
+  line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.mchead b { color: var(--ink); font-size: 13.5px; flex: none; }
+.mcline .sku { font-size: 10.5px; color: var(--faint); }
+.mcactions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.qty.small button { width: 30px; height: 32px; font-size: 16px; }
+.qty.small span { min-width: 22px; font-size: 13px; }
+.mcdel {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  background: none; border: 1px solid var(--line-hi); color: var(--faint); font-size: 13px;
+  transition: color .15s, border-color .15s;
+}
+.mcdel:hover { color: var(--danger); border-color: rgba(255,89,100,.45); }
+/* Grid, e não bloco solto com margem.
+   Enquanto o botão trazia width:100% embutido, dois deles se empilhavam
+   por acidente — cada um ocupava a linha inteira. Quando a largura
+   passou a vir do container (que é o certo: botão não decide a própria
+   largura), os dois viraram inline-flex de largura automática e caíram
+   na MESMA linha, encostados, com o segundo vazando para fora da gaveta.
+   Container que segura dois botões precisa dizer como eles se arrumam. */
+.minicart-foot {
+  padding: 13px 16px calc(13px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line-hi); background: var(--night);
+  display: grid; gap: 9px;
+}
+
+/* ===== home: vitrine ===== */
+/* Hero sem foto: não temos direito de uso de imagem de navio, e foto
+   genérica de banco pesa mais do que a promessa que ilustra. */
+.homehero {
+  /* Sangra até a borda: painel de abertura com recuo lateral lê como
+     cartão solto, não como abertura da página. */
+  margin-inline: calc(var(--gut) * -1);
+  padding: var(--sp-7) var(--gut) var(--sp-6);
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(255,182,72,.16), transparent 62%),
+    radial-gradient(110% 100% at 100% 100%, rgba(46,230,200,.12), transparent 60%),
+    var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.homehero h1 {
+  font-family: var(--font-disp); font-weight: 800;
+  font-size: clamp(25px, 7.2vw, 32px); line-height: 1.1;
+  letter-spacing: -.02em; margin: 6px 0 0; color: var(--ink); text-wrap: balance;
+}
+.homehero .lead { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 10px 0 0; }
+
+/* Tira do navio: borda âmbar à esquerda em vez de cartão inteiro
+   destacado — é contexto, não um chamado concorrendo com a vitrine. */
+/* Como funciona.
+   No celular não entra: a tela já é curta, a grade de categorias vem
+   logo abaixo e três parágrafos empurrariam a loja para fora da
+   primeira dobra. É conteúdo de desktop, onde havia espaço sobrando. */
+.herosteps { display: none; }
+/* No celular a tela já é curta e as categorias vêm logo abaixo: a faixa
+   de fatos empurraria a grade para a segunda rolagem. */
+.herofacts { display: none; }
+
+/* ===== painel do navio =====
+   Era uma tira de ícone + nome + "Alongside now". No desktop ela
+   esticava até a altura do herói e sobravam duzentos pixels de nada;
+   e o que dizia — o nome de um navio que a própria pessoa cadastrou —
+   ninguém precisava ler.
+
+   Agora é um cartão de escala. O assunto é o PRAZO: a tripulação não
+   quer saber que o navio chega quinta, quer saber até quando dá para
+   pedir. Por isso o bloco do corte tem fundo próprio e o número maior
+   da peça.
+
+   CELULAR: cartão de largura cheia, os dados em duas colunas, o prazo
+   embaixo. Nada de esconder informação atrás de toque. */
+.vpanel {
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--card); border: 1px solid var(--line);
+  border-left: 3px solid var(--amber); border-radius: 16px;
+  display: grid; gap: 12px;
+}
+.vpanel.fechado { border-left-color: var(--faint); }
+
+.vpanel header { display: flex; align-items: center; gap: 8px; }
+.vpanel header .lb {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--faint);
+}
+.vpanel header .dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--faint);
+  margin-left: auto; flex: none;
+}
+.vpanel header .dot.on { background: var(--teal); box-shadow: 0 0 0 3px rgba(46,230,200,.16); }
+.vpanel header .st {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+.vpanel .nome {
+  margin: 0; font-family: var(--font-disp); font-size: 20px; font-weight: 700;
+  line-height: 1.15; letter-spacing: -.01em; display: flex; align-items: center; gap: 9px;
+}
+.vpanel .nome .fl { font-size: 17px; line-height: 1; }
+.vpanel .ids {
+  margin: 0; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: .06em; color: var(--faint);
+}
+
+/* Berço e ETA lado a lado: são dois dados curtos, e empilhá-los
+   gastaria altura que o prazo usa melhor. */
+.vpanel .dados {
+  margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 24px;
+  padding-top: 2px; border-top: 1px solid var(--line);
+}
+.vpanel .dados > div { display: grid; gap: 2px; padding-top: 10px; }
+.vpanel .dados dt {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--faint);
+}
+.vpanel .dados dd {
+  margin: 0; font-size: 14px; font-weight: 600;
+  display: flex; align-items: baseline; gap: 7px;
+}
+.vpanel .dados .atraso {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700;
+  color: var(--danger); letter-spacing: .04em;
+}
+
+/* O bloco do prazo. Fundo próprio porque é o assunto, não um dado
+   entre outros. */
+.vpanel .corte {
+  display: grid; gap: 3px; padding: 13px 14px;
+  background: var(--night); border: 1px solid var(--line); border-radius: 12px;
+}
+.vpanel .corte .ct {
+  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--faint);
+}
+.vpanel .corte strong {
+  font-family: var(--font-mono); font-size: 26px; line-height: 1;
+  color: var(--amber); font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+.vpanel.fechado .corte strong { color: var(--faint); }
+/* Últimas 12h da janela — o mesmo limiar do e-mail de última chamada.
+   O calor é o fio e o fundo, não um vermelho de erro: nada quebrou,
+   o relógio é que está baixo. Âmbar já é a cor de "atenção" da casa. */
+.vpanel .corte.urgente {
+  border-color: rgba(255,182,72,.55);
+  background: linear-gradient(0deg, rgba(255,182,72,.07), rgba(255,182,72,.07)), var(--night);
+}
+.vpanel .corte.urgente .ct { color: var(--amber-hi); }
+.vpanel .corte .qd { font-size: 11.5px; color: var(--muted); }
+.vpanel .corte .barra {
+  height: 3px; border-radius: 2px; background: var(--line-hi);
+  overflow: hidden; margin-top: 7px;
+}
+.vpanel .corte .barra i {
+  display: block; height: 100%; background: var(--amber); border-radius: 2px;
+}
+.vpanel.fechado .corte .barra i { background: var(--faint); }
+
+.vpanel .acao { text-decoration: none; }
+
+
+/* ===== carrinho ===== */
+/* "Apply Discount Code" recolhível. No nosso não há cupom para digitar:
+   o que a tripulação acumula é crédito Captain, e ele mora no lugar em
+   que a pessoa já procura desconto. <details> nativo, sem estado. */
+.disc { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.disc > summary {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; cursor: pointer; list-style: none;
+  color: var(--ink); font-size: 13.5px; font-weight: 700;
+  transition: color .15s;
+}
+.disc > summary:hover { color: var(--amber-hi); }
+.disc > summary::-webkit-details-marker { display: none; }
+.disc > summary::after { content: "⌄"; color: var(--faint); font-size: 15px; }
+.disc[open] > summary::after { content: "⌃"; }
+.disc-body { padding: 2px 0 12px; }
+.disc-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.disc-line span { color: var(--faint); font-size: 13px; }
+.disc-line b { font-family: var(--font-mono); font-size: 17px; font-weight: 700; color: var(--teal); }
+.disc-line.zero b { color: var(--faint); } /* saldo zero não é erro nem conquista */
+
+.cart-list .mcline {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 13px 15px;
+}
+.cart-list .ci-thumb { width: 62px; height: 62px; }
+/* Fundo branco na área de imagem, como no card da grade: a foto do
+   fornecedor já vem recortada em branco, e é isso que faz o produto
+   parecer produto. */
+.ci-thumb { background: #FFFFFF; }
+
+/* ===== checkout ===== */
+/* "Need to change these details?" é rodapé do cartão, não rabicho do
+   último campo — o fio separa. */
+.sumcard .factfoot { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* ===== páginas estáticas ===== */
+/* Título de página com sublinhado âmbar (espec §9). O traço curto dá
+   peso de "página" sem precisar de outra família tipográfica. */
+.pagettl {
+  font-family: var(--font-disp); font-weight: 800; font-size: 26px;
+  line-height: 1.12; letter-spacing: -.01em; color: var(--ink);
+  position: relative; margin: 12px 16px 0; padding-bottom: 11px;
+  text-wrap: balance;
+}
+.pagettl::after {
+  content: ""; position: absolute; left: 0; bottom: 0;
+  width: 52px; height: 3px; border-radius: 2px; background: var(--amber);
+}
+.pagelead { margin: 12px 16px 2px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+/* Aviso de rascunho em Terms e Privacy. Âmbar de propósito: é cautela,
+   não falha — vermelho leria como erro do site e faria a pessoa parar
+   de ler justamente o que precisa ler. */
+.draftnote {
+  margin: 12px 16px 0; padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,182,72,.09); border: 1px solid rgba(255,182,72,.35);
+  color: var(--amber-hi); font-size: 12.5px; line-height: 1.55;
+}
+.draftnote b { color: var(--amber); }
+
+/* Link no meio de resposta do FAQ. No rodapé a linha inteira é link e
+   pintar tudo de --muted funciona; aqui o link mora dentro do parágrafo
+   e sem contraste ninguém percebe que dá para clicar. */
+.sunfoot-body a.alink { color: var(--amber-hi); font-weight: 600; }
+.sunfoot-body a.alink:hover { text-decoration: underline; }
+/* Resposta de FAQ é texto de leitura, não linha de rodapé: 13px de
+   rodapé em parágrafo de cinco linhas cansa. */
+.sunfoot-body .pdp-text { font-size: 14px; }
+
+/* Ícone de categoria em SVG: herda a cor do cartão e ganha o âmbar no
+   hover, como o resto da família. O emoji do banco continua servindo
+   de retaguarda e usa o mesmo box. */
+svg.ic { flex: none; color: var(--amber); }
+.catcard:hover svg.ic { color: var(--amber-hi); }
+.drawer-item svg.ic { color: var(--faint); }
+.drawer-item:hover svg.ic { color: var(--amber); }

@@ -95,7 +95,10 @@ export async function sendMail(msg: {
  */
 export async function sendOrderEmail(
   rpc: {
-    rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- adaptador
+    // estrutural: aceita tanto o cliente tipado (createClient<Database>, cujo
+    // rpc só aceita nomes do schema) quanto o cliente cru do webhook.
+    rpc: (fn: any, args?: any) => PromiseLike<{ data: unknown; error: unknown }>;
   },
   orderId: string,
   kind: OrderEmailData["kind"],

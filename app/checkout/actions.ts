@@ -142,11 +142,11 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
      códigos da RPC nas frases de sempre — lib/pedido.ts. */
   const { data, error } = await supabase.rpc("place_order", {
     p_key: input.idempotencyKey,
-    p_ship: input.shipId ?? null,
+    p_ship: input.shipId ?? undefined,
     p_apply_credit: Boolean(input.applyCredit),
-    p_contact_name: input.contactName ?? null,
-    p_contact_whatsapp: input.contactWhatsapp ?? null,
-    p_note: input.note ?? null,
+    p_contact_name: input.contactName ?? undefined,
+    p_contact_whatsapp: input.contactWhatsapp ?? undefined,
+    p_note: input.note ?? undefined,
     p_items: items,
   });
   if (error || !data) {

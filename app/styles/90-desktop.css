@@ -1,0 +1,961 @@
+/* ==================================================================
+   DESKTOP / iPAD — plano consolidado
+   ------------------------------------------------------------------
+   Regime: (min-width: 768|1024|1280|1600px) AND (min-height: 520px).
+   A guarda de altura está em TODOS os degraus de propósito: sem ela
+   o iPhone deitado (874x402) entra no desktop; e se ela estivesse só
+   no primeiro degrau existiria um estado misto (casca larga, página
+   em coluna). Assim o regime liga e desliga como bloco único.
+
+   Abaixo disso NENHUMA regra deste arquivo é avaliada. O celular está
+   validado e não muda. As únicas linhas em escopo base são o bloco
+   "classes novas" logo abaixo, que desliga markup que hoje não existe.
+
+   ORDEM: este bloco tem de ser o ÚLTIMO do arquivo. Empata em
+   especificidade com .pgrid, .catgrid e .rail do escopo base; quem
+   vence é quem vem por último. (Sem número de linha de propósito: a
+   referência anterior citava linhas e envelheceu no primeiro corte.)
+   ================================================================== */
+
+/* ---- classes novas: nascem desligadas, inclusive no celular ----
+   Todas são markup de servidor, então vão no HTML em qualquer
+   largura. Sem estas seis linhas elas vazam para o celular. */
+.catbar,
+.hamb-label,
+.sunfoot-brand,
+.facets,
+.wide-only      { display: none; }
+
+/* ---- rail da conta: o MESMO menu no celular e no desktop ----------
+   Ele era display:none abaixo de 1024 e a navegação da conta no celular
+   ficava por conta de um <select> que só a /wishlist tinha — /account,
+   /orders e /captain simplesmente não tinham como sair dali sem voltar
+   ao cabeçalho. Uma lista de quatro cartões cabe num celular sem
+   esforço; o que mudava com a largura era a POSIÇÃO (coluna fixa e
+   grudada, no desktop), nunca a existência. */
+.acct-rail { display: block; }
+.acct-rail .catgrid { grid-template-columns: 1fr; gap: 6px; padding: 0; }
+.acct-rail .catcard { border-radius: 10px; padding: 12px 13px; min-height: 44px; }
+.acct-rail .catcard .chev { margin-left: auto; }
+.acct-rail .catcard[aria-current="page"] { border-color: rgba(255,182,72,.55); background: var(--card-hi); }
+.acct-rail .catcard[aria-current="page"] .nm { color: var(--amber-hi); }
+.acct-rail > .stack { padding: 16px 0 0; margin-top: 14px; border-top: 1px solid var(--line); }
+.sumcur, .odate { display: none; }   /* ligados só a partir de 1024 */
+
+/* ============================================================
+   DEGRAU 1 — 768px · iPad retrato (820x1180)
+   ============================================================ */
+@media (min-width: 768px) and (min-height: 520px) {
+  /* ---- CADASTRO no iPad: coluna confortável ----
+     Em retrato o iPad tem 834px, e uma coluna só deixa o campo com
+     802px de largura. Campo largo NÃO é campo melhor: o olho perde a
+     relação entre o rótulo à esquerda e o que digitou à direita, e o
+     alvo de toque vira uma faixa. Duas colunas ainda não cabem com
+     folga aqui, então a resposta é limitar a coluna. */
+  .pg-form > * { max-width: 620px; margin-inline: auto; width: 100%; }
+
+
+  :root {
+    --page-w: 1440px;
+    --gut:      20px;
+    --head-h:  112px;   /* 9 + 46 + 9 + 1 + 44 + 1, medido */
+    --pmin:    216px;
+    --pgap:     16px;
+    --rail:      0px;
+    --colgap:    0px;
+    --search-w: 460px;
+  }
+
+  /* ---------- 2.1 a casca deixa de ser coluna de celular ---------- */
+  .shell { max-width: var(--page-w); }
+  /* Retaguarda para o resto do site: /faq, /terms, /login, /ports,
+     /captain, /brochures, /signup, /orders/[code]… nenhuma é
+     superfície desenhada aqui. Em vez de virarem celular colado na
+     borda, viram coluna de leitura centrada. --shell-w ganha este
+     segundo emprego e continua intacto para .buydock. */
+  .shell > main { max-width: var(--shell-w); margin-inline: auto; width: 100%; }
+  /* O painel de operação NÃO é página de leitura. A retaguarda acima o
+     engolia: main.stack caía na coluna de 500px e o admin virava uma
+     tela de celular pendurada num monitor — fila de 200 navios num
+     corredor de meio palmo. O :has(.admin-wide) já alarga a casca; o
+     main tem de acompanhar — literalmente, pelo mesmo token.
+
+     Estava travado em 1180px por medo de linha de revisão comprida,
+     separando o nome do botão além do alcance do olho. O medo era certo
+     e o remédio, errado: .cart-list já é auto-fill de minmax(340px, 1fr),
+     então largura sobrando NUNCA vira linha de 1500px — vira mais uma
+     coluna de 340. O cap só fazia a casca crescer até 1520px e o miolo
+     parar em 1180, deixando 39% de um monitor de 1920 vazio com um
+     degrau visível entre os dois. Num painel de operação, largura extra
+     é mais pedido na tela ao mesmo tempo. */
+  .shell:has(.admin-wide) > main { max-width: 100%; }
+  /* as seis superfícies desenhadas saem do teto */
+  .shell > main.pg-form,
+  .shell > main.pg-home,
+  .shell > main.pg-list,
+  .shell > main.pg-pdp,
+  .shell > main.pg-cart,
+  .shell > main.pg-checkout,
+  .shell > main.pg-acct { max-width: none; }
+
+  /* ---------- 2.2 alvos de toque: o iPad é touch (regra 3) -------- */
+  .btn.small        { min-height: 44px; padding: 11px 16px; }
+  .sortsel          { min-height: 44px; padding: 10px 12px; font-size: 14px; cursor: pointer; }
+  .infobox button   { min-width: 44px; min-height: 44px; margin: -10px -8px -10px auto; }
+  .acctmenu a,
+  .acctmenu button  { padding: 13px 16px; }   /* 46px — folga, não correção */
+  /* O card cresce aqui, então o alvo cresce com ele. O contador tem de
+     acompanhar o botão: se um ficar em 44 e o outro em 40, a fileira
+     muda de altura no instante em que o item entra no carrinho. */
+  .padd, .pstep     { min-height: 44px; }
+  .pstep            { grid-template-columns: 44px 1fr 44px; }
+  .pcard-top > .wish { width: 40px; height: 40px; font-size: 16px; }
+
+  /* ================= CABEÇALHO ================= */
+
+  /* faixa âmbar mais discreta: 40px de altura em tela larga vira parede */
+  .announce { padding: 7px 14px; font-size: 12.5px; }
+
+  /* Uma fileira: ☰ All · logo · busca · ícones.
+     display:contents dissolve a CAIXA de .sunhead-row sem tocar no
+     DOM — os três filhos sobem para a grade de .sunhead e a busca,
+     que já é irmã, entra na MESMA fileira. É o que permite o
+     cabeçalho do Sunny sem mover nada no TSX (e sem tirar o
+     HeaderSearch do <Suspense>). */
+  /* minmax(0, 1fr) e não minmax(220px, 1fr): o mínimo de 220px era um
+     piso RÍGIDO, e num iPad em retrato (768px) a soma das quatro colunas
+     passava da tela — o site inteiro ganhava 28px de rolagem horizontal,
+     em TODAS as páginas. Com mínimo zero a busca cede espaço em vez de
+     empurrar o cabeçalho para fora; a largura confortável dela volta no
+     min-width de 900px logo abaixo. */
+  .sunhead {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 16px;
+    padding: 9px var(--gut) 0;
+  }
+  .sunhead-row { display: contents; }
+  .sunhead > .sunhead-row > .hamb      { grid-column: 1; grid-row: 1; justify-self: start; }
+  .sunhead > .sunhead-row > .sunlogo   { grid-column: 2; grid-row: 1; justify-self: start; }
+  .sunhead > .sunhead-row > .headicons { grid-column: 4; grid-row: 1; justify-self: end; }
+  .sunhead > .sunsearch                { grid-column: 3; grid-row: 1; }
+  .sunhead > .catbar                   { grid-column: 1 / -1; grid-row: 2; }
+
+  /* o hambúrguer vira botão rotulado — MESMO botão, mesmo estado,
+     mesmo drawer. É a diferença deliberada em relação ao Sunny. */
+  .hamb {
+    width: auto; height: 40px; padding: 0 13px;
+    grid-auto-flow: column; gap: 9px;
+    background: var(--card); border: 1px solid var(--line-hi);
+  }
+  .hamb-label {
+    display: inline; font-size: 12.5px; font-weight: 700;
+    letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
+  }
+  .hamb:hover { background: var(--card-hi); border-color: var(--amber); }
+  .hamb::after { width: 100%; height: 44px; }   /* o alvo acompanha a caixa nova */
+
+  /* Entre 768 e 900px o "ALL CATEGORIES" custa 120px que a busca precisa
+     mais do que ele: o ícone ☰ sozinho já é entendido, e o drawer que
+     ele abre é o mesmo. Acima de 900 o rótulo volta. */
+  @media (max-width: 899.98px) {
+    .hamb { width: 40px; padding: 0; }
+    .hamb-label { display: none; }
+  }
+
+  /* logo em uma linha: com 460px de busca ao lado, duas linhas de
+     12px deixariam a marca menor que o placeholder da busca */
+  .sunlogo { gap: 9px; }
+  .sunlogo .mark { width: 26px; height: 26px; }
+  .sunlogo .word { flex-direction: row; gap: 6px; align-items: baseline; }
+  .sunlogo .l1, .sunlogo .l2 { font-size: 17px; letter-spacing: .07em; }
+
+  .sunsearch { padding: 0; max-width: var(--search-w); width: 100%; }
+  .sunsearch input  { padding: 11px 14px; }   /* 16px de font-size fica */
+  .sunsearch button { width: 48px; }
+
+  /* ---- barra horizontal de categorias ---- */
+  .catbar { display: block; position: relative; margin-top: 9px; border-top: 1px solid var(--line); }
+  .catbar-list { list-style: none; margin: 0; padding: 0; display: flex; align-items: stretch; gap: 2px; }
+  /* static de propósito: o megapanel se ancora em .sunhead e
+     atravessa a largura toda, como no Magento */
+  .catwrap { position: static; }
+  /* Corte por posição. O que não cabe NÃO some do site: continua no
+     drawer "All Categories". sort_order do admin decide a prioridade.
+     Literais por degrau em vez de nth-child(n + calc(--n)) — calc()
+     dentro de An+B é CSS Values 4 e não vale o risco. */
+  .catbar-list > .catwrap:nth-child(n + 5) { display: none; }
+
+  .catlink {
+    display: flex; align-items: center; gap: 6px;
+    min-height: 44px; padding: 0 13px;
+    background: none; border: 0; cursor: pointer;
+    color: var(--muted); font-family: var(--font-body);
+    font-size: 13px; font-weight: 600; letter-spacing: .02em;
+    text-transform: uppercase; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+  }
+  .catlink:hover,
+  .catlink[aria-expanded="true"],
+  .catlink.on { color: var(--ink); border-bottom-color: var(--amber); }
+  .catlink.hot { color: var(--amber); }
+  .catlink.hot:hover { color: var(--amber-hi); }
+  /* Rótulo e seta são dois controles, e o sublinhado tem de correr
+     por baixo dos dois — senão a seção parece cortada ao meio. */
+  .catgroup { display: flex; align-items: stretch; }
+  .catgroup > .catlink { padding-right: 5px; }
+  .cchev {
+    /* Alvo de toque: tinha 44px de altura mas so ~20px de largura, e o
+       Lighthouse reprovou (minimo 24x24). Centraliza a seta num alvo de
+       36px de largura — passa com folga sem alargar demais o catbar. */
+    display: flex; align-items: center; justify-content: center;
+    min-width: 36px; padding: 0 6px; min-height: 44px;
+    background: none; border: 0; border-bottom: 2px solid transparent;
+    color: var(--faint); font-size: 11px; cursor: pointer;
+  }
+  .catgroup:hover > .catlink, .catgroup:hover > .cchev,
+  .catgroup.open > .catlink, .catgroup.open > .cchev {
+    color: var(--ink); border-bottom-color: var(--amber);
+  }
+  .catgroup.open > .cchev { color: var(--amber); }
+
+  .megapanel {
+    position: absolute; z-index: 5;
+    left: var(--gut); right: var(--gut); top: 100%;
+    background: var(--card);
+    border: 1px solid var(--line-hi); border-top: 0;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 30px 60px -22px rgba(1, 6, 13, .92);
+    padding: 22px 24px 18px;
+    max-height: min(64vh, 520px); overflow-y: auto;
+    animation: dropIn .16s var(--ease);
+  }
+  .megagrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 26px; }
+  .megacol { display: flex; flex-direction: column; padding-bottom: 12px; }
+  .megahead {
+    display: flex; align-items: center; min-height: 44px;
+    color: var(--ink); font-size: 13.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .03em;
+  }
+  .megahead:hover { color: var(--amber); }
+  .megalink { display: flex; align-items: center; min-height: 40px; color: var(--muted); font-size: 13.5px; }
+  .megalink:hover { color: var(--amber); }
+  .megaall {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 6px; padding: 11px 0 0; border-top: 1px solid var(--line);
+    color: var(--amber); font-size: 13px; font-weight: 700;
+  }
+  .megaall:hover { color: var(--amber-hi); }
+
+  /* painéis laterais um pouco mais generosos */
+  .drawer   { width: 400px; }
+  .minicart { width: 400px; }
+  .acctmenu { min-width: 240px; }
+
+  /* ================= RODAPÉ ================= */
+  .sunfoot {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px; row-gap: 4px;
+    margin-top: 48px; padding: 38px var(--gut) 0;
+  }
+  .sunfoot-sec { border-bottom: 0; }
+  .sunfoot-sec > summary {
+    padding: 0 0 13px; font-size: 12.5px;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--ink);
+  }
+  .sunfoot-body { padding: 0 0 26px; gap: 11px; }
+  .sunfoot-body a, .sunfoot-body span { font-size: 13.5px; }
+  .sunfoot-base { grid-column: 1 / -1; }
+  .paywall { justify-content: flex-start; padding: 20px 0 0; border-top: 1px solid var(--line); }
+  .sunfoot-legal { text-align: left; padding: 14px 0 30px; }
+
+  /* ================= GRADES COMPARTILHADAS ================= */
+
+  /* A grade passa a medir o CONTAINER, não a janela. É a correção do
+     defeito raiz: o @media de largura de .pgrid no escopo base mede
+     o viewport, e .pgrid vive num container que muda de largura
+     conforme tem trilho de filtros (/shop, /c) ou não (/wishlist,
+     relacionados da ficha). auto-fill resolve os quatro casos sem
+     @container. auto-fill e não auto-fit: com 2 produtos numa grade
+     de 4 trilhas, auto-fit esticaria cada card para 600px. */
+  .pgrid   { grid-template-columns: repeat(auto-fill, minmax(var(--pmin), 1fr)); gap: var(--pgap); }
+  .catgrid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+
+  /* ================= HOME ================= */
+  /* `.shell > main.pg-home` e não `.pg-home`: a regra base da pilha é
+     `.shell > main`, que pesa mais que uma classe sozinha e engolia esta
+     grade de 12 colunas. O sintoma era discreto e feio — o herói ficava
+     largo, mas TODO o resto da home se espremia na primeira trilha e
+     encostava à esquerda, com meia tela vazia à direita. Regra de página
+     tem de pesar pelo menos o mesmo que a regra da pilha. */
+  .shell > main.pg-home {
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gut); row-gap: var(--stack);
+    /* O topo era 0 e o herói encostava na barra de categorias. Painel
+       com canto arredondado colado na barra lê como elemento cortado,
+       não como elemento no lugar — a borda superior some contra a
+       barra e o arredondamento fica pendurado. */
+    padding: var(--sp-5) var(--gut) var(--sp-8);
+  }
+  /* min-width:0 é obrigatório: sem ele o .rail com overflow-x estoura
+     a faixa da grade em vez de rolar dentro dela. */
+  .pg-home > * { grid-column: 1 / -1; min-width: 0; }
+  /* No desktop a página já recua; o trilho não sangra mais. Sem zerar,
+     o margin negativo do escopo base o jogaria para fora da coluna. */
+  .pg-home .catgrid, .pg-home .rail { margin-inline: 0; padding-inline: 0; }
+  /* No desktop o trilho vira grade sem rolagem: máscara fora, senão o
+     último card da fileira nasce desbotado sem haver o que rolar. */
+  .pg-home .rail { -webkit-mask-image: none; mask-image: none; }
+  .pg-home .deptgrid { gap: var(--sp-4); }
+  .pg-home .dept-top { padding: var(--sp-5) var(--sp-5) var(--sp-4); }
+  .pg-home .dept-top .nm { font-size: 18px; }
+  .pg-home .dept-sub { padding: 0 var(--sp-3) var(--sp-3); }
+  /* Só o herói e as duas laterais recebem linha explícita: são a
+     fileira de abertura. Do Captain para baixo a grade coloca na ordem
+     do DOM, que agora é a ordem de leitura — foi o grid-row fixo do
+     .capstrip que o jogava para dentro da seção de categorias. */
+  .pg-home > .homehero { grid-row: 1; }
+  .pg-home > .vpanel   { grid-row: 1; grid-column: 9 / -1; align-self: stretch; margin: 0; }
+  .pg-home > .capstrip { margin: 0; padding: var(--sp-5) var(--sp-5) var(--sp-5); }
+  .pg-home .capstrip h3 { font-size: clamp(18px, 1.5vw, 22px); }
+
+  .pg-home .homehero {
+    margin: 0 calc(var(--gut) * -1);      /* full-bleed até a borda da casca */
+    padding: var(--sp-9) var(--gut) var(--sp-8);
+  }
+  .pg-home .homehero .kicker { font-size: 11.5px; margin-bottom: 14px; }
+  /* o clamp de 1507 satura em 32px porque 7.2vw de 1440 é 103px.
+     Reescala pela largura do bloco, não pela viewport. */
+  /* 22ch e não 17ch: com o painel do navio ao lado o herói tem 8 das 12
+     colunas, e 17ch quebrava o título em TRÊS linhas curtas dentro de um
+     painel largo — o que faz o bloco parecer uma coluna solta no canto
+     em vez de o assunto da página. */
+  .pg-home .homehero h1 { font-size: clamp(32px, 3.4vw, 46px); max-width: 22ch; margin-top: 8px; }
+  .pg-home .homehero .herofacts {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px; margin: 30px 0 0; padding-top: 20px;
+    border-top: 1px solid var(--line);
+    max-width: 760px;
+  }
+  .pg-home .homehero .herofacts dt {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 5px;
+  }
+  .pg-home .homehero .herofacts dd {
+    margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink);
+  }
+  .pg-home .homehero .lead { font-size: 16px; line-height: 1.6; margin-top: 14px; max-width: 50ch; }
+  .pg-home .herocta { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  .pg-home .herocta .btn { width: auto; padding: 14px 22px; min-height: 48px; }
+
+  .pg-home .secttl {
+    display: flex; align-items: center; gap: 18px;
+    text-align: left; margin: 0 0 var(--sp-4); font-size: clamp(22px, 1.9vw, 28px);
+  }
+  .pg-home .secttl::after { content: ""; order: 2; flex: 1; height: 1px; background: var(--line); }
+  .pg-home .secttl .allx {
+    order: 3; flex: none; display: inline-flex; align-items: center; min-height: 44px;
+    font-family: var(--font-body); font-size: 13.5px; font-weight: 700;
+    color: var(--amber); letter-spacing: 0;
+  }
+  .pg-home .secttl .allx:hover { color: var(--amber-hi); }
+
+  .pg-home .catcard { padding: 17px 16px; gap: 13px; border-radius: 14px; }
+  .pg-home .catcard .nm { font-size: 15px; }
+  .pg-home .catcard .ct { font-size: 11px; }
+  /* CategoryIcon escreve width/height como ATRIBUTO; o CSS ganha,
+     então não é preciso prop nova nem componente novo */
+  .pg-home .catcard svg.ic { width: 26px; height: 26px; }
+  .pg-home .catcard .ic    { font-size: 24px; }
+
+  /* iPad retrato mantém o carrossel: o swipe é a navegação validada
+     no toque. 3,4 cards por tela — a fração é a afordância. */
+  .pg-home .rail { grid-auto-columns: calc((100% - 40px) / 3.4); gap: 12px; padding-bottom: 16px; }
+
+  /* ================= LISTAGEM E CATEGORIA =================
+     O recuo lateral é do <main>; aqui não se repete. Antes cada bloco
+     carregava o seu var(--gut) e o resultado era recuo em dobro. */
+  .pg-list .crumb { font-size: 13px; }
+  .pg-list .secttl.left { font-size: 30px; }
+
+  .pg-list .listbar {
+    padding-top: 14px; padding-bottom: 12px; gap: 10px; row-gap: 10px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); margin-bottom: 14px;
+  }
+  .pg-list .listbar .count { font-size: 12px; margin-right: 0; }
+  .pg-list .listbar .sortlbl {
+    margin-left: auto; font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--faint);
+  }
+
+  /* pílulas de oferta: ?badge= já é parâmetro da RPC e hoje só é
+     alcançável por link do rodapé */
+  .offers { display: flex; gap: 6px; flex-wrap: wrap; }
+  .offers a {
+    display: inline-flex; align-items: center; min-height: 44px;
+    padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+    border: 1px solid var(--line-hi); color: var(--muted); white-space: nowrap;
+    transition: border-color .16s, color .16s, background .16s;
+  }
+  .offers a:hover { border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
+  .offers a.on { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
+
+  /* base dos .chips subiu para o escopo global (mobile também mostra);
+     aqui só o ajuste de layout da coluna larga */
+  .chips { padding: 0; }
+
+  /* a fita de subcategorias passa a QUEBRAR em vez de rolar: a 430px
+     o polegar resolve, a 900px ninguém sabe que há mais à direita
+     (a fita tem scrollbar-width: none) */
+  .pg-list .cats-tabs { flex-wrap: wrap; overflow-x: visible; row-gap: 8px; padding-top: 16px; padding-bottom: 12px; }
+  .pg-list .tab { min-height: 44px; display: inline-flex; align-items: center; }
+  .pg-list .catcard { min-height: 58px; }
+  .pg-list .subhead { padding-top: 20px; }
+
+  .pg-list .stack {
+    display: flex; justify-content: center; align-items: center; gap: 12px;
+    border-top: 1px solid var(--line); margin-top: 20px; padding-top: 22px; padding-bottom: 10px;
+  }
+  .pg-list .stack .btn { width: auto; min-width: 220px; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; }
+  .pg-list .stack .btn.back { min-width: 0; padding: 13px 18px; }
+
+  .pg-list .empty { padding: 90px 30px; border: 1px dashed var(--line); border-radius: 16px; }
+  .pg-list .empty .i { font-size: 52px; }
+
+  /* ================= FICHA DE PRODUTO ================= */
+  .pg-pdp {
+    --left-w: 1fr;    /* no iPad retrato a galeria ainda é elástica */
+    --buy-w: 320px;
+    --pdp-gap: 28px;
+    padding-inline: var(--gut); padding-top: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, var(--left-w)) var(--buy-w);
+    /* 5 linhas EXPLÍCITAS para que grid-row: 2 / -1 da coluna de
+       compra seja válido: em grade implícita, -1 resolve para a
+       linha 1. Linha 1 = migalha, 2 = galeria+compra, 3-5 = os até
+       três .pdp-block. Relacionados caem nas implícitas 6-8. */
+    grid-template-rows: auto repeat(4, auto);
+    column-gap: var(--pdp-gap); row-gap: 0;
+    justify-content: center;
+  }
+  /* a barra fixa some: quem cuida do preço é o cartão sticky */
+  .pb-dock.pg-pdp { padding-bottom: 64px; }
+  .buydock { display: none; }
+
+  /* .pdp não tem NENHUMA regra hoje. display:contents a dissolve e
+     seus dois filhos entram na grade da página junto com os blocos
+     de texto — é o que dá altura de rolagem ao cartão sticky.
+     <section> sem nome acessível não é landmark, então nada sai da
+     árvore de acessibilidade. */
+  .pdp { display: contents; }
+  .pg-pdp > .crumb     { grid-column: 1 / -1; grid-row: 1; padding: 0 0 12px; }
+  .pg-pdp .pdp-gallery { grid-column: 1; grid-row: 2; }
+  .pg-pdp .pdp-side    { grid-column: 2; grid-row: 2 / -1; align-self: stretch; }
+  .pg-pdp > .pdp-block { grid-column: 1; margin: 28px 0 0; max-width: 68ch; }
+  .pg-pdp > .subhead   { grid-column: 1 / -1; padding: 40px 0 12px; }
+  .pg-pdp > .pgrid     { grid-column: 1 / -1; padding: 0; }
+  .pg-pdp > .stack     { grid-column: 1 / -1; padding: 18px 0 0; justify-items: center; }
+  .pg-pdp > .stack .btn.ghost { width: auto; padding-inline: 32px; }
+
+  .pg-pdp .pdp-hero { margin: 0; border-radius: 20px; }
+  /* miniaturas quebram linha em vez de rolar: .pdp-thumbs tem
+     scrollbar-width:none, invisível para quem usa mouse */
+  .pg-pdp .pdp-thumbs { flex-wrap: wrap; overflow: visible; padding: 12px 0 0; gap: 10px; }
+  .pg-pdp .pdp-thumb  { width: 72px; height: 72px; border-radius: 12px; }
+  .pg-pdp .pdp-thumb:hover { border-color: var(--line-hi); }
+  .pg-pdp .pdp-thumb.on:hover { border-color: var(--amber); }
+  .pg-pdp .pdp-thumb:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+  .pg-pdp .pdp-head { padding: 0; }
+  .pg-pdp .pdp-head h1 { font-size: clamp(26px, 2vw, 34px); margin-top: 6px; }
+  .pg-pdp .pdp-head .lead { font-size: 15px; margin-top: 10px; }
+
+  .pg-pdp .pdp-buy {
+    position: sticky; top: calc(var(--head-h) + 12px);
+    margin: 18px 0 0; padding: 18px; border-radius: 18px;
+    /* válvula: um sticky mais alto que a viewport esconderia o
+       próprio botão. Na medida real (cartão ~370px contra 671
+       disponíveis no iPad paisagem) isto nunca dispara. */
+    max-height: calc(100dvh - var(--head-h) - 24px);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  /* devolve padding ao <select> de variante, que herda .phone-country
+     (12px 8px) por reúso de classe do PhoneInput. Escopado: o input
+     de telefone não é tocado. */
+  .pg-pdp .pdp-buy .field select { padding: 12px 14px; }
+
+  .pg-pdp .pdp-price { align-items: flex-start; margin: 12px 0 14px; }
+  .pg-pdp .pdp-price .was { font-size: 14px; }
+  .pg-pdp .pdp-price .now { font-size: clamp(28px, 2.2vw, 34px); }
+
+  /* CTA em linha própria e largura cheia; qty e coração acima. Isso
+     libera os 44px de alvo no botão -/+ (hoje 38, reprova na regra 3)
+     sem espremer "Add to cart" num cartão de 320px. */
+  .pg-pdp .pdp-actions { flex-wrap: wrap; gap: 12px; }
+  .pg-pdp .pdp-actions .qty  { order: 1; }
+  .pg-pdp .pdp-actions .wish { order: 2; margin-left: auto; }
+  .pg-pdp .pdp-actions .btn  { order: 3; flex: 1 0 100%; }
+  .pg-pdp .qty button { width: 44px; }
+
+  /* ================= CARRINHO / CHECKOUT / CONTA ================= */
+  /* Ainda uma coluna, mas com teto de linha: rótulo e valor separados
+     por 700px de nada é pior que a coluna de celular. */
+  .pg-cart .cartslot > .sumcard,
+  .pg-checkout > .sumcard        { max-width: 560px; }
+  .pg-cart .cart-list,
+  .pg-acct .cart-list            { max-width: 720px; }
+  .pg-acct .acct-main form.stack { max-width: 560px; }
+  .pg-cart .cart-list .mcdel     { width: 44px; height: 44px; font-size: 15px; }
+}
+
+/* ============================================================
+   DEGRAU 2 — 1024px · iPad paisagem (1024x768, 1180x820)
+   É aqui que quase tudo vira duas colunas.
+   ============================================================ */
+@media (min-width: 1024px) and (min-height: 520px) {
+
+  :root {
+    --gut: 28px; --search-w: 520px;
+    --rail: 236px; --colgap: 28px;
+  }
+
+  /* ---- cabeçalho ---- */
+  .sunhead { padding-top: 11px; column-gap: 22px; }
+  .catbar-list { gap: 4px; }
+  .catlink { padding: 0 15px; }
+  .catbar-list > .catwrap:nth-child(n + 5) { display: flex; }
+  .catbar-list > .catwrap:nth-child(n + 7) { display: none; }
+  .minicart { width: 420px; }
+
+  /* ---- rodapé em três colunas ----
+     Eram quatro seções de 3, 5, 4 e 2 links. Viraram três de 4, 3 e 3:
+     coluna que termina muito antes da vizinha lê como lista de sobras. */
+  .sunfoot { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 28px; }
+  .sunfoot-base {
+    grid-column: 1 / -1; display: flex; flex-wrap: wrap;
+    align-items: baseline; justify-content: space-between; gap: 12px 28px;
+    padding: 22px 0 30px; border-top: 1px solid var(--line);
+  }
+  .paywall       { padding: 0; }
+  .sunfoot-legal { padding: 0; text-align: right; }
+
+  /* ---- CADASTRO: duas colunas ----
+     Dez campos numa coluna só é o formulário de celular exibido no
+     desktop: sessenta por cento da página vazios e rolagem para ver o
+     fim. Campo LARGO também não resolve — caixa de texto de mil pixels
+     é pior de preencher, não melhor. O certo é a coluna continuar
+     estreita e os campos curtos se emparelharem.
+
+     Senha com confirmação, nome com sobrenome, porto com posto: são
+     pares que a pessoa lê junto de qualquer jeito. E-mail, telefone e
+     navio ficam na linha inteira — o telefone tem seletor de país e
+     nota, e o navio abre lista de resultados.
+
+     A classe chama-se `cadgrid` e não `form2` porque `.form2` JÁ EXISTE
+     neste projeto — é a fileira de dois campos do admin, sem media
+     query. Reusar o nome deu duas colunas no celular, com campo de
+     173px. É a segunda colisão de nome de classe nesta base; nome novo
+     custa nada e some com a classe inteira de erro. */
+  .pg-form > * { max-width: 820px; margin-inline: auto; width: 100%; }
+  .pg-form .cadgrid { grid-template-columns: 1fr 1fr; column-gap: 18px; }
+  .pg-form .cadgrid > * { grid-column: 1 / -1; }
+  .pg-form .cadgrid > .par { grid-column: auto; }
+  /* O botão não precisa da linha inteira: 820px de "Create account" é
+     alvo grande demais para ser lido como botão. */
+  .pg-form .cadgrid > .btn { justify-self: start; min-width: 260px; }
+
+  /* ---- HOME: como funciona, do lado do herói ---- */
+  /* Mesma divisão 8/4 do painel do navio: os dois estados da fileira
+     precisam parecer a mesma página, não dois layouts diferentes. */
+  .pg-home:has(> .herosteps) > .homehero { grid-column: 1 / span 8; }
+  .pg-home:has(> .herosteps) .homehero {
+    margin-right: 0;
+    border: 1px solid var(--line); border-left: 0; border-bottom: 0;
+    border-radius: 0 20px 20px 0;
+  }
+  .pg-home > .herosteps {
+    display: block; grid-row: 1; grid-column: 9 / -1; align-self: stretch;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 20px; padding: 28px 26px;
+  }
+  .pg-home > .herosteps .lb {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 18px;
+  }
+  .pg-home > .herosteps ol {
+    list-style: none; margin: 0; padding: 0; display: grid; gap: 18px;
+  }
+  .pg-home > .herosteps li { display: flex; gap: 14px; align-items: flex-start; }
+  .pg-home > .herosteps .n {
+    flex: none; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    color: var(--amber); padding-top: 2px;
+  }
+  .pg-home > .herosteps .tx { display: grid; gap: 4px; min-width: 0; }
+  .pg-home > .herosteps .nm { font-size: 14.5px; font-weight: 700; line-height: 1.3; }
+  .pg-home > .herosteps .ct { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .pg-home > .herosteps .mais {
+    display: inline-flex; align-items: center; min-height: 44px; margin-top: 12px;
+    font-size: 13.5px; font-weight: 700; color: var(--amber);
+  }
+  .pg-home > .herosteps .mais:hover { color: var(--amber-hi); }
+
+  /* ---- HOME: herói 8 col + painel do navio 4 col ---- */
+  /* sem :has(.vpanel) o herói ocupa as 12 e não sobra buraco */
+  .pg-home:has(> .vpanel) > .homehero { grid-column: 1 / span 8; }
+  .pg-home:has(> .vpanel) .homehero {
+    margin-right: 0;
+    border: 1px solid var(--line); border-left: 0; border-bottom: 0;
+    border-radius: 0 20px 20px 0;
+  }
+  .pg-home > .vpanel {
+    grid-row: 1; grid-column: 9 / -1; align-self: stretch;
+    margin: 0; border-radius: 20px; padding: 26px 24px;
+    /* A altura vem do herói. O espaço extra vai para o meio do cartão,
+       entre os dados e o prazo, em vez de sobrar como buraco embaixo —
+       que era o defeito da versão anterior. */
+    grid-template-rows: auto auto auto 1fr auto auto; gap: 14px;
+  }
+  .pg-home > .vpanel .nome { font-size: clamp(22px, 1.7vw, 28px); }
+  .pg-home > .vpanel .nome .fl { font-size: 22px; }
+  .pg-home > .vpanel .dados { align-self: end; }
+  .pg-home > .vpanel .corte strong { font-size: 34px; }
+  .pg-home > .vpanel .corte { padding: 15px 16px; }
+
+  /* A prateleira deixa de ser carrossel. São 8 itens (limit: 8 em
+     loadStorefront) — 4 x 2 mostra tudo, sem seta e sem item oculto. */
+  .pg-home .rail {
+    grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px; padding-bottom: 4px; overflow: visible; scroll-snap-type: none;
+  }
+
+  /* ---- LISTAGEM: duas colunas com trilho de filtros ---- */
+  .shop-body {
+    display: grid; grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--colgap); align-items: start;
+  }
+  .listcol { min-width: 0; }
+
+  .facets {
+    display: block;
+    position: sticky; top: calc(var(--head-h) + 16px);
+    max-height: calc(100dvh - var(--head-h) - 32px);
+    overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+    padding-bottom: 10px;
+  }
+  .facet { border-top: 1px solid var(--line); padding: 16px 0 6px; }
+  .facet:first-child { border-top: 0; padding-top: 0; }
+  .facet-t {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--faint); font-weight: 600; margin: 0 0 8px;
+  }
+  .facet-l { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+  .facet-l a {
+    display: flex; align-items: center; gap: 9px;
+    min-height: 44px; padding: 8px 10px; border-radius: 9px;
+    color: var(--muted); font-size: 13.5px; line-height: 1.3;
+    transition: background .14s, color .14s;
+  }
+  .facet-l a:hover { background: var(--card); color: var(--ink); }
+  .facet-l a.on { background: var(--card-hi); color: var(--amber-hi); font-weight: 600; }
+  .facet-l a .ic { flex: none; font-size: 15px; line-height: 1; }
+  .facet-l a .ct { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; color: var(--faint); }
+  .facet-l .sub { list-style: none; margin: 2px 0 4px; padding: 0; display: grid; gap: 1px; }
+  .facet-l .sub a { padding-left: 32px; font-size: 13px; color: var(--faint); min-height: 44px; }
+
+  /* a partir daqui o trilho já mostra a árvore: a grade de
+     departamentos e a fita de subcategorias viram a mesma coisa dita
+     duas vezes e roubam a primeira tela dos produtos.
+     :has(.facets) para que, se a árvore falhar e o <aside> não for
+     renderizado, a fita continue aparecendo. */
+  .pg-list:has(.facets) .catgrid,
+  .pg-list:has(.facets) .subhead,
+  .pg-list:has(.facets) .cats-tabs { display: none; }
+
+  /* ---- FICHA: coluna esquerda passa a ter largura fixa ----
+     Acima daqui a galeria não cresce mais: um .pdp-hero de 900px de
+     lado é um painel branco com uma lata de tinta no meio. */
+  .pg-pdp { --left-w: 560px; --buy-w: 360px; --pdp-gap: 36px; }
+  .pg-pdp .pdp-thumb { width: 76px; height: 76px; }
+  /* o rótulo mono cresce meio ponto, o valor cresce um — a diferença
+     de escala entre os dois é o que os mantém rótulo e valor */
+  .pg-pdp .pdp-facts dt { font-size: 10.5px; }
+  .pg-pdp .pdp-facts dd { font-size: 13.5px; }
+  .pg-pdp .pdp-block :is(h2, h3) { font-size: 18px; margin-bottom: 11px; }
+  .pg-pdp .specs li { font-size: 14.5px; }
+  .pg-pdp .pdp-text { font-size: 15px; line-height: 1.65; }
+  /* page.tsx renderiza exatamente related.slice(0,4): 4 trilhas dão
+     uma fileira completa, auto-fill deixaria uma trilha vazia */
+  .pg-pdp > .pgrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* ---- CARRINHO: lista à esquerda, Summary sticky à direita ---- */
+  .pg-cart .cartslot {
+    display: grid; grid-template-columns: minmax(0, 1fr) 320px;
+    column-gap: 24px; align-items: start; padding: 0 var(--gut) 8px;
+    /* 300px (linha 280) reservava a altura do ESTADO VAZIO na coluna
+       de celular. O Summary de desktop tem ~440px: sem subir a
+       reserva, o CLS que o .cartslot corrigiu volta em outra largura. */
+    min-height: 440px;
+  }
+  .pg-cart .cartslot > .spin, .pg-cart .cartslot > .empty { grid-column: 1 / -1; }
+  .pg-cart .cartmain { grid-column: 1; grid-row: 1; min-width: 0; }
+  .pg-cart .cartmain > .stack { padding: 0 0 12px; }
+  .pg-cart .cartslot > .sumcard {
+    grid-column: 2; grid-row: 1; margin: 0; max-width: none;
+    position: sticky; top: calc(var(--head-h) + 16px);
+  }
+
+  /* Escopado em .pg-cart .cart-list de propósito: .mcline pelado é a
+     linha da gaveta MiniCart, que continua com 400-420px em toda
+     tela. Tirar o prefixo quebra a gaveta no desktop. */
+  .pg-cart .cart-list { padding: 0; gap: 12px; max-width: none; }
+  .pg-cart .cart-list .mcline {
+    display: grid; grid-template-columns: 84px minmax(0, 1fr);
+    gap: 16px; padding: 16px 18px; align-items: start;
+  }
+  .pg-cart .cart-list .ci-thumb { width: 84px; height: 84px; }
+  .pg-cart .cart-list .mchead .nm { font-size: 14px; }
+  .pg-cart .cart-list .mchead b { min-width: 88px; text-align: right; font-variant-numeric: tabular-nums; }
+  .pg-cart .cart-list .mcline .sku { font-size: 11.5px; }
+  .pg-cart .cart-list .mcactions { margin-top: 12px; gap: 14px; }
+
+  /* ---- CHECKOUT: ficha à esquerda, Your order sticky à direita ---- */
+  .shell > main.pg-checkout {
+    display: grid; grid-template-columns: minmax(0, 1fr) 320px;
+    column-gap: 24px; align-items: start; padding: 0 var(--gut) 8px;
+  }
+  .pg-checkout > .crumb  { grid-column: 1 / -1; padding: 12px 0 0; }
+  .pg-checkout > .secttl { grid-column: 1 / -1; padding: 0; font-size: 27px; margin: 16px 0 14px; }
+  .pg-checkout > .sumcard.framed { grid-column: 1; grid-row: 3; margin: 0; max-width: none; }
+  .pg-checkout > .sumcard:not(.framed) {
+    grid-column: 2; grid-row: 3; margin: 0; max-width: none;
+    position: sticky; top: calc(var(--head-h) + 16px);
+  }
+  /* o CheckoutClient devolve .spin no lugar do .sumcard antes de
+     hidratar: fixar a célula impede a ficha de pular de coluna */
+  .pg-checkout > .spin { grid-column: 2; grid-row: 3; margin: 24px auto; }
+
+  .pg-checkout .sumcard.framed dl {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px;
+  }
+  .pg-checkout .factrow { padding: 12px 0; }
+  .pg-checkout .factrow:nth-of-type(-n + 2) { border-top: 0; }
+  .pg-checkout > .sumcard .finehint { font-size: 12.5px; }
+  .pg-checkout .sumrow.grand .sumcur {
+    display: block; width: 100%; text-align: right;
+    font-size: 11px; color: var(--faint); font-family: var(--font-mono);
+    letter-spacing: .1em; text-transform: uppercase; margin-top: 2px;
+  }
+
+  /* ---- CONTA: rail de seções à esquerda ---- */
+  .shell > main.pg-acct {
+    display: grid; grid-template-columns: 244px minmax(0, 1fr);
+    column-gap: 32px; align-items: start; padding: 0 var(--gut) 8px;
+  }
+  .pg-acct > .crumb     { grid-column: 1 / -1; padding: 12px 0 0; }
+  .pg-acct > .secttl    { grid-column: 1 / -1; padding: 0; font-size: 27px; margin: 16px 0 14px; }
+  .pg-acct > .hero-mini { grid-column: 1 / -1; padding: 24px 0 10px; }
+  .pg-acct > .acct-rail { grid-column: 1; grid-row: 3; position: sticky; top: calc(var(--head-h) + 16px); }
+  .pg-acct > .acct-main { grid-column: 2; grid-row: 3; min-width: 0; }
+
+  /* No desktop a seta some: o rail é coluna fixa ao lado do conteúdo, e
+     chevron ali aponta para uma direção que não existe. No celular ela
+     fica, porque lá o cartão é uma linha de lista de verdade. */
+  .acct-rail .catcard .chev { display: none; }
+
+  .pg-acct .acct-main > .finehint { padding: 0 0 12px; margin: 0; }
+  .pg-acct .acct-main form.stack  { padding: 0; max-width: 560px; }
+  .pg-acct .acct-main > .listbar  { display: none; }   /* o rail substitui o <select> */
+  .pg-acct .pgrid { padding: 0; }
+  .pg-acct .cart-list {
+    padding: 0; max-width: none; align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pg-acct .ocard .odate {
+    display: block; font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--faint); letter-spacing: .08em;
+  }
+  .pg-acct .empty, .pg-acct .infobox { margin-left: 0; margin-right: 0; }
+  .pg-acct > .acct-main > .linkline { text-align: left; padding-top: 14px; }
+}
+
+/* ============================================================
+   DEGRAU 3 — 1280px · desktop
+   ============================================================ */
+@media (min-width: 1280px) and (min-height: 520px) {
+
+  :root { --gut: 32px; --search-w: 640px; --rail: 244px; --colgap: 32px; --pgap: 18px; }
+
+  .catbar-list > .catwrap:nth-child(n + 7) { display: flex; }
+  .catbar-list > .catwrap:nth-child(n + 9) { display: none; }
+
+  /* coluna de marca abrindo o rodapé: porto, e-mail e a regra dos 30%
+     visíveis sem abrir nada — hoje escondidos atrás de "Our Offices" */
+  .sunfoot { grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)); column-gap: 34px; }
+  .sunfoot-brand { display: block; padding-bottom: 26px; }
+  .sunfoot-brand .bl {
+    font-family: var(--font-disp); font-weight: 800; font-size: 17px;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--ink); margin: 0 0 10px;
+  }
+  .sunfoot-brand .bl b { color: var(--amber); }
+  .sunfoot-brand p { margin: 0 0 10px; color: var(--muted); font-size: 13.5px; line-height: 1.6; max-width: 32ch; }
+  .sunfoot-brand a { color: var(--amber); font-size: 13.5px; }
+  .sunfoot-brand a:hover { color: var(--amber-hi); }
+
+
+  .pg-list .secttl.left { font-size: 36px; }
+
+  .pg-pdp { --left-w: 620px; --buy-w: 380px; --pdp-gap: 48px; }
+  .pg-pdp .pdp-thumb { width: 84px; height: 84px; }
+
+  .pg-cart .cartslot, .shell > main.pg-checkout { grid-template-columns: minmax(0, 1fr) 360px; column-gap: 32px; }
+  .pg-cart .cart-list .mcline   { grid-template-columns: 96px minmax(0, 1fr); gap: 18px; }
+  .pg-cart .cart-list .ci-thumb { width: 96px; height: 96px; }
+  .pg-cart .cart-list .mchead .nm { font-size: 15px; }
+  .pg-cart .cart-list .mchead b   { min-width: 104px; font-size: 15px; }
+
+  .pg-checkout .sumcard.framed dl { column-gap: 44px; }
+  .pg-checkout .factrow dd { font-size: 15.5px; }
+
+  .shell > main.pg-acct { grid-template-columns: 260px minmax(0, 1fr); column-gap: 40px; }
+  .pg-acct .acct-main form.stack { max-width: 600px; }
+}
+
+/* ============================================================
+   DEGRAU 4 — 1600px · desktop largo
+   Acima de 1520 de casca a linha de leitura fica longa demais e a
+   grade começa a parecer catálogo de estoque.
+   ============================================================ */
+/* ===== ultrawide: barra e rodapé de ponta a ponta =====
+   A página para de crescer em --page-w de propósito: numa tela de 34"
+   o texto de borda a borda fica ilegível, o olho perde a linha na volta.
+   Mas o CONTEÚDO parar não obriga o CROMO a parar — e quando a barra do
+   topo termina no meio da tela, a limitação lê como defeito em vez de
+   decisão.
+
+   `margin-inline: calc(50% - 50vw)` estica a caixa até a borda da
+   viewport; o padding devolve o conteúdo à linha da página. Precisa do
+   `overflow-x: clip` que o body já tem: 50vw conta a barra de rolagem, e
+   sem o clip sobrariam alguns pixels de rolagem lateral. */
+@media (min-width: 1600px) and (min-height: 520px) {
+  .sunhead, .sunfoot {
+    margin-inline: calc(50% - 50vw);
+    padding-inline: calc(50vw - 50% + var(--gut));
+  }
+  /* A grade interna já tinha o seu próprio padding lateral; com o
+     padding novo no pai, ele viraria recuo em dobro. */
+  .sunhead { padding-left: calc(50vw - 50% + var(--gut)); padding-right: calc(50vw - 50% + var(--gut)); }
+  .sunfoot { padding-left: calc(50vw - 50% + var(--gut)); padding-right: calc(50vw - 50% + var(--gut)); }
+  /* A faixa de anúncio segue a mesma régua, senão fica uma listra curta
+     em cima de um cabeçalho largo. */
+  .announce { margin-inline: calc(50% - 50vw); }
+}
+
+@media (min-width: 1600px) and (min-height: 520px) {
+
+  :root { --page-w: 1520px; --gut: 40px; --pmin: 232px; --pgap: 20px; --rail: 252px; --colgap: 36px; }
+
+  .catbar-list > .catwrap:nth-child(n + 9)  { display: flex; }
+  .catbar-list > .catwrap:nth-child(n + 10) { display: none; }
+  .megagrid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+
+  /* a galeria para em 680px e o texto em 72ch: acima disso o
+     crescimento vai todo para margem */
+  .pg-pdp { --left-w: 680px; --buy-w: 420px; --pdp-gap: 56px; }
+  .pg-pdp > .pdp-block { max-width: 72ch; }
+
+  /* teto de leitura: fileira de item de 1000px não é densidade, é o
+     olho perdendo o par rótulo-valor */
+  .pg-cart .cartslot, .pg-checkout { max-width: 1280px; margin-inline: auto; }
+  .pg-acct .cart-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ============================================================
+   EXCEÇÕES FORA DO REGIME — declaradas
+   ============================================================ */
+
+/* 1. Rodapé aberto sem JS e sem duplicar markup. ::details-content é
+   a única forma padronizada de sobrepor o fechamento do <details> a
+   partir da luz do DOM. @supports garante que navegador antigo caia
+   no acordeão em colunas — feio, nunca morto. */
+@supports selector(::details-content) {
+  @media (min-width: 768px) and (min-height: 520px) {
+    .sunfoot-sec::details-content { content-visibility: visible; block-size: auto; }
+    .sunfoot-sec > summary { pointer-events: none; cursor: default; }
+    .sunfoot-sec > summary::after { content: none; }
+  }
+}
+
+/* 2. Ponteiro em janela estreita não tem swipe nem seta: devolve a
+   barra de rolagem que a linha 1304 esconde. Nunca alcança o celular
+   (min-width 768 + min-height 520). */
+@media (min-width: 768px) and (max-width: 1023.98px) and (min-height: 520px) and (hover: hover) {
+  .pg-home .rail { scrollbar-width: thin; scrollbar-color: var(--line-hi) transparent; }
+  .pg-home .rail::-webkit-scrollbar { display: block; height: 6px; }
+  .pg-home .rail::-webkit-scrollbar-thumb { background: var(--line-hi); border-radius: 3px; }
+  .pg-home .rail::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* 3. Elementos que só existem no desktop e não têm classe própria
+   para desligar em escopo base. Só alcançam nós que hoje NÃO existem
+   no DOM: a saída pintada no celular é idêntica. */
+@media (max-width: 767.98px), (max-height: 519.98px) {
+  /* .herocta SAIU desta lista. Ela estava desligada aqui junto com o
+     resto do que "só existe no desktop", mas não é decoração: é o
+     botão principal da loja. O celular ficava com um herói que
+     apresenta o negócio e não oferece nenhum caminho para comprar —
+     e o celular é o aparelho da tripulação. Empilhado e de largura
+     inteira, que é o alvo certo para dedo em navio balançando. */
+  .pg-home .secttl .allx { display: none; }
+  .pg-home .herocta { display: grid; gap: 10px; margin-top: 22px; }
+  .pg-home .herocta .btn { width: 100%; min-height: 48px; }
+}
+
+/* Linhas do "Your order" no checkout. Antes era só "Products: 4" — a
+   pessoa tinha de voltar ao carrinho para conferir o que ia pagar. */
+.sumlines { list-style: none; margin: 0 0 4px; padding: 0; display: grid; gap: 7px; }
+.sumlines li { display: flex; align-items: baseline; gap: 10px; font-size: 13px; }
+.sumlines .nm { flex: 1; min-width: 0; color: var(--muted); }
+.sumlines .op { color: var(--faint); }
+.sumlines .qt { color: var(--faint); font-family: var(--font-mono); }
+.sumlines b { color: var(--ink); font-size: 13px; white-space: nowrap; }
+
+/* ============================================================
+   Escala encerrada — o re-vínculo em um toque (Fase 2)
+   O cartão do navio deixa de ser um beco: quando o MESMO casco
+   (mesmo IMO) reaparece no line-up, o próximo passo é um botão.
+   ============================================================ */
+.vpanel .volta {
+  margin-top: var(--s3);
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+}
+.vpanel .volta .vt { margin: 0; font-size: 14px; line-height: 1.4; }
+.vpanel .volta .vd { margin: 4px 0 0; font-size: 12px; color: var(--faint); }
+.vpanel .volta .vd.erro { color: var(--amber); }
+.vpanel .volta .btn { width: 100%; margin-top: var(--s3); }
+.vpanel .alink.outra {
+  display: block;
+  margin-top: var(--s2);
+  text-align: center;
+  font-size: 12px;
+}
+
+/* ===== admin: saúde da operação =====
+   Frescor do line-up, PTAX, crons e e-mail numa faixa só. Vermelho
+   quando passou do prazo: line-up com mais de 2h, PTAX de mais de 1
+   dia útil, cron com falha nas últimas 24h. */
+.saude { list-style: none; margin: 0; padding: 12px 16px 0; display: grid; gap: 6px; }
+.saude li {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px;
+  font-size: 12.5px; color: var(--muted);
+}
+.saude li b { color: var(--ink); font-weight: 600; }
+.saude li .quando { font-family: var(--font-mono); font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.saude li i { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); }
+.saude li.alerta { border-color: rgba(255,89,100,.45); }
+.saude li.alerta i { background: var(--danger); }
+.saude li.alerta .quando { color: var(--danger); }

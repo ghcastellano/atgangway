@@ -1,0 +1,145 @@
+/* ===== Captain (programa de indicação) ===== */
+.crew-hero { text-align: center; padding: 30px 22px 8px; }
+.crew-hero .cap { font-size: 44px; }
+.crew-hero h2 {
+  font-family: var(--font-disp); font-weight: 800; font-size: 26px;
+  margin: 8px 0 6px; letter-spacing: -.01em;
+}
+.crew-hero h2 b { color: var(--amber); }
+.crew-hero p { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+.qrcard {
+  margin: 22px 16px; background: linear-gradient(160deg, rgba(255,182,72,.09), var(--card) 60%);
+  border: 1px solid rgba(255,182,72,.35); border-radius: 18px; padding: 20px;
+  display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center;
+}
+.qr {
+  width: 108px; height: 108px; background: #EEF4F8; border-radius: 10px; padding: 7px;
+  display: flex; align-items: center; justify-content: center;
+}
+.qr svg { width: 100%; height: 100%; display: block; }
+.qrcard .info .code {
+  font-family: var(--font-mono); font-size: 17px; font-weight: 700;
+  color: var(--amber-hi); letter-spacing: .06em;
+}
+.qrcard .info p { font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
+.share {
+  border: 0; border-radius: 10px; background: var(--wa); color: #04240F; font-weight: 700;
+  font-size: 13px; padding: 10px 16px; cursor: pointer;
+}
+.share:hover { filter: brightness(1.06); }
+
+.crew-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 8px; }
+.cstat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+.cstat b {
+  display: block; font-family: var(--font-mono); font-size: 22px; color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+.cstat span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+
+.tiers { margin: 14px 16px; }
+.tier {
+  display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.tier.on { border-color: rgba(255,182,72,.45); }
+.tier .em { font-size: 20px; text-align: center; }
+.tier h4 { margin: 0; font-size: 13.5px; }
+.tier p { margin: 0; font-size: 11.5px; color: var(--faint); }
+.tier .pct { font-family: var(--font-mono); font-size: 13px; color: var(--amber-hi); }
+
+.crew-note { margin: 14px 18px 20px; font-size: 11.5px; color: var(--faint); line-height: 1.55; }
+
+/* ===== atraso de navio (sync do line-up do porto) ===== */
+.delay-tag {
+  display: inline-block; margin-left: 8px; padding: 2px 7px; border-radius: 999px;
+  background: rgba(255,182,72,.14); border: 1px solid rgba(255,182,72,.45);
+  color: var(--amber-hi); font-family: var(--font-mono); font-size: 9.5px;
+  letter-spacing: .1em; font-weight: 700; vertical-align: middle;
+}
+
+.queue-row {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 12px 15px; display: grid; grid-template-columns: 1fr auto;
+  gap: 12px; align-items: center;
+}
+.queue-row .nm { font-weight: 600; font-size: 13.5px; }
+.queue-row .meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+/* Escala publicada é LINHA, e o formulário de edição só entra no HTML
+   de quem abriu o <details>. A página abria com 122 formulários
+   montados de uma vez — ~850 campos que a server action precisava
+   reconstruir inteiros para trocar um booleano. Era essa a lentidão. */
+.queue-row > .adm-edit { grid-column: 1 / -1; }
+.queue-row .adm-form { margin: 8px 0 0; }
+.adm-edit > summary {
+  cursor: pointer; list-style: none; padding: 4px 0;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--faint);
+}
+.adm-edit > summary::-webkit-details-marker { display: none; }
+.adm-edit > summary::before { content: "▸"; color: var(--amber); margin-right: 7px; }
+.adm-edit[open] > summary::before { content: "▾"; }
+.adm-edit > summary:hover { color: var(--amber-hi); }
+
+/* .page mantém display:block. O palco de QR que morava aqui saiu — no
+   desktop a loja é a loja, não um cartaz com QR ao lado. */
+.page { display: block; }
+
+/* ===== telefone com seletor de país ===== */
+.phone-row { display: grid; grid-template-columns: 118px 1fr; gap: 8px; }
+.phone-country {
+  background: var(--card); border: 1px solid var(--line-hi); border-radius: 12px;
+  color: var(--ink); font-size: 16px; padding: 12px 8px; appearance: none;
+  font-family: var(--font-body);
+}
+.phone-number {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--card); border: 1px solid var(--line-hi); border-radius: 12px;
+  padding: 0 12px;
+}
+.phone-number:focus-within { outline: 2px solid var(--amber); outline-offset: 2px; border-color: transparent; }
+.phone-dial {
+  font-family: var(--font-mono); font-size: 15px; color: var(--muted); flex: none;
+}
+.phone-number input {
+  flex: 1; min-width: 0; background: none; border: 0; outline: none;
+  color: var(--ink); font-family: var(--font-mono); font-size: 16px; padding: 12px 0;
+}
+
+/* ===== foto-comprovante da entrega ===== */
+/* No painel: botão de câmera + miniatura, lado a lado com o resto
+   das ações do card. Herda o gap de .actions quando aninhado. */
+.proof { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.proof-thumb {
+  position: relative; padding: 0; border: 1px solid var(--line-hi);
+  border-radius: 10px; overflow: hidden; background: var(--card);
+  width: 46px; height: 46px; flex: none; cursor: pointer; line-height: 0;
+}
+.proof-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.proof-thumb span {
+  position: absolute; inset: auto 0 0 0; background: rgba(1,6,13,.78);
+  color: var(--muted); font-size: 9px; letter-spacing: .5px;
+  line-height: 13px; text-align: center;
+}
+
+/* Na página do pedido: a prova, em tamanho de olhar. */
+.proof-card {
+  margin: 14px 16px; background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; overflow: hidden;
+}
+.proof-card figcaption {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; padding: 12px 14px 10px;
+}
+.proof-card figcaption .kicker { margin: 0; }
+.proof-card figcaption b {
+  font-family: var(--font-mono); font-size: 11px; color: var(--faint); font-weight: 500;
+}
+.proof-card img {
+  display: block; width: 100%; height: auto; max-height: 62vh;
+  object-fit: cover; background: var(--abyss);
+  border-top: 1px solid var(--line);
+}
+

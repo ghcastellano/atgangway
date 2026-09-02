@@ -15,7 +15,7 @@ import { readFileSync } from "node:fs";
 
 /** Lê os tokens de cor do :root, direto da folha de estilo. */
 function tokens() {
-  const css = readFileSync("app/globals.css", "utf-8");
+  const css = readFileSync("app/styles/00-tokens-e-base.css" /* os tokens moram aqui desde o split do globals.css em camadas */, "utf-8");
   const raiz = css.slice(css.indexOf(":root {"), css.indexOf("}", css.indexOf(":root {")));
   const t = {};
   for (const m of raiz.matchAll(/--([a-z-]+):\s*(#[0-9A-Fa-f]{6})\s*;/g)) t[m[1]] = m[2];

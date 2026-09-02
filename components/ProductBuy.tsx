@@ -142,11 +142,11 @@ export default function ProductBuy({
               : "In stock"}
           </div>
 
+          {/* O SKU saiu daqui. Ficava entre o título e o preço, no
+              lugar de maior atenção da ficha, e SKU é dado de
+              conferência — de quem separa o pedido, não de quem compra.
+              Mora agora no pé do bloco de compra, em letra de rodapé. */}
           <dl className="pdp-facts">
-            <div>
-              <dt>SKU</dt>
-              <dd className="mono">{variant?.sku ?? product.sku ?? "—"}</dd>
-            </div>
             {variant?.options &&
               Object.entries(variant.options).map(([k, v]) => (
                 <div key={k}>
@@ -221,6 +221,7 @@ export default function ProductBuy({
             <WishButton productId={product.id} name={product.name} initial={wished} />
           </div>
           {inCart > 0 && <p className="finehint">{inCart} already in your cart.</p>}
+          <p className="finehint mono">SKU {variant?.sku ?? product.sku ?? "—"}</p>
         </div>
         </div>
       </section>
