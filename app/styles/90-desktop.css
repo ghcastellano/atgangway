@@ -346,6 +346,7 @@
     margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink);
   }
   .pg-home .homehero .lead { font-size: 16px; line-height: 1.6; margin-top: 14px; max-width: 50ch; }
+  .pg-home .homehero .deadline.compact { margin: 22px 0 0; max-width: 760px; font-size: 12.5px; }
   .pg-home .herocta { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
   .pg-home .herocta .btn { width: auto; padding: 14px 22px; min-height: 48px; }
 
@@ -635,6 +636,10 @@
     gap: var(--colgap); align-items: start;
   }
   .listcol { min-width: 0; }
+
+  /* controles que só existem porque o trilho não existe abaixo daqui
+     (o BrandSelect da barra de listagem): o trilho passa a responder */
+  .narrow-only { display: none; }
 
   .facets {
     display: block;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import CaptainStrip from "@/components/CaptainStrip";
+import DeliveryStrip from "@/components/DeliveryStrip";
 import HeroSteps from "@/components/HeroSteps";
 import { IconCompass, IconPackage } from "@/components/Icon";
 import VesselPanel, { type VesselFacts } from "@/components/VesselPanel";
@@ -14,6 +15,7 @@ import { imageUrl, listProducts, type Category, type ProductCard } from "@/lib/c
 import { wishedProductIds } from "@/lib/wishlist";
 import { SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 import { DEPOSIT_PCT } from "@/lib/money";
+import { resolveDelivery, type PortRule } from "@/lib/delivery";
 
 /**
  * Home = vitrine, na ordem do Sunny: hero, "Categories", grade de
@@ -126,6 +128,50 @@ const loadStorefront = unstable_cache(
   },
   ["home-storefront"],
   { revalidate: 300, tags: ["catalog"] }
+);
+
+/** A grade de entrega de Santos: o que a promessa da home precisa. */
+type PortGrid = { name: string; timezone: string; rules: PortRule[] };
+
+/**
+ * A janela de entrega que vale AGORA, para quem ainda não tem navio.
+ *
+ * Quem está logado com escala vê o prazo no painel do navio. Quem chega
+ * deslogado — todo visitante novo — não via prazo nenhum na home: a
+ * pergunta "dá tempo de pedir?" só era respondida em /ports. É a mesma
+ * tira da página de portos, com a mesma régua de urgência.
+ *
+ * Só a GRADE fica no cache (muda quando o admin mexe na regra, não por
+ * hora do dia); a promessa é resolvida por requisição, porque depende
+ * do relógio — cachear "order in the next 3h" por 300s mentiria.
+ */
+const loadPortGrid = unstable_cache(
+  async (): Promise<PortGrid | null> => {
+    if (!supabaseConfigured) return null;
+    try {
+      const db = createAnonClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data } = await db
+        .from("ports")
+        .select(
+          `name, timezone,
+           port_delivery_rules(label, window_start, window_end, order_weekdays,
+                               delivery_offset_days, delivery_weekdays,
+                               vessel_must_stay_until, min_stay_hours, active, sort_order)`
+        )
+        .eq("slug", "santos")
+        .eq("active", true)
+        .maybeSingle();
+      if (!data) return null;
+      const row = data as unknown as { name: string; timezone: string; port_delivery_rules: PortRule[] | null };
+      return { name: row.name, timezone: row.timezone, rules: row.port_delivery_rules ?? [] };
+    } catch {
+      return null;
+    }
+  },
+  ["home-port-grid"],
+  { revalidate: 300, tags: ["ports"] }
 );
 
 type Captain = { code: string; rate: number } | null;
@@ -243,7 +289,10 @@ async function loadCrew(): Promise<Crew> {
 }
 
 export default async function Home() {
-  const [store, crew] = await Promise.all([loadStorefront(), loadCrew()]);
+  const [store, crew, grid] = await Promise.all([loadStorefront(), loadCrew(), loadPortGrid()]);
+
+  // Resolvida aqui, fora do cache: a promessa depende da hora.
+  const promise = grid ? resolveDelivery(grid.rules, new Date(), grid.timezone) : null;
 
   // Fora do cache da vitrine de propósito: a lista de desejos é de
   // cada pessoa, e um cache compartilhado mostraria o coração de
@@ -267,6 +316,14 @@ export default async function Home() {
         <p className="lead">
           Pre-order before you dock, pay a {DEPOSIT_PCT}% deposit, collect at the gangway.
         </p>
+
+        {/* A janela de entrega que vale agora, para quem não tem navio
+            na conta (deslogado ou sem escala). Com escala, o painel do
+            navio ao lado já diz o prazo — e dois prazos na mesma tela
+            seriam dois relógios para conferir. */}
+        {crew?.kind !== "vessel" && grid && (
+          <DeliveryStrip promise={promise} portName={grid.name} compact />
+        )}
           {/* Chamadas do herói: só aparecem no desktop. No celular a
               tela já é curta e a grade de categorias vem logo abaixo. */}
           <div className="herocta">

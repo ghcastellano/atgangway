@@ -64,9 +64,43 @@ export default function MiniCart({ open, onClose }: { open: boolean; onClose: ()
       });
   }, [open, ids.join(",")]);
 
+  /**
+   * Diálogo de verdade, não só role="dialog": o foco entra, fica e volta.
+   *
+   * Antes, Tab saía do painel e ia passear pela página escondida atrás
+   * do véu — quem navega por teclado ou leitor de tela perdia o
+   * carrinho sem fechá-lo. E ao fechar, o foco caía no <body>, longe do
+   * botão que abriu. Agora Tab e Shift+Tab circulam dentro do painel, e
+   * o fechamento devolve o foco a quem o abriu.
+   */
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const opener = document.activeElement as HTMLElement | null;
+    const focusables = () =>
+      Array.from(
+        panel.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), select, input, [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const els = focusables();
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      const inside = panel.current?.contains(document.activeElement) ?? false;
+      if (e.shiftKey && (document.activeElement === first || !inside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -74,6 +108,11 @@ export default function MiniCart({ open, onClose }: { open: boolean; onClose: ()
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
+      // Só devolve se o foco ainda estiver no painel (ou perdido): um
+      // clique num link do carrinho já levou o foco para outra página.
+      if (opener && opener.isConnected && (!document.activeElement || document.activeElement === document.body)) {
+        opener.focus();
+      }
     };
   }, [open, onClose]);
 
@@ -86,6 +125,7 @@ export default function MiniCart({ open, onClose }: { open: boolean; onClose: ()
     [lines, items]
   );
   const subtotal = rows.reduce((s, l) => s + l.price_cents * l.qty, 0);
+  const totalQty = rows.reduce((s, l) => s + l.qty, 0);
 
   if (!open) return null;
 
@@ -93,6 +133,15 @@ export default function MiniCart({ open, onClose }: { open: boolean; onClose: ()
     <>
       <button className="drawer-ovl" aria-label="Close cart" onClick={onClose} />
       <div className="minicart" ref={panel} role="dialog" aria-modal="true" aria-label="My Cart">
+        {/* O que mudou, dito em voz alta: +/− e a lixeira alteram o
+            subtotal sem mover o foco, e o leitor de tela não anuncia o
+            que não está sob o cursor. polite: não interrompe o botão
+            que a pessoa acabou de acionar. */}
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {lines === null
+            ? "Loading cart"
+            : `${totalQty} ${totalQty === 1 ? "item" : "items"} in cart, subtotal ${usd(subtotal)}`}
+        </p>
         <div className="minicart-top">
           <h2>My Cart</h2>
           <button className="minicart-x" onClick={onClose} aria-label="Close">

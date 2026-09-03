@@ -17,6 +17,7 @@ import {
   type SortKey,
 } from "@/lib/catalog";
 import SortSelect from "@/components/SortSelect";
+import BrandSelect from "@/components/BrandSelect";
 
 // A vitrine muda pouco e é lida muito: revalidação em vez de dinâmica
 // por requisição. Alterar produto no painel revalida na hora seguinte,
@@ -156,6 +157,8 @@ export default async function ShopPage({
           Sort by
         </span>
         <SortSelect value={sort} options={SORT_LABEL} />
+        {/* Só no celular: no desktop o trilho à esquerda já filtra por marca. */}
+        <BrandSelect brands={brands} value={brandId ? (sp.brand ?? null) : null} />
       </div>
 
       {/* O que está filtrando agora, e como sair. Sem isto, quem chega

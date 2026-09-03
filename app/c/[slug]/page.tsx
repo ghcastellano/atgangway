@@ -6,6 +6,7 @@ import FacetRail from "@/components/FacetRail";
 import { IconCompass } from "@/components/Icon";
 import { listBrandsInUse } from "@/lib/brands";
 import SortSelect from "@/components/SortSelect";
+import BrandSelect from "@/components/BrandSelect";
 import { createClient } from "@/lib/supabase/server";
 import {
   BADGE_LABEL,
@@ -169,6 +170,8 @@ export default async function CategoryPage({
           Sort by
         </span>
         <SortSelect value={sort} options={SORT_LABEL} />
+        {/* Só no celular: no desktop o trilho à esquerda já filtra por marca. */}
+        <BrandSelect brands={brands} value={brandId ? (sp.brand ?? null) : null} />
       </div>
 
       {(sp.badge || brandId) && (

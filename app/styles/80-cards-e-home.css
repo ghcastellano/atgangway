@@ -634,9 +634,27 @@
    logo abaixo e três parágrafos empurrariam a loja para fora da
    primeira dobra. É conteúdo de desktop, onde havia espaço sobrando. */
 .herosteps { display: none; }
-/* No celular a tela já é curta e as categorias vêm logo abaixo: a faixa
-   de fatos empurraria a grade para a segunda rolagem. */
-.herofacts { display: none; }
+/* Fatos do herói no celular: uma linha só, três colunas, letra miúda.
+   A versão do desktop (três blocos com respiro) empurraria a grade de
+   categorias para a segunda rolagem — por isso ela ficou escondida
+   aqui por um tempo. Mas as três perguntas (onde, quanto, até quando)
+   são as que a tripulação faz ANTES de rolar, e no celular ninguém as
+   via. Compacta, a faixa custa ~48px e responde as três. */
+.herofacts {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px; margin: 16px 0 0; padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.herofacts > div { min-width: 0; }
+.herofacts dt {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint); margin-bottom: 3px;
+}
+.herofacts dd { margin: 0; font-size: 11.5px; line-height: 1.35; color: var(--ink); }
+
+/* A janela de entrega dentro do herói: a tira nasce com margem lateral
+   para viver entre cartões; aqui o herói já dá o recuo. */
+.homehero .deadline.compact { margin: 14px 0 0; }
 
 /* ===== painel do navio =====
    Era uma tira de ícone + nome + "Alongside now". No desktop ela
