@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { callState, canOrder } from "@/lib/callstate";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -94,9 +95,20 @@ export async function saveProfile(input: ProfileInput): Promise<SaveProfileResul
 
   const { data: current } = await supabase
     .from("profiles")
-    .select("whatsapp, profile_completed_at")
+    .select("whatsapp, profile_completed_at, ship_id")
     .eq("id", user.id)
     .maybeSingle();
+
+  // Trocar PARA uma escala fechada é o beco que o picker deixou de
+  // oferecer; aqui é a segunda tranca. Só na troca: quem já está numa
+  // escala encerrada continua podendo corrigir o telefone.
+  const shipId = clean(input.shipId, 36);
+  if (shipId && shipId !== current?.ship_id && (await callClosed(supabase, shipId))) {
+    return {
+      ok: false,
+      error: "That call's order window has closed — pick your vessel's next call, or create it.",
+    };
+  }
 
   const whatsapp = wa || clean(current?.whatsapp, 20);
   const portId = clean(input.portId, 36);
@@ -127,7 +139,7 @@ export async function saveProfile(input: ProfileInput): Promise<SaveProfileResul
       nationality: clean(input.nationality, 2)?.toUpperCase() ?? null,
       whatsapp,
       port_id: portId,
-      ship_id: clean(input.shipId, 36),
+      ship_id: shipId,
       vessel_name: vesselName,
       vessel_imo: clean(input.vesselImo, 20),
       vessel_flag: clean(input.vesselFlag, 60),
@@ -167,6 +179,24 @@ export async function saveProfile(input: ProfileInput): Promise<SaveProfileResul
 }
 
 /**
+ * A escala ainda aceita pedido? Só responde "não" quando o navio é
+ * visível e a janela já fechou: navio que a RLS esconde (escala fora do
+ * line-up) não é motivo para travar a conta — o pedido é barrado depois,
+ * no place_order, pela mesma régua.
+ */
+async function callClosed(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  shipId: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("ships")
+    .select("eta, ata, cutoff_hours")
+    .eq("id", shipId)
+    .maybeSingle();
+  return Boolean(data && !canOrder(callState(data)));
+}
+
+/**
  * Re-vínculo de escala em um toque.
  *
  * O contrato de bordo acaba, o navio zarpa, e o perfil continua apontando
@@ -190,10 +220,14 @@ export async function switchVessel(shipId: string): Promise<{ ok: boolean; error
   // fora do line-up, e já gravou pedido sem navio nenhum por isso).
   const { data: navio } = await supabase
     .from("ships")
-    .select("id, name, flag, imo")
+    .select("id, name, flag, imo, eta, ata, cutoff_hours")
     .eq("id", shipId)
     .maybeSingle();
   if (!navio) return { ok: false, error: "That call is no longer on the line-up — pick another." };
+  // A home só sugere escala com janela aberta, mas o id chega do cliente.
+  if (!canOrder(callState(navio))) {
+    return { ok: false, error: "That call's order window has closed — pick another." };
+  }
 
   const { error } = await supabase
     .from("profiles")

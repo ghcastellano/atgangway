@@ -1208,6 +1208,8 @@ export type Database = {
       search_vessels: {
         Args: { p_query: string }
         Returns: {
+          ata: string
+          cutoff_hours: number
           eta: string
           flag: string
           id: string

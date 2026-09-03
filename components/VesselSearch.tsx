@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { imoChecksumOk, normalizeImo } from "@/lib/imo";
+import { callState } from "@/lib/callstate";
 
 export type VesselValue = {
   /** null enquanto o navio ainda não existe no banco (ver createVessel). */
@@ -21,6 +22,8 @@ type VesselRow = {
   verified: boolean;
   /** ETA da escala — ver `rotulo` abaixo. */
   eta: string | null;
+  ata?: string | null;
+  cutoff_hours?: number | null;
 };
 
 /**
@@ -45,7 +48,10 @@ function rotulo(r: VesselRow): string {
     month: "short",
     timeZone: "America/Sao_Paulo",
   });
-  return `${d.getTime() < Date.now() ? "was due" : "due"} ${quando}${r.flag ? ` · ${r.flag}` : ""}`;
+  // A RPC só devolve escala com janela aberta (mesma régua do banco);
+  // "closing" é a mesma máquina de estados do painel do navio.
+  const fase = callState({ eta: r.eta, ata: r.ata, cutoff_hours: r.cutoff_hours });
+  return `due ${quando}${fase === "closing" ? " · last call" : ""}${r.flag ? ` · ${r.flag}` : ""}`;
 }
 
 /** A RPC só busca a partir de 3 caracteres — repetimos aqui para não bater à toa. */
@@ -321,7 +327,7 @@ export default function VesselSearch({
             ) : loading ? (
               <p className="ta-hint">Searching…</p>
             ) : rows.length === 0 ? (
-              <p className="ta-hint">No vessel found — create it above.</p>
+              <p className="ta-hint">No vessel with an open order window — create it above.</p>
             ) : (
               rows.map((r, i) => (
                 <button
