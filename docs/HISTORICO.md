@@ -1,13 +1,13 @@
 # At Gangway — passagem de bastão
 
 > Para quem abre um chat novo em `github.com/ghcastellano/atgangway` e precisa
-> do contexto sem esta sessão. Estado em **2026-09-02**. Tudo o que está aqui
+> do contexto sem esta sessão. Estado em **2026-09-03**. Tudo o que está aqui
 > foi verificado contra produção, não relembrado.
 
 ## O que é
 
 Loja de ship supply para tripulações de navios atracados no **Porto de
-Santos**. Next.js 15 (App Router, Server Actions) + Supabase (Postgres, RLS,
+Santos**. Next.js 16 (App Router, Server Actions, `proxy.ts`) + Supabase (Postgres, RLS,
 RPCs `SECURITY DEFINER` guardadas por segredo em `app_secrets`). Domínio
 `atgangway.com` na Vercel (projeto `atgangway`), e-mail `help@atgangway.com`
 na Hostinger, Supabase `cuaocjxofaizefzcxlyc` (região São Paulo).
@@ -25,7 +25,7 @@ brasileiro, PTAX do Banco Central por cron.
 | deploy | Vercel, projeto `atgangway`, produção em `atgangway.com`; cada push em `main` publica |
 | banco | Supabase `cuaocjxofaizefzcxlyc`; migrações aplicadas via MCP e **documentadas** em `supabase/migrations/` (o repositório é registro, o banco é a verdade) |
 | tipos do banco | `lib/database.types.ts` — gerado; regenera com `supabase gen types` ou o MCP |
-| testes | `npm test` (Node test runner, ~250; os responsivos precisam de servidor local) e `supabase/tests/dinheiro.sql` (pgTAP, 11 invariantes de dinheiro) |
+| testes | `npm test` (Node test runner, 252; os 54 responsivos rodam só com `next build && next start -p 3100` no ar, senão pulam) e `supabase/tests/{dinheiro,escala}.sql` (pgTAP, 11 invariantes de dinheiro + 5 do picker de navio; rodam inteiros pelo `execute_sql` do MCP, com rollback) |
 | fotos do catálogo | `public/produtos/` (build, CDN da Vercel) e Storage `product-images` (upload pelo admin) |
 | crons | pg_cron no banco: line-up (hora em hora), PTAX (14:30 dias úteis), digest diário (09:00 UTC); chamam rotas `/api/cron/*` com Bearer conferido no banco (`is_cron_secret`) |
 
@@ -88,19 +88,27 @@ estoque físico de verdade.
 
 1. **Rotacionar segredos colados no chat**: senha da caixa `help@atgangway.com`,
    senha do banco Supabase, token da Vercel. Depois de rotacionar, atualizar
-   `SMTP_PASS` na Vercel.
-2. **Stripe live**: trocar `sk_test_` por chave live e reapontar o webhook.
+   `SMTP_PASS` na Vercel. **Precisa do Gustavo**: o MCP da Hostinger troca a
+   senha da caixa, mas nenhum MCP escreve variável de ambiente na Vercel (o
+   conector da Vercel devolve 403 até para ler o projeto) — trocar a senha
+   sem pôr a nova na Vercel derruba o digest diário. Ordem certa: gerar a
+   senha nova no painel da Hostinger → colar em `SMTP_PASS` na Vercel →
+   redeploy → conferir `sent:true` no digest.
+2. **Stripe live**: chave `sk_live_` em `STRIPE_SECRET_KEY` na Vercel e um
+   webhook **live** apontando para `https://atgangway.com/api/stripe/webhook`
+   (hoje o modo live tem zero webhooks; o de teste foi corrigido em
+   2026-09-03 — apontava para `www.marinerssupplyco.com`, que responde 404).
+   O signing secret do endpoint live vai em `STRIPE_WEBHOOK_SECRET`.
 3. **Fotos**: repor primeiro os cinco arquivos ativos com 404 listados acima;
    mandar `docs/emails-fornecedores.md` (22 grupos, 43 SKUs) e/ou fotografar;
    ao receber, `scripts/normalizar-fotos.mjs` põe no molde de 1000 px. Depois
    religar os 8 produtos desligados por foto.
 4. **Primeira necessidade** (lâmina, escova, xampu, sabão em pó, repelente,
    adaptador NBR 14136): preço a 5×, régua pronta — travado só na foto.
-5. **Renomear** o projeto Supabase para `atgangway` e apagar o projeto vazio
-   `ruaqthduxwrvjinmvkzb`; opcionalmente tirar `marinerssupplyco.com` dos
+5. Hostinger: há um pedido de e-mail **pago e sem domínio** (`pending_setup`,
+   criado 2026-08-23) e a caixa de `marinerssupplyco.com` ainda ativa —
+   decidir se cancela. Opcionalmente tirar `marinerssupplyco.com` dos
    domínios autorizados do Google OAuth.
-6. Roadmap T2 (conversão): janela de entrega na home para deslogado, filtro de
-   marca no celular, `herofacts` no mobile, MiniCart com focus trap/`aria-live`.
 
 ## Concluído nesta continuação
 
@@ -108,16 +116,37 @@ estoque físico de verdade.
   Next 16 e sem mudar o matcher nem a lógica de sessão, autenticação e gate
   de cadastro. O teste `tests/proxy.test.mjs` impede a convenção legada de
   voltar silenciosamente.
+- **2026-09-03 — Supabase**: o projeto já se chama `atgangway` e é o único da
+  conta; o projeto vazio `ruaqthduxwrvjinmvkzb` não existe mais.
+- **2026-09-03 — Roadmap T2 (conversão)**: janela de entrega no herói da home
+  para quem não tem navio na conta (mesma tira de `/ports`, grade em cache de
+  300 s, promessa resolvida por requisição); filtro de marca no celular
+  (`components/BrandSelect.tsx`, some a partir de 1024px onde o trilho
+  responde); `herofacts` compacto no mobile; MiniCart com foco preso (Tab
+  circula, Esc fecha, foco volta ao botão do carrinho) e região `aria-live`
+  com contagem e subtotal.
+- **2026-09-03 — Stripe (teste)**: URL do webhook corrigida para `atgangway.com`.
+- **2026-09-03 — Picker de navio só oferece escala aberta** (relato do
+  Gustavo: "ainda deixa selecionar navio que já fechou"). `search_vessels` e
+  `create_vessel` passaram a usar a régua do banco (`eta - cutoff_hours >
+  now()`), e as Server Actions da conta recusam trocar para escala fechada.
+  pgTAP em `supabase/tests/escala.sql` (5 invariantes). Migração
+  `20260903040000_busca_de_navio_so_escala_aberta.sql`, aplicada.
 
 ## Como verificar que está tudo vivo (5 min)
 
 ```
 curl -s -o /dev/null -w '%{http_code}\n' https://atgangway.com/shop      # 200
 curl -s https://atgangway.com/shop | grep -o 'class="count">[^<]*<'      # "119 products"
+curl -s -o /dev/null -w '%{http_code}\n' -X POST https://atgangway.com/api/cron/daily  # 401 (guarda viva)
 # digest diário = caminho real de e-mail; sent:true prova o SMTP
 curl -s -H "Authorization: Bearer <app_secrets.cron_secret>" https://atgangway.com/api/cron/daily
 # invariantes de dinheiro, no banco, com rollback
 psql "$DATABASE_URL" -f supabase/tests/dinheiro.sql                       # 11 × "ok"
+# (ou colar o arquivo inteiro no execute_sql do MCP do Supabase — mesma saída)
+# crons: última execução de cada job, direto no banco
+#   select jobname, status, start_time from cron.job j
+#   join lateral (select * from cron.job_run_details r where r.jobid=j.jobid order by start_time desc limit 1) d on true;
 ```
 
 No painel (`/admin`, conta com `profiles.role = 'admin'`), a faixa de saúde no
