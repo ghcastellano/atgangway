@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
 
@@ -9,7 +9,7 @@ export const config = {
   matcher: [
     /* Tudo, exceto estáticos, assets — e as quatro páginas de texto puro.
      *
-     * O middleware não é só renovação de sessão: ele também barra rota
+     * O proxy não é só renovação de sessão: ele também barra rota
      * protegida e DESVIA perfil incompleto para /account. Rodando em
      * /faq, /terms, /privacy e /attributions, ele fazia as duas coisas
      * erradas de uma vez.
@@ -25,13 +25,13 @@ export const config = {
      *
      * Nenhuma das quatro é protegida, nenhuma é personalizada e nenhuma
      * depende de sessão: o cabeçalho lê o cookie por conta própria no
-     * servidor, sem precisar do middleware. Quem ficar parado numa
-     * delas por muito tempo tem o token renovado no próximo clique para
-     * qualquer outra rota — o efeito se resolve sozinho.
+     * servidor, sem precisar do proxy. Quem ficar parado numa delas por
+     * muito tempo tem o token renovado no próximo clique para qualquer
+     * outra rota — o efeito se resolve sozinho.
      *
      * O caminho quente (home → listagem → produto) NÃO sai daqui de
      * propósito: carrinho e lista de desejos dependem da sessão, e
-     * economizar o middleware ali custaria correção. */
+     * economizar o proxy ali custaria correção. */
     "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|faq|terms|privacy|attributions|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

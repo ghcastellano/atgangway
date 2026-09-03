@@ -69,8 +69,16 @@ em `atgangway` resolve os links.
 ## Estado do catálogo
 
 131 produtos, **119 ativos** (Food & Drinks 81 · Beauty & Health 32 ·
-Connectivity 6), 0 sem preço/variante/foto. 12 desligados por foto ruim ou
-regulação. Lista completa com situação de cada foto: `docs/fotos-pendentes.csv`.
+Connectivity 6), 0 com preço, variante ou caminho de foto vazio. 12 desligados
+por foto ruim ou regulação. Lista completa com situação de cada foto:
+`docs/fotos-pendentes.csv`.
+
+Auditoria local em **2026-09-02** encontrou cinco caminhos preenchidos que não
+existem em `public/produtos/` e também respondem 404 em produção:
+`EAN-7896005801819`, `EAN-7891000286449`, `EAN-0079656049718`,
+`EAN-0079656026078` e `EAN-42467045`. Os produtos continuam ativos; as fotos
+não foram improvisadas nem copiadas de sites de marca por causa da decisão de
+licença acima.
 
 `track_stock` está **false** nas 131 variantes (119 com `stock_qty = 0`). O
 mecanismo de estoque está armado; ligar é por produto, no admin, quando houver
@@ -82,9 +90,10 @@ estoque físico de verdade.
    senha do banco Supabase, token da Vercel. Depois de rotacionar, atualizar
    `SMTP_PASS` na Vercel.
 2. **Stripe live**: trocar `sk_test_` por chave live e reapontar o webhook.
-3. **Fotos**: mandar `docs/emails-fornecedores.md` (22 grupos, 43 SKUs) e/ou
-   fotografar; ao receber, `scripts/normalizar-fotos.mjs` põe no molde de
-   1000 px. Depois religar os 8 produtos desligados por foto.
+3. **Fotos**: repor primeiro os cinco arquivos ativos com 404 listados acima;
+   mandar `docs/emails-fornecedores.md` (22 grupos, 43 SKUs) e/ou fotografar;
+   ao receber, `scripts/normalizar-fotos.mjs` põe no molde de 1000 px. Depois
+   religar os 8 produtos desligados por foto.
 4. **Primeira necessidade** (lâmina, escova, xampu, sabão em pó, repelente,
    adaptador NBR 14136): preço a 5×, régua pronta — travado só na foto.
 5. **Renomear** o projeto Supabase para `atgangway` e apagar o projeto vazio
@@ -92,7 +101,13 @@ estoque físico de verdade.
    domínios autorizados do Google OAuth.
 6. Roadmap T2 (conversão): janela de entrega na home para deslogado, filtro de
    marca no celular, `herofacts` no mobile, MiniCart com focus trap/`aria-live`.
-7. `middleware.ts` → `proxy.ts` (deprecação do Next 16; funciona, só avisa).
+
+## Concluído nesta continuação
+
+- **2026-09-02:** `middleware.ts` → `proxy.ts`, com o export exigido pelo
+  Next 16 e sem mudar o matcher nem a lógica de sessão, autenticação e gate
+  de cadastro. O teste `tests/proxy.test.mjs` impede a convenção legada de
+  voltar silenciosamente.
 
 ## Como verificar que está tudo vivo (5 min)
 

@@ -6,9 +6,9 @@ const PROTECTED_PREFIXES = ["/account", "/orders", "/checkout", "/admin", "/capt
 
 /**
  * Só estas colunas decidem se o cadastro está completo. É a mesma regra
- * de lib/profile.ts, repetida aqui porque o middleware roda no runtime
- * de borda e importar o módulo inteiro arrastaria dependências que não
- * cabem nele.
+ * de lib/profile.ts, repetida aqui porque o proxy roda antes da
+ * renderização e importar o módulo inteiro arrastaria dependências que
+ * não pertencem a esse caminho.
  */
 function faltaCadastro(p: Record<string, unknown> | null): boolean {
   if (!p) return true;

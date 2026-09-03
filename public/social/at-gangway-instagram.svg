@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" role="img" aria-labelledby="title desc">
+  <title id="title">At Gangway</title>
+  <desc id="desc">Logotipo do At Gangway para perfil social: navio, prancha e cais acima do nome da empresa.</desc>
+
+  <!-- O conteúdo fica dentro de 80% do quadrado para sobreviver ao
+       recorte circular aplicado pelas redes sociais. -->
+  <rect width="1080" height="1080" fill="#040D1A"/>
+  <circle cx="540" cy="540" r="478" fill="none" stroke="#EEF4F8" stroke-opacity="0.10" stroke-width="4"/>
+
+  <!-- A mesma cena cheia do ícone do app: casco, gangway e cais. -->
+  <g transform="translate(300 150) scale(4.8)" fill="#FFB648">
+    <path d="M36 20h50l-11 22H47Z"/>
+    <path d="M47 42h14L33 78H19Z"/>
+    <rect x="14" y="80" width="72" height="8" rx="4"/>
+  </g>
+
+  <text
+    x="268"
+    y="770"
+    text-anchor="start"
+    font-family="Avenir Next Condensed, Arial Narrow, Arial, sans-serif"
+    font-size="92"
+    font-weight="800"
+    letter-spacing="7"
+    fill="#EEF4F8"
+  >AT</text>
+  <text
+    x="410"
+    y="770"
+    text-anchor="start"
+    font-family="Avenir Next Condensed, Arial Narrow, Arial, sans-serif"
+    font-size="92"
+    font-weight="800"
+    letter-spacing="7"
+    fill="#FFB648"
+  >GANGWAY</text>
+</svg>
