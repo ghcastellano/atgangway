@@ -14,10 +14,37 @@
 
 /* A casca da loja é uma coluna de 430px; o painel precisa da tela.
    :has(.adm) alarga a casca e zera o recuo do <main> que a loja usa. */
-.shell:has(.adm) { max-width: none; background: var(--abyss); }
+.shell:has(.adm) { max-width: none; background: var(--dark-deep); }
 .shell:has(.adm) > main,
 .shell:has(.adm-login) { padding: 0; }
-.shell:has(.adm-login) { max-width: none; background: var(--abyss); }
+.shell:has(.adm-login) { max-width: none; background: var(--dark-deep); }
+
+.adm,
+.adm-login {
+  /* O PAINEL CONTINUA ESCURO, e de propósito. A loja virou clara porque
+     vende mantimento com foto em fundo branco; o painel é FERRAMENTA —
+     fica aberto o dia inteiro numa sala, não num convés ensolarado, e
+     escuro cansa menos nesse uso. Mesma técnica do cabeçalho: redefine
+     os tokens no próprio escopo, então nenhuma regra abaixo muda.
+
+     Sem isto o painel virava claro pela metade: fundo claro herdado da
+     nova paleta e barra de topo escura ainda no CSS, com texto escuro
+     por cima — ilegível. */
+  --night:   var(--dark);
+  --abyss:   var(--dark-deep);
+  --panel:   #0E1F35;
+  --card:    var(--dark-card);
+  --card-hi: #1B3252;
+  --ink:     var(--dark-ink);
+  --muted:   var(--dark-muted);
+  --faint:   var(--dark-faint);
+  --line:    var(--dark-line);
+  --line-hi: rgba(238,244,248,.22);
+  --amber-hi: var(--amber-on-dark);
+  --teal:    #2EE6C8;
+  --danger:  #FF5964;
+  color: var(--ink);
+}
 
 .adm {
   --side-w: 232px;
@@ -67,7 +94,7 @@
   height: var(--top-h);
   display: flex; align-items: center; gap: 12px;
   padding: 0 16px;
-  background: rgba(1,6,13,.86); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--abyss) 88%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
 .adm-top h1 { margin: 0; font-family: var(--font-disp); font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
@@ -88,7 +115,7 @@
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
   display: grid; grid-template-columns: repeat(4, 1fr);
   height: var(--tabs-h); padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(4,13,26,.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--night) 94%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
 }
 .adm-tabs a {

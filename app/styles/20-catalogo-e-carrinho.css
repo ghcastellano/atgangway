@@ -1,14 +1,24 @@
 /* ===== catálogo ===== */
+/* A tira do CORTE — a informação mais cara da loja: depois dela o navio
+   parte sem a encomenda. No tema escuro ela era âmbar claro sobre azul
+   quase preto; sobre papel branco esse mesmo âmbar sumia, e a versão
+   urgente (rosa #FFC2C7, escolhida para fundo escuro) ficava
+   literalmente ilegível.
+
+   Agora: fundo tingido de leve, texto na cor QUEIMADA da família, e
+   13px em vez de 11 — a hora do corte não é nota de rodapé. */
 .deadline {
-  margin: 14px 16px 0; padding: 10px 14px; border-radius: 12px;
-  background: rgba(255,182,72,.08); border: 1px solid rgba(255,182,72,.25);
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
-  color: var(--amber-hi); display: flex; gap: 8px; align-items: center;
+  margin: 14px 16px 0; padding: 11px 14px; border-radius: 12px;
+  background: #FFF6E6; border: 1px solid #F3D9A8;
+  font-size: 13px; line-height: 1.45; font-weight: 500;
+  color: #7A4A00; display: flex; gap: 8px; align-items: center;
 }
+.deadline b { font-weight: 700; color: #5E3800; }
 .deadline.urgent {
-  background: rgba(255,89,100,.1); border-color: rgba(255,89,100,.45);
-  color: #FFC2C7; animation: pulse 1.6s infinite;
+  background: #FDECEC; border-color: #F0B7B7;
+  color: #9B1C24; animation: pulse 1.6s infinite;
 }
+.deadline.urgent b { color: #7A141B; }
 .cats-tabs { display: flex; gap: 8px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; }
 .cats-tabs::-webkit-scrollbar { display: none; }
 .tab {

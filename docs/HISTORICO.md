@@ -284,6 +284,44 @@ abaixo de 13px no /shop caíram de 53 para 38; alvos de toque menores que
 trilho, tratamento das fotos brancas sobre tema escuro). É trabalho de
 design, não de correção, e precisa de direção antes do código.
 
+### 2026-09-04 — a loja virou CLARA (e o que isso revelou)
+
+Decisão, com o motivo: escuro é o regime de joalheria, áudio e jogo.
+Quem vende mantimento — Amazon, iFood, Zé, Ocado, Waitrose — é claro, e
+não por moda: foto de supermercado vem em fundo branco, e sobre um fundo
+quase preto cada card virava um retângulo de 20:1 gritando na tela.
+Fora que o cliente lê no convés, no sol.
+
+Como foi feito, sem reescrever componente nenhum: a paleta inteira mora
+em tokens no `:root`, então bastou redefini-los. **Cabeçalho, rodapé e o
+painel `/admin` continuam escuros** redefinindo os MESMOS tokens no
+próprio escopo (`.sunhead`, `.sunfoot`, `.adm`) — todo o CSS de dentro
+deles segue valendo palavra por palavra. O azul-noite não sumiu: virou a
+tinta (`--ink`) e a cor dessas três superfícies.
+
+O que a virada obrigou a consertar, e que estava errado ou escondido:
+
+| o quê | por quê |
+|---|---|
+| `--amber` deixou de ser cor de TEXTO | 2:1 sobre branco. Virou exclusivamente fundo de ação; `--amber-hi` (queimado, 4.9:1) carrega o destaque em texto. Os pares do teste de contraste foram atualizados para medir o uso REAL |
+| `--faint` e `--wa` escurecidos | davam 4.1:1 e 3.1:1 no branco — o teste `cores.test.mjs` pegou as duas |
+| tira do CORTE (`.deadline`) | urgente era rosa `#FFC2C7`, escolhido para fundo escuro: **ilegível** no claro. É a informação mais cara da loja — depois dela o navio parte sem a encomenda |
+| `.alert` e `.note` | mesma origem |
+| cards | no escuro se separavam pela cor; no claro precisam de elevação — sombra + fio, e o painel da foto um degrau abaixo do branco do card, senão a foto não tinha limite |
+
+**Bug grave achado no checkout, e corrigido.** A leitura dos preços era
+`.then()` sem `.catch()`. Pior: o builder do Supabase devolve um
+`PromiseLike`, que **não tem** `.catch` — não havia como pegar a
+rejeição. E no wifi de bordo a conexão raramente recusa: ela PENDURA, e
+aí a promessa nunca resolve nem rejeita. Resultado: a tela de pagamento
+girava um círculo **para sempre**, sem mensagem, sem botão, sem saída.
+Agora: `async/await`, `AbortController` com 12 s, e um estado de falha
+com o que aconteceu ("nada foi cobrado, seu carrinho está salvo"),
+"Try again" e volta para o carrinho. O saldo de crédito ganhou o mesmo
+tratamento com 8 s — ali a falha é benigna e não pode derrubar a compra.
+
+254 testes passam, incluindo os de contraste sobre a paleta nova.
+
 ## Como verificar que está tudo vivo (5 min)
 
 ```

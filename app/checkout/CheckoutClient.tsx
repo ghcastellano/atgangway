@@ -43,6 +43,10 @@ export default function CheckoutClient({
   const router = useRouter();
   const { items, count, ready, clear } = useCart();
   const [lines, setLines] = useState<Line[] | null>(null);
+  /** A leitura do carrinho falhou (rede caiu). Diferente de "ainda
+   *  carregando" e de "carrinho vazio" — e precisa de saída própria. */
+  const [falhaCarga, setFalhaCarga] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
   const [creditCents, setCreditCents] = useState(0);
   const [err, setErr] = useState<string | null>(null);
   const [placed, setPlaced] = useState(false);
@@ -78,22 +82,79 @@ export default function CheckoutClient({
     // voltar ao carrinho para conferir o que está prestes a pagar — e
     // no desktop, com a coluna larga, lê como tela quebrada. Uma coluna
     // de texto na mesma consulta não custa outra ida ao banco.
-    const supabase = createClient();
-    supabase
-      .from("product_variants")
-      .select(
-        "id, price_cents, active, option_label, products!product_variants_product_id_fkey!inner(active, name)"
-      )
-      .in("id", ids)
-      .then(({ data }) => setLines((data ?? []) as unknown as Line[]));
-  }, [ready, ids.join(",")]);
+    // ANTES: .then(({ data }) => setLines(data ?? []))  — sem catch.
+    //
+    // No wifi de bordo o fetch não devolve erro: ele REJEITA. A promessa
+    // rejeitada não tinha quem a pegasse, `lines` ficava null para
+    // sempre e a tela mostrava um círculo girando eternamente — sem
+    // mensagem, sem botão, sem saída, na tela onde a pessoa vai pagar.
+    // É o pior lugar do site para um beco sem fim, e o público desta
+    // loja está justamente na pior conexão que existe.
+    let cancelado = false;
+    setFalhaCarga(false);
+    // async/await, e não .then(): o builder do Supabase devolve um
+    // PromiseLike, que NÃO tem .catch — era por isso que a rejeição de
+    // rede não tinha como ser pega aqui.
+    // TIMEOUT, e não só try/catch: a conexão de bordo raramente RECUSA
+    // — ela PENDURA. O fetch fica esperando um servidor que não
+    // responde, a promessa nunca resolve nem rejeita, e nenhum catch do
+    // mundo dispara. Sem este relógio, a tela de pagamento gira para
+    // sempre. 12 s é mais que o dobro do pior caso medido em 3G de
+    // porto, e ainda é pouco para alguém desistir da compra.
+    const ctl = new AbortController();
+    const relogio = setTimeout(() => ctl.abort(), 12_000);
+    (async () => {
+      try {
+        const { data, error } = await createClient()
+          .from("product_variants")
+          .select(
+            "id, price_cents, active, option_label, products!product_variants_product_id_fkey!inner(active, name)"
+          )
+          .in("id", ids)
+          .abortSignal(ctl.signal);
+        if (cancelado) return;
+        if (error) {
+          setFalhaCarga(true);
+          return;
+        }
+        setLines((data ?? []) as unknown as Line[]);
+      } catch {
+        if (!cancelado) setFalhaCarga(true);
+      } finally {
+        clearTimeout(relogio);
+      }
+    })();
+    return () => {
+      cancelado = true;
+      clearTimeout(relogio);
+      ctl.abort();
+    };
+  }, [ready, ids.join(","), tentativa]);
 
   useEffect(() => {
     if (!supabaseConfigured) return;
     // A RPC devolve numeric em dólares e só é concedida a authenticated.
-    createClient()
-      .rpc("my_credit_balance")
-      .then(({ data }) => setCreditCents(toCents(data ?? 0)));
+    // Sem saldo a compra segue: quem não tem crédito paga o depósito
+    // cheio, que é o caso de quase todo mundo. O que não pode é a falha
+    // desta leitura derrubar a tela de pagamento.
+    const ctl = new AbortController();
+    const relogio = setTimeout(() => ctl.abort(), 8_000);
+    (async () => {
+      try {
+        const { data } = await createClient()
+          .rpc("my_credit_balance")
+          .abortSignal(ctl.signal);
+        setCreditCents(toCents(data ?? 0));
+      } catch {
+        setCreditCents(0);
+      } finally {
+        clearTimeout(relogio);
+      }
+    })();
+    return () => {
+      clearTimeout(relogio);
+      ctl.abort();
+    };
   }, []);
 
   useEffect(() => {
@@ -144,6 +205,31 @@ export default function CheckoutClient({
       }
       router.push(`/orders/${res.code}?placed=1${res.paid ? "&paid=1" : ""}`);
     });
+  }
+
+  if (falhaCarga) {
+    return (
+      <section className="sumcard" aria-live="assertive">
+        <h2 className="sumttl">We couldn&apos;t load your cart</h2>
+        <p className="finehint">
+          The connection dropped before we could price your items. Nothing was
+          charged and your cart is safe on this device.
+        </p>
+        <button
+          type="button"
+          className="btn block"
+          onClick={() => {
+            setFalhaCarga(false);
+            setTentativa((n) => n + 1);
+          }}
+        >
+          Try again
+        </button>
+        <p className="linkline">
+          <Link href="/cart">Back to cart</Link>
+        </p>
+      </section>
+    );
   }
 
   if (!ready || lines === null) return <div className="spin" aria-label="Loading" />;

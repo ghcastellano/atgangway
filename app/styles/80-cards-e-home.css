@@ -167,18 +167,18 @@
 .pcard {
   display: flex; flex-direction: column;
   background: var(--card); border-radius: 14px; overflow: hidden;
-  /* Sombra baixa para ASSENTAR, não para decorar. O painel de foto é
-     branco puro sobre fundo quase preto — salto de 20:1 — e sem
-     nenhuma transição o card lia como adesivo colado na página. O
-     painel não pode escurecer (a foto normalizada é branca e um painel
-     tingido mostraria o retângulo do JPEG), então quem faz a ponte é a
-     sombra: o card ganha chão. */
-  box-shadow: 0 1px 2px rgba(1, 6, 13, .55), 0 10px 28px -18px rgba(1, 6, 13, .9);
-  transition: background .18s var(--ease), transform .18s var(--ease);
+  /* No escuro o card se separava do fundo pela COR (azul sobre quase
+     preto) e a sombra não aparecia. No claro é branco sobre papel
+     quase branco: sem elevação o card não existe. A sombra faz o
+     pouso; a borda de um fio segura a forma em telas que achatam
+     sombra (e-ink, brilho alto no convés). */
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-1);
+  transition: box-shadow .18s var(--ease), transform .18s var(--ease), border-color .18s;
 }
 .pcard.out { opacity: .55; }
 @media (hover: hover) {
-  .pcard:hover { background: var(--card-hi); transform: translateY(-2px); }
+  .pcard:hover { transform: translateY(-2px); box-shadow: var(--sh-3); border-color: var(--line-hi); }
   /* A foto cresce um fio dentro do painel. É o único movimento do card
      e serve para dizer "isto abre", que o cursor sozinho não diz. */
   .pcard:hover .pcard-img { transform: scale(1.04); }
@@ -191,7 +191,12 @@
      fundo branco e 6% de folga embutida, então painel e foto viram a
      mesma superfície. Painel tingido deixaria um retângulo claro
      visível atrás de cada JPEG. */
-  background: #FFFFFF; line-height: 0; overflow: hidden;
+  /* Um degrau abaixo do branco do card. A foto normalizada vem com
+     fundo branco: sobre um card TAMBÉM branco ela não tinha limite —
+     o produto parecia recortado e solto no meio do nada. Este cinza
+     de papel devolve a moldura sem sujar a foto. */
+  background: #F4F7FA; line-height: 0; overflow: hidden;
+  border-bottom: 1px solid var(--line);
 }
 .pcard-img { object-fit: contain; padding: 4px; transition: transform .3s var(--ease); }
 /* Sem foto: o ícone de caixa da família, num cinza-ardósia que

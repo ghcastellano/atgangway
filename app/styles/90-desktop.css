@@ -414,6 +414,14 @@
 
   /* Largura sobrando: volta a ser uma linha só, com a contagem à
      esquerda e os controles à direita. */
+  /* No celular a barra empilha em três faixas (ver 60-vitrine). Aqui
+     ela volta a ser UMA linha: contagem à esquerda, chips no meio,
+     ordenação à direita. Sem estas quatro regras o `flex: 1 1 100%`
+     do mobile vazava e cada bloco tomava a largura inteira. */
+  .pg-list .listbar .count { flex: 0 0 auto; }
+  .pg-list .listbar .offers { flex: 0 1 auto; }
+  .pg-list .listbar .sortlbl { display: inline; }
+  .pg-list .listbar select { flex: 0 0 auto; width: auto; min-width: 160px; }
   .pg-list .listbar {
     display: flex; align-items: center;
     padding-top: 14px; padding-bottom: 12px; gap: 10px; row-gap: 10px; flex-wrap: wrap;

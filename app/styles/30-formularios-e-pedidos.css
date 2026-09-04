@@ -74,12 +74,12 @@ input:-webkit-autofill:focus {
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
 .alert {
-  margin: 0; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45;
-  background: rgba(255,89,100,.09); border: 1px solid rgba(255,89,100,.35); color: #FFB9BE;
+  background: #FDECEC; border: 1px solid #F0B7B7; color: #9B1C24;
+  border-radius: 12px; padding: 11px 14px; font-size: 13.5px; line-height: 1.5;
 }
 .note {
-  margin: 0; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45;
-  background: rgba(46,230,200,.07); border: 1px solid rgba(46,230,200,.3); color: #B8F5E9;
+  background: #EAF7F3; border: 1px solid #A9DDD0; color: #0B5C4C;
+  border-radius: 12px; padding: 11px 14px; font-size: 13.5px; line-height: 1.5;
 }
 .finehint { font-size: 13px; color: var(--muted); line-height: 1.55; }
 /* Letra miúda logo abaixo de um botão precisa de ar. Eram 2px, contra

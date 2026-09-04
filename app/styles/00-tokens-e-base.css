@@ -14,22 +14,56 @@
 @import "../fonts.css";
 
 :root {
-  --night:   #040D1A;
-  --abyss:   #01060D;
-  --panel:   #081526;
-  --card:    #0B1B30;
-  --card-hi: #0F2340;
-  --ink:     #EEF4F8;
-  --muted:   #9FB4C8;
-  --faint:   #7A8FA8; /* ≥4.5:1 sobre card/night — AA */
-  --amber:   #FFB648;
-  --amber-hi:#FFD9A0;
+  /* ================= PALETA CLARA =================
+     A loja era escura. Escuro é o regime de joalheria, áudio e jogo —
+     e o oposto do que vende MANTIMENTO: Amazon, iFood, Zé, Ocado,
+     Waitrose são todas claras. Não é moda: foto de supermercado vem
+     com fundo branco, e sobre um fundo quase preto cada card virava um
+     retângulo branco de 20:1 gritando na tela, vinte e quatro vezes por
+     página. Nenhum ajuste de sombra conserta isso, porque a causa é a
+     combinação. Em claro a foto ASSENTA — e o convés no sol também
+     agradece.
+
+     O azul-noite não foi embora: ele virou a TINTA (--ink) e continua
+     pintando cabeçalho e rodapé, que redefinem estes mesmos tokens no
+     próprio escopo (ver .sunhead / .sunfoot). A identidade fica; o que
+     muda é quem é fundo e quem é figura.
+
+     Todo par texto/fundo abaixo passa em AA (≥4.5:1). */
+  --night:   #F5F8FB;   /* o papel: a casca da página */
+  --abyss:   #E9EEF4;   /* fundo atrás da casca, um degrau mais fundo */
+  --panel:   #FFFFFF;   /* painéis destacados */
+  --card:    #FFFFFF;   /* card: branco puro, para a foto do produto assentar */
+  --card-hi: #F2F6FA;   /* card sob o cursor */
+  --ink:     #0B1B30;   /* 16:1 sobre branco */
+  --muted:   #47596F;   /* 7.4:1 */
+  --faint:   #5A6A7D;   /* 5.1:1 no pior fundo claro (--card-hi) — AA */
+  --amber:   #F0A030;   /* fundo de ação; texto sobre ele é --amber-ink */
+  --amber-hi:#A85E00;   /* âmbar LEGÍVEL: 4.8:1 sobre branco, para texto e link */
   --amber-ink:#241802;
-  --teal:    #2EE6C8;
-  --wa:      #25D366;
-  --danger:  #FF5964;
-  --line:    rgba(238,244,248,.08);
-  --line-hi: rgba(238,244,248,.16);
+  --teal:    #0E7C6B;   /* o teal neon sumia no branco */
+  --wa:      #107A38;   /* o verde do WhatsApp puro dá 3.1:1 no branco */
+  --danger:  #C62B37;
+  --line:    rgba(11,27,48,.10);
+  --line-hi: rgba(11,27,48,.18);
+
+  /* Superfícies que continuam escuras (cabeçalho, rodapé, herói) e a
+     tinta que elas usam. Um componente escuro redefine --ink e amigos
+     no próprio escopo, então o CSS de dentro dele não muda uma linha. */
+  --dark:      #0B1B30;
+  --dark-deep: #061222;
+  --dark-ink:  #EEF4F8;
+  --dark-muted:#9FB4C8;
+  --dark-faint:#7A8FA8;
+  --dark-card: #13273F;
+  --dark-line: rgba(238,244,248,.12);
+  --amber-on-dark: #FFD9A0;  /* o âmbar claro só é legível SOBRE escuro */
+
+  /* Elevação: no escuro a sombra não aparecia e o card se separava pela
+     cor. No claro é a sombra que faz o card pousar no papel. */
+  --sh-1: 0 1px 2px rgba(11,27,48,.06), 0 1px 3px rgba(11,27,48,.04);
+  --sh-2: 0 2px 4px rgba(11,27,48,.06), 0 4px 12px rgba(11,27,48,.06);
+  --sh-3: 0 8px 24px rgba(11,27,48,.10), 0 2px 6px rgba(11,27,48,.06);
   --font-disp: "Bricolage Grotesque", Inter, system-ui, sans-serif;
   --font-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -87,7 +121,7 @@ html {
   text-size-adjust: 100%;
   /* teclado, controles nativos e autofill escuros em TODOS os browsers
      do iOS (Safari, Chrome, Edge — todos WebKit por baixo) */
-  color-scheme: dark;
+  color-scheme: light;
 }
 html, body { padding: 0; margin: 0; }
 body { overflow-x: clip; }

@@ -13,6 +13,32 @@
 }
 .announce:hover { background: var(--amber-hi); }
 
+/* ================================================================
+   As DUAS superfícies que continuam escuras: cabeçalho e rodapé.
+
+   Elas não pintam texto à mão — redefinem os tokens dentro do próprio
+   escopo. Assim todo o CSS que já existia aqui (var(--ink), var(--muted),
+   var(--line), var(--card)…) continua valendo palavra por palavra, só
+   que resolvendo para a família escura. É o que permite inverter o site
+   inteiro sem reescrever componente nenhum.
+   ================================================================ */
+.sunhead,
+.sunfoot {
+  --ink:     var(--dark-ink);
+  --muted:   var(--dark-muted);
+  --faint:   var(--dark-faint);
+  --card:    var(--dark-card);
+  --card-hi: #1B3252;
+  --panel:   var(--dark);
+  --night:   var(--dark);
+  --line:    var(--dark-line);
+  --line-hi: rgba(238,244,248,.22);
+  /* Sobre escuro quem é legível é o âmbar CLARO, não o queimado que o
+     tema claro usa para texto. */
+  --amber-hi: var(--amber-on-dark);
+  color: var(--ink);
+}
+
 /* --- cabeçalho fixo, duas fileiras --- */
 .sunhead {
   position: sticky; top: 0; z-index: 70;

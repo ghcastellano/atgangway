@@ -57,9 +57,21 @@ const PARES = [
   ["rótulo apagado sobre card", "faint", "card", 4.5],
   ["rótulo apagado sobre a página", "faint", "night", 4.5],
   ["rótulo apagado sobre card realçado", "faint", "card-hi", 4.5],
-  ["âmbar sobre card — preço e link", "amber", "card", 4.5],
-  ["âmbar sobre a página", "amber", "abyss", 4.5],
-  ["âmbar claro sobre card", "amber-hi", "card", 4.5],
+  /* --amber mudou de PAPEL na virada para o tema claro, e por isso os
+     dois pares que o mediam como TEXTO saíram daqui.
+
+     No tema escuro ele era a cor do preço e do link: âmbar vibrante
+     sobre azul quase preto passa folgado. Sobre branco o mesmo âmbar dá
+     2:1 — ilegível, e não há ajuste que salve sem deixar de ser âmbar.
+     Então ele passou a ser EXCLUSIVAMENTE fundo de ação (botão, selo),
+     sempre com --amber-ink por cima; quem carrega o destaque em texto é
+     --amber-hi, um âmbar queimado que passa em AA no branco.
+
+     Medir "amber sobre card" hoje seria medir uma combinação que a tela
+     não tem — falso alarme, do tipo que ensina a ignorar o teste. O que
+     entrou no lugar são os dois usos reais. */
+  ["âmbar de destaque sobre card — preço e link", "amber-hi", "card", 4.5],
+  ["âmbar de destaque sobre a página", "amber-hi", "night", 4.5],
   ["texto do botão âmbar", "amber-ink", "amber", 4.5],
   ["número de KPI em turquesa", "teal", "card", 3.0],
   ["alerta sobre card", "danger", "card", 4.5],
