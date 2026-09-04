@@ -60,6 +60,38 @@ const MEDIDOR = () => {
     return acc ?? [255, 255, 255, 1];
   };
 
+  /**
+   * Menor opacidade que uma animação impõe ao elemento.
+   *
+   * A faixa "LAST CALL" — a informação mais urgente da loja — piscava
+   * com `@keyframes pulse { 50% { opacity: .35 } }`: parada ela tem
+   * 7:1, e metade do tempo ficava em 2,2:1. Uma medição tirada num
+   * instante qualquer não vê isso; ou pega o quadro bom, ou pega o
+   * ruim e você não sabe por quê.
+   *
+   * Então em vez de medir mais vezes, lê-se a REGRA: percorre os
+   * @keyframes da folha de estilo e pega o menor `opacity` que a
+   * animação do elemento declara. O pior quadro passa a ser um número
+   * conhecido, não um sorteio.
+   */
+  const menorOpacidade = (nome) => {
+    if (!nome || nome === "none") return 1;
+    const nomes = nome.split(",").map((n) => n.trim());
+    let menor = 1;
+    for (const folha of document.styleSheets) {
+      let regras;
+      try { regras = folha.cssRules; } catch { continue; }  // folha de outra origem
+      for (const r of regras || []) {
+        if (r.type !== CSSRule.KEYFRAMES_RULE || !nomes.includes(r.name)) continue;
+        for (const q of r.cssRules) {
+          const o = parseFloat(q.style.opacity);
+          if (Number.isFinite(o)) menor = Math.min(menor, o);
+        }
+      }
+    }
+    return menor;
+  };
+
   const achados = [];
   for (const el of document.querySelectorAll("body *")) {
     // só quem tem texto PRÓPRIO: senão o mesmo texto é contado em cada ancestral
@@ -70,18 +102,44 @@ const MEDIDOR = () => {
       .trim();
     if (!texto) continue;
     const st = getComputedStyle(el);
-    if (st.visibility === "hidden" || st.display === "none" || parseFloat(st.opacity) < 0.1) continue;
+    if (st.visibility === "hidden" || st.display === "none") continue;
+
+    // Três isenções, e as três são da própria norma — não atalhos meus:
+    //
+    //   aria-hidden: conteúdo DECORATIVO. O "›" entre as migalhas é
+    //   desenho de separador, não texto; o leitor de tela não o lê e a
+    //   1.4.3 não o exige.
+    //
+    //   desabilitado: a 1.4.3 isenta componente inativo. O "−" do
+    //   contador com quantidade 1 é um deles.
+    //
+    //   invisível de verdade: opacidade efetiva ~0 não é baixo
+    //   contraste, é "não está na tela" — quase sempre um painel no
+    //   meio da animação de entrada.
+    if (el.closest("[aria-hidden='true'], [aria-hidden]")) continue;
+    if (el.closest("[disabled], [aria-disabled='true']")) continue;
     const r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) continue;
 
     const cor = rgba(st.color);
     if (!cor || cor[3] < 0.1) continue;
     const bg = fundo(el);
+
+    // A opacidade efetiva no PIOR quadro: a do elemento vezes a menor
+    // que a animação dele (ou a de qualquer ancestral animado, que
+    // apaga o filho junto).
+    let opAnim = 1;
+    for (let n = el; n && n !== document.body; n = n.parentElement) {
+      const sa = getComputedStyle(n);
+      opAnim *= menorOpacidade(sa.animationName) * (parseFloat(sa.opacity) || 1);
+    }
+    const alfa = Math.max(0, Math.min(1, cor[3] * opAnim));
+    if (alfa < 0.06) continue;   // invisível: ver a isenção acima
     // texto translúcido é composto sobre o fundo antes de comparar
-    const tinta = cor[3] >= 0.999 ? cor : [
-      cor[0] * cor[3] + bg[0] * (1 - cor[3]),
-      cor[1] * cor[3] + bg[1] * (1 - cor[3]),
-      cor[2] * cor[3] + bg[2] * (1 - cor[3]),
+    const tinta = alfa >= 0.999 ? cor : [
+      cor[0] * alfa + bg[0] * (1 - alfa),
+      cor[1] * alfa + bg[1] * (1 - alfa),
+      cor[2] * alfa + bg[2] * (1 - alfa),
     ];
     const px = parseFloat(st.fontSize);
     const peso = parseInt(st.fontWeight, 10) || 400;
@@ -95,6 +153,9 @@ const MEDIDOR = () => {
         classe: el.className && typeof el.className === "string" ? el.className.slice(0, 40) : el.tagName,
         cor: st.color, fundo: `rgb(${bg.slice(0, 3).map(Math.round).join(",")})`,
         px, peso, razao: Math.round(c * 100) / 100, minimo,
+        // aparece só quando a animação é a culpada, para o relatório
+        // não mandar procurar a cor errada
+        anim: opAnim < 0.999 ? `${getComputedStyle(el).animationName} → opacity ${Math.round(opAnim * 100)}%` : "",
       });
     }
   }
@@ -133,7 +194,7 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
         vistos.add(k);
         total++;
         console.log(
-          `  ${String(a.razao).padStart(5)}:1 (min ${a.minimo})  .${a.classe}  ${a.cor} sobre ${a.fundo}  ${a.px}px/${a.peso}  “${a.texto}”`
+          `  ${String(a.razao).padStart(5)}:1 (min ${a.minimo})  .${a.classe}  ${a.cor} sobre ${a.fundo}  ${a.px}px/${a.peso}${a.anim ? "  [" + a.anim + "]" : ""}  “${a.texto}”`
         );
       }
     }
@@ -156,7 +217,7 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
           vistos2.add(k);
           total++;
           console.log(
-            `  ${String(a.razao).padStart(5)}:1 (min ${a.minimo})  .${a.classe}  ${a.cor} sobre ${a.fundo}  ${a.px}px/${a.peso}  “${a.texto}”`
+            `  ${String(a.razao).padStart(5)}:1 (min ${a.minimo})  .${a.classe}  ${a.cor} sobre ${a.fundo}  ${a.px}px/${a.peso}${a.anim ? "  [" + a.anim + "]" : ""}  “${a.texto}”`
           );
         }
       }

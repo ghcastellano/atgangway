@@ -617,3 +617,41 @@ Seis blocos antes do primeiro produto, numa tela de 844px.
   depois de mexer numa.
 
 De seis blocos para quatro. Os produtos começam ~120px mais acima.
+
+### O texto que piscava, e a auditoria que passou a ler a regra
+
+A faixa "LAST CALL — Order in the next 2h" tinha
+`animation: pulse 1.6s infinite`, e `pulse` é
+`@keyframes pulse { 50% { opacity: .35 } }`. Parada, a faixa tem 7:1.
+**Metade do tempo ela ficava em 2,2:1.** É a informação mais urgente da
+loja, e apagava justamente enquanto alguém a lia devagar.
+
+A primeira auditoria não pegou porque mede um instante: ou pega o quadro
+bom, ou pega o ruim e você não sabe por quê. A correção do teste não foi
+medir mais vezes — foi ler a REGRA: ela percorre os `@keyframes` da
+folha de estilo, pega o menor `opacity` que a animação do elemento
+declara (e a dos ancestrais, que apagam o filho junto) e mede o PIOR
+quadro. Vira um número conhecido, não um sorteio.
+
+A faixa agora pulsa o ANEL, não a tinta: chama a mesma atenção sem tocar
+no texto. A tira de janela do topo (`.win .urgent`) tinha o mesmo
+defeito e perdeu a animação — `--danger` e negrito já bastam.
+
+Junto veio o que faltava no site inteiro: **`prefers-reduced-motion`**.
+O painel já respeitava (40-admin); a loja não respeitava nada. Quem
+marcou "reduzir movimento" no sistema está dizendo que animação lhe
+custa — enxaqueca, vertigem, distração.
+
+Com a medição mais dura, a auditoria passou a acusar mais três coisas —
+e duas delas a própria norma isenta, então o teste é que estava errado:
+
+- `aria-hidden`: o "›" das migalhas é DECORATIVO, não texto;
+- desabilitado: a 1.4.3 isenta componente inativo (o "−" do contador com
+  quantidade 1);
+- opacidade efetiva ~0: não é baixo contraste, é "não está na tela" —
+  painel no meio da animação de entrada.
+
+As três viraram isenções explícitas, com a razão escrita ao lado. O "−"
+desabilitado ficou visualmente melhor mesmo sendo isento: 35% de
+opacidade some no papel claro, e botão que some não lê como "desligado",
+lê como "sumiu".

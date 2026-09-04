@@ -217,7 +217,11 @@
   font-size: 19px; cursor: pointer; transition: color .15s, background .15s;
 }
 .qty button:hover:not(:disabled) { color: var(--amber-hi); background: var(--card-hi); }
-.qty button:disabled { opacity: .35; cursor: default; }
+/* O "−" com quantidade 1 fica desligado, e a norma isenta controle
+   inativo de contraste — mas 35% de opacidade some no papel claro, e um
+   botão que some não lê como "desligado": lê como "sumiu". Meio-tom
+   explícito, que é o que se vê num teclado com tecla morta. */
+.qty button:disabled { color: var(--faint); opacity: .5; cursor: default; }
 .qty span { min-width: 26px; text-align: center; font-size: 15px; color: var(--ink); }
 
 .pdp-block { margin: 18px 16px 0; }

@@ -97,6 +97,20 @@
 }
 @keyframes pulse { 50% { opacity: .35; } }
 
+/* Quem marcou "reduzir movimento" no sistema está dizendo que animação
+   lhe custa — enxaqueca, vertigem, distração. O painel já respeitava
+   isso (40-admin); a LOJA não respeitava nada. Uma regra, todas as
+   telas. As transições continuam, encurtadas: sumir com elas de vez faz
+   a interface parecer que pula. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ===== hero ===== */
 .hero-mini { padding: 32px 22px 8px; }
 .kicker {
@@ -130,5 +144,8 @@
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; line-height: 1.5;
 }
 .win .ok { color: var(--teal); } .win .soon { color: var(--amber-hi); } .win .closed { color: var(--danger); }
-.win .urgent { color: var(--danger); font-weight: 700; animation: pulse 1.6s infinite; }
+/* Mesma correção do .deadline.urgent: o texto não pisca. Aqui não há
+   caixa para pulsar, então o realce é só o peso e a cor — que já é
+   --danger e não precisa de ajuda. */
+.win .urgent { color: var(--danger); font-weight: 700; }
 

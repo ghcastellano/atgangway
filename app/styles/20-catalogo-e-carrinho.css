@@ -16,7 +16,18 @@
 .deadline b { font-weight: 700; color: #5E3800; }
 .deadline.urgent {
   background: #FDECEC; border-color: #F0B7B7;
-  color: #9B1C24; animation: pulse 1.6s infinite;
+  color: #9B1C24;
+  /* Pulsa o ANEL, não o texto.
+     Era `animation: pulse`, que leva a caixa inteira a opacity .35 —
+     metade do tempo a informação mais urgente da loja ("faltam 2h para
+     o corte") ficava em 2,2:1, contra os 7:1 que ela tem parada. Ninguém
+     lê texto que apaga, e quem lê devagar lê exatamente na hora errada.
+     O anel chama a atenção do mesmo jeito e não toca na tinta. */
+  animation: anel-urgente 1.8s ease-in-out infinite;
+}
+@keyframes anel-urgente {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(155,28,36,.28); }
+  50%      { box-shadow: 0 0 0 5px rgba(155,28,36,0); }
 }
 .deadline.urgent b { color: #7A141B; }
 .cats-tabs { display: flex; gap: 8px; padding: 14px 16px 6px; overflow-x: auto; scrollbar-width: none; }
