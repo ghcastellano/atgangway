@@ -297,7 +297,10 @@
     letter-spacing: .08em; text-transform: uppercase; color: var(--ink);
   }
   .sunfoot-body { padding: 0 0 26px; gap: 11px; }
-  .sunfoot-body a, .sunfoot-body span { font-size: 13.5px; }
+  /* Escopada como a irmã dela em 70-cabecalho: regra de rodapé vive
+     dentro do rodapé. Hoje é inerte para o FAQ (que deixou de usar a
+     classe), mas o cheiro é o mesmo que partiu a resposta em colunas. */
+  .sunfoot .sunfoot-body a, .sunfoot .sunfoot-body span { font-size: 13.5px; }
   .sunfoot-base { grid-column: 1 / -1; }
   .paywall { justify-content: flex-start; padding: 20px 0 0; border-top: 1px solid var(--line); }
   .sunfoot-legal { text-align: left; padding: 14px 0 30px; }
