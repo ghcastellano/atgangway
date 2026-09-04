@@ -1147,6 +1147,10 @@ export type Database = {
     }
     Functions: {
       apply_order_credit: { Args: { p_order: string }; Returns: number }
+      badge_counts: {
+        Args: { p_category?: string | null; p_brand?: string | null; p_query?: string | null }
+        Returns: { badge: string; produtos: number }[]
+      }
       category_counts: {
         Args: never
         Returns: {

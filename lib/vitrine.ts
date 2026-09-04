@@ -84,6 +84,40 @@ export const marcasEmUso = unstable_cache(
   OPTS
 );
 
+/**
+ * Quantos produtos cada selo tem NO CONTEXTO — a categoria aberta, a
+ * marca filtrada, a busca em curso.
+ *
+ * Existe por causa de um defeito real: dentro de "New Arrivals" a tela
+ * oferecia Promo e Outlet, e os dois davam SEMPRE zero. Não era falta de
+ * produto em promoção: `badge` é uma coluna única por produto, e New
+ * Arrivals é justamente a coleção de badge='new' — cruzar os dois é
+ * impossível por construção. Oferecer um filtro que não pode ter
+ * resultado é prometer o que não se tem.
+ */
+export const contagensPorSelo = unstable_cache(
+  async (ctx: { category?: string | null; brand?: string | null; query?: string | null }) => {
+    if (!supabaseConfigured) return {} as Record<string, number>;
+    const { data } = await cronometrar(
+      "vitrine.miss_ms",
+      async () =>
+        anon().rpc("badge_counts", {
+          p_category: ctx.category ?? undefined,
+          p_brand: ctx.brand ?? undefined,
+          p_query: ctx.query ?? undefined,
+        }),
+      { consulta: "selos" }
+    );
+    const out: Record<string, number> = {};
+    for (const r of (data ?? []) as { badge: string; produtos: number }[]) {
+      out[r.badge] = Number(r.produtos) || 0;
+    }
+    return out;
+  },
+  ["vitrine-selos"],
+  OPTS
+);
+
 /** A listagem em si; os argumentos viram parte da chave do cache. */
 export const listarProdutos = unstable_cache(
   async (args: ListArgs): Promise<{ items: ProductCard[]; nextCursor: string | null }> => {

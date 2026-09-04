@@ -4,7 +4,13 @@ import ProductCardView from "@/components/ProductCard";
 import FacetRail from "@/components/FacetRail";
 import CategoryIcon from "@/components/CategoryIcon";
 import { IconCompass } from "@/components/Icon";
-import { categoriasAtivas, contagensPorCategoria, listarProdutos, marcasEmUso } from "@/lib/vitrine";
+import {
+  categoriasAtivas,
+  contagensPorCategoria,
+  contagensPorSelo,
+  listarProdutos,
+  marcasEmUso,
+} from "@/lib/vitrine";
 import { wishedProductIds } from "@/lib/wishlist";
 import {
   BADGE_LABEL,
@@ -41,7 +47,7 @@ export default async function ShopPage({
   const brands = await marcasEmUso();
   const brandId = sp.brand ? (brands.find((b) => b.slug === sp.brand)?.id ?? null) : null;
 
-  const [{ items, nextCursor }, cats, counts] = await Promise.all([
+  const [{ items, nextCursor }, cats, counts, selos] = await Promise.all([
     listarProdutos({
       query,
       sort,
@@ -51,7 +57,9 @@ export default async function ShopPage({
     }),
     categoriasAtivas(),
     contagensPorCategoria(),
+    contagensPorSelo({ brand: brandId, query }),
   ]);
+  const selosDisponiveis = (["promo", "new", "outlet"] as const).filter((b) => (selos[b] ?? 0) > 0);
 
   // O coração precisa nascer no estado certo, senão parece que não salvou.
   const wished = await wishedProductIds(items.map((i) => i.id));
@@ -128,18 +136,22 @@ export default async function ShopPage({
                 0
               )} products`}
         </span>
-        <span className="offers wide-only">
-          {(["promo", "new", "outlet"] as const).map((b) => (
-            <Link
-              key={b}
-              href={keep({ badge: sp.badge === b ? null : b, cursor: null })}
-              className={sp.badge === b ? "on" : ""}
-              prefetch={false}
-            >
-              {BADGE_LABEL[b]}
-            </Link>
-          ))}
-        </span>
+        {/* Só o selo que TEM produto aqui, e com quantos. Um filtro que
+            devolve zero não é filtro, é beco. */}
+        {selosDisponiveis.length > 0 && (
+          <span className="offers">
+            {selosDisponiveis.map((b) => (
+              <Link
+                key={b}
+                href={keep({ badge: sp.badge === b ? null : b, cursor: null })}
+                className={sp.badge === b ? "on" : ""}
+                prefetch={false}
+              >
+                {BADGE_LABEL[b]} <b>{selos[b]}</b>
+              </Link>
+            ))}
+          </span>
+        )}
         <span className="sortlbl" aria-hidden>
           Sort by
         </span>

@@ -4,7 +4,13 @@ import Breadcrumb from "@/components/Breadcrumb";
 import ProductCardView from "@/components/ProductCard";
 import FacetRail from "@/components/FacetRail";
 import { IconCompass } from "@/components/Icon";
-import { categoriasAtivas, contagensPorCategoria, listarProdutos, marcasEmUso } from "@/lib/vitrine";
+import {
+  categoriasAtivas,
+  contagensPorCategoria,
+  contagensPorSelo,
+  listarProdutos,
+  marcasEmUso,
+} from "@/lib/vitrine";
 import SortSelect from "@/components/SortSelect";
 import BrandSelect from "@/components/BrandSelect";
 import {
@@ -70,13 +76,17 @@ export default async function CategoryPage({
   // A RPC recebe UUID; a URL carrega slug. Slug inexistente vira null.
   const brandId = sp.brand ? (brands.find((b) => b.slug === sp.brand)?.id ?? null) : null;
 
-  const { items, nextCursor } = await listarProdutos({
-    category: category.path,
-    sort,
-    badge: (sp.badge as "promo" | "new" | "outlet" | undefined) ?? null,
-    brand: brandId,
-    cursor: sp.cursor ?? null,
-  });
+  const [{ items, nextCursor }, selos] = await Promise.all([
+    listarProdutos({
+      category: category.path,
+      sort,
+      badge: (sp.badge as "promo" | "new" | "outlet" | undefined) ?? null,
+      brand: brandId,
+      cursor: sp.cursor ?? null,
+    }),
+    contagensPorSelo({ category: category.path, brand: brandId }),
+  ]);
+  const selosDisponiveis = (["promo", "new", "outlet"] as const).filter((b) => (selos[b] ?? 0) > 0);
 
   // O coração precisa nascer no estado certo: vazio quando já está
   // salvo vira toque duplo, e o toque duplo desmarca.
@@ -136,18 +146,22 @@ export default async function CategoryPage({
           {items.length}
           {nextCursor ? "+" : ""} item{items.length === 1 ? "" : "s"}
         </span>
-        <span className="offers wide-only">
-          {(["promo", "new", "outlet"] as const).map((b) => (
-            <Link
-              key={b}
-              href={keep({ badge: sp.badge === b ? null : b, cursor: null })}
-              className={sp.badge === b ? "on" : ""}
-              prefetch={false}
-            >
-              {BADGE_LABEL[b]}
-            </Link>
-          ))}
-        </span>
+        {/* Só o selo que TEM produto aqui, e com quantos. Um filtro que
+            devolve zero não é filtro, é beco. */}
+        {selosDisponiveis.length > 0 && (
+          <span className="offers">
+            {selosDisponiveis.map((b) => (
+              <Link
+                key={b}
+                href={keep({ badge: sp.badge === b ? null : b, cursor: null })}
+                className={sp.badge === b ? "on" : ""}
+                prefetch={false}
+              >
+                {BADGE_LABEL[b]} <b>{selos[b]}</b>
+              </Link>
+            ))}
+          </span>
+        )}
         <span className="sortlbl" aria-hidden>
           Sort by
         </span>

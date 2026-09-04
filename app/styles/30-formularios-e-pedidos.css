@@ -81,7 +81,7 @@ input:-webkit-autofill:focus {
   margin: 0; padding: 12px 14px; border-radius: 12px; font-size: 13px; line-height: 1.45;
   background: rgba(46,230,200,.07); border: 1px solid rgba(46,230,200,.3); color: #B8F5E9;
 }
-.finehint { font-size: 11.5px; color: var(--faint); line-height: 1.55; margin: 2px 2px 0; }
+.finehint { font-size: 13px; color: var(--muted); line-height: 1.55; }
 /* Letra miúda logo abaixo de um botão precisa de ar. Eram 2px, contra
    10px que o próprio botão tem acima: o texto encostava no amarelo e
    lia como legenda presa à ação, não como observação sobre ela. Alvo de

@@ -24,15 +24,57 @@
    O rótulo "Sort by" some no celular (o próprio <select> já mostra
    "Featured", e a palavra roubava a largura do seletor de marca); a
    partir de 1024px ele volta, junto com o layout de uma linha só. */
+/* ===== barra de filtro/ordenação =====
+   No celular ela empilha em três faixas, nesta ordem de leitura:
+
+     118 products
+     [Promo 1] [New 14]
+     [All brands ▾] [Featured ▾]
+
+   Era uma grade de duas colunas de quando os chips de oferta só
+   existiam no desktop (.wide-only). Com os chips valendo em toda
+   largura, aquela grade atropelava tudo: contagem, chips e os dois
+   selects disputando as mesmas duas células. Flex com quebra
+   declarada é mais simples e não tem célula para brigar. */
 .listbar {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-  align-items: center; padding: 12px 14px 4px;
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 10px; padding: 12px 14px 4px;
 }
 .listbar .count {
-  grid-column: 1 / -1; font-family: var(--font-mono); font-size: 11px; color: var(--faint);
+  flex: 1 1 100%;               /* faixa própria */
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--faint);
 }
 .listbar .sortlbl { display: none; }
-.listbar .sortsel { width: 100%; min-height: 44px; }
+.listbar .offers { flex: 1 1 100%; }   /* faixa própria */
+/* Os dois selects dividem a última faixa. 150px é onde "All brands" e
+   "Featured" cabem sem cortar; abaixo disso um desce para a linha
+   seguinte, que continua legível. */
+.listbar select { flex: 1 1 150px; min-width: 0; }
+
+/* Chips de oferta (Promo / New / Outlet) com a CONTAGEM do contexto.
+   Viviam só no bloco de desktop; agora que a tela só mostra o selo que
+   TEM resultado, eles valem no celular também — e sem estilo aqui
+   apareceriam como links crus.
+
+   O número é dado, não rótulo: cor mais fria, peso menor, e um respiro
+   antes dele. Grudado no texto virava "Promo1", que se lê como nome. */
+.offers { display: flex; gap: 8px; flex-wrap: wrap; }
+.offers a {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 40px;
+  padding: 6px 14px; border-radius: 999px;
+  border: 1px solid var(--line-hi); background: var(--card);
+  color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap;
+  text-decoration: none; transition: border-color .16s, color .16s, background .16s;
+}
+.offers a b {
+  font-weight: 500; font-size: 12px; color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.offers a:hover { border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
+.offers a.on { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
+.offers a.on b { color: var(--amber-ink); opacity: .75; }
+
+.sortsel { min-height: 44px; }
 
 /* chips de filtro ativo — fora do @media de propósito: quem chega no
    celular por link com ?brand=/?badge= precisa VER o que corta a lista

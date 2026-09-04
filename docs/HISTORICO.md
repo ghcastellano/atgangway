@@ -248,6 +248,42 @@ virar componente de cliente que busca a sessão por uma rota de API.
 e o ganho hoje é zero — não há visitante. Vale fazer quando houver
 tráfego real, com uma medição antes e depois.
 
+### 2026-09-04 — o filtro que não podia dar certo, e o acabamento
+
+Relato do Gustavo: "New Arrivals + Promo não traz nada, mas tem produto
+em promoção". Não era dado faltando — era um filtro **impossível por
+construção**:
+
+- `badge` é UMA coluna por produto. New Arrivals É a coleção de
+  `badge='new'` (14 produtos, todos com esse selo). Pedir `badge='promo'`
+  ali dentro nunca pôde devolver nada, e a tela oferecia mesmo assim.
+- Correção: RPC `badge_counts(categoria, marca, busca)` +
+  `contagensPorSelo` em `lib/vitrine.ts`. A tela agora mostra **só o selo
+  que tem resultado, com o número**: em New Arrivals aparece "New 14"; na
+  loja toda, "Promo 1 · New 14". Filtro que devolve zero deixou de existir.
+
+Outros defeitos corrigidos na mesma passada:
+
+| defeito | estava | ficou |
+|---|---|---|
+| WhatsApp do rodapé | `wa.me/<num>` — abria conversa EM BRANCO | `?text=` com mensagem pronta dizendo de onde veio |
+| marca no rodapé | "Vessel **Supplier**" (nome antigo!) | "At **Gangway**" |
+| `/ports` em 1920px | 26% da tela; texto e tabela numa coluna de 500px | 40% — `--read-w: 760px`, coluna de leitura de verdade |
+| `/ports` em tablet | 65% | 99% |
+| nome do produto | 13.5px | 15px |
+| marca / unidade / apoio | 9.5px / 11px / 11.5px | 11px / 12.5px / 13px |
+| vão no card | ~36px de buraco entre nome e preço (duas linhas reservadas que ficavam VAZIAS) | reserva só no nome, que é onde a variação existe |
+| barra de filtros no celular | grade de 2 colunas de quando os chips eram só de desktop — atropelava tudo | três faixas: contagem / chips / selects |
+
+Medido em 390, 768, 1440 e 1920px: zero estouro lateral em tudo; textos
+abaixo de 13px no /shop caíram de 53 para 38; alvos de toque menores que
+40px, de 51 para 34 no celular e de 27 para 12 no tablet.
+
+**O que NÃO foi feito** e o Gustavo pediu: o passe estético geral
+(hierarquia da home, peso dos CTAs na grade, lista de marcas sem fim no
+trilho, tratamento das fotos brancas sobre tema escuro). É trabalho de
+design, não de correção, e precisa de direção antes do código.
+
 ## Como verificar que está tudo vivo (5 min)
 
 ```

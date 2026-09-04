@@ -38,7 +38,16 @@ const SECTIONS = [
       { label: "FAQ", href: "/faq" },
       { label: "Ports & delivery schedule", href: "/ports" },
       { label: "Contact us", href: `mailto:${CONTACT_EMAIL}` },
-      { label: "WhatsApp", href: "https://wa.me/5511970561448" },
+      // wa.me sem ?text= abre a conversa EM BRANCO: a pessoa clica em
+      // "WhatsApp" no rodapé de uma loja, cai num campo vazio e tem de
+      // inventar o que dizer — e nós recebemos "oi" sem contexto. A
+      // mensagem já vem escrita, e diz de onde veio.
+      {
+        label: "WhatsApp",
+        href:
+          "https://wa.me/5511970561448?text=" +
+          encodeURIComponent("Hi! I'm on atgangway.com and I have a question about supplies for my vessel."),
+      },
     ],
   },
   {
@@ -129,7 +138,7 @@ export default function SiteFooter() {
           acordeão continua exatamente como está — ele foi validado. */}
       <div className="sunfoot-brand">
         <p className="bl">
-          Vessel <b>Supplier</b>
+          At <b>Gangway</b>
         </p>
         <p>
           Pre-order before docking. 30% deposit now, the rest at the gangway. Porto de Santos.

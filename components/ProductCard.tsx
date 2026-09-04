@@ -95,16 +95,17 @@ export default function ProductCardView({
       </div>
 
       <div className="pcard-body">
-        {/* Sempre renderizada, como a linha do tamanho: sem marca a linha
-            fica vazia mas ocupa a altura, e a fileira termina alinhada. */}
-        <span className="pbrand">{p.brand_name ?? "\u00A0"}</span>
+        {p.brand_name && <span className="pbrand">{p.brand_name}</span>}
+        {/* Marca e tamanho só aparecem quando existem. Eram renderizados
+            SEMPRE, com um espaço invisível no lugar, para alinhar a
+            fileira — e na maioria dos produtos as duas linhas ficavam
+            vazias, somando ~36px de vão entre o nome e o preço. Quem
+            alinha a fileira agora é a reserva de duas linhas do nome,
+            que é onde a variação de fato acontece. */}
         <Link href={`/p/${p.slug}`} className="pname" prefetch={false}>
           {title}
         </Link>
-        {/* Sempre renderizado, mesmo vazio: sem isto o card com tamanho
-            e o sem tamanho terminam com alturas diferentes, e a grade
-            fica com o botão dançando de coluna para coluna. */}
-        <span className="punit">{unit ?? " "}</span>
+        {unit && <span className="punit">{unit}</span>}
 
         <div className="pprice">
           <b className="now">

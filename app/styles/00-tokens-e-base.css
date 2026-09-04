@@ -34,6 +34,9 @@
   --font-body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --shell-w: 430px;
+  /* Coluna de leitura das páginas de conteúdo (/ports, /faq, /terms…).
+     Não é a largura da loja: é a largura em que um parágrafo se lê. */
+  --read-w: 760px;
 
   /* ---- escala de espaço ----------------------------------------
      Uma escala de 8 pontos, e nenhum número solto fora dela. Antes o

@@ -243,30 +243,27 @@
    margem para descer. Alinhar é o que deixa varrer trinta itens. */
 .pcard-body { display: flex; flex-direction: column; gap: 3px; padding: 11px 12px 12px; flex: 1; }
 .pbrand {
-  font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .14em;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em;
   text-transform: uppercase; color: var(--faint);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  /* Reservada mesmo vazia, como a linha do tamanho: card com marca ao
-     lado de card sem marca desalinhava a fileira inteira dali para
-     baixo — nome, preço e botão, cada um num nível. */
-  min-height: 1.3em;
 }
 .pname {
-  color: var(--ink); font-size: 13.5px; font-weight: 600; line-height: 1.3;
+  color: var(--ink); font-size: 15px; font-weight: 600; line-height: 1.35;
   letter-spacing: -.005em; text-decoration: none;
-  /* Duas linhas fixas para os cards da mesma fileira terminarem
-     alinhados — grade desalinhada parece defeito. */
+  /* Duas linhas fixas: a única reserva que sobrou, e a que importa — o
+     nome varia de uma a duas linhas em quase todo card. As reservas da
+     marca e da unidade saíram: ficavam VAZIAS na maioria dos produtos e
+     somavam ~36px de buraco entre o nome e o preço. Era esse vão que
+     fazia o card parecer mal montado. */
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden; min-height: 2.6em;
 }
 .pname:hover { color: var(--amber-hi); }
-/* Reservada mesmo vazia: sem isto o card com tamanho e o sem tamanho
-   terminam com alturas diferentes e o botão dança de coluna a coluna. */
-.punit { font-family: var(--font-mono); font-size: 11px; color: var(--faint); min-height: 1.45em; }
+.punit { font-size: 12.5px; color: var(--faint); }
 
 .pprice { margin-top: auto; padding-top: 8px; display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
 .pprice .now {
-  font-family: var(--font-disp); font-size: 18px; font-weight: 700;
+  font-family: var(--font-disp); font-size: 20px; font-weight: 700;
   color: var(--ink); letter-spacing: -.01em;
   /* Dígito de largura fixa: preço em coluna que não alinha na vírgula
      obriga a ler número por número em vez de comparar de relance. */

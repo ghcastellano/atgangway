@@ -93,7 +93,19 @@
      superfície desenhada aqui. Em vez de virarem celular colado na
      borda, viram coluna de leitura centrada. --shell-w ganha este
      segundo emprego e continua intacto para .buydock. */
-  .shell > main { max-width: var(--shell-w); margin-inline: auto; width: 100%; }
+  /* 500px era largura de CELULAR pendurada num monitor: /ports mostrava
+     uma tabela de horários numa coluna de meio palmo, com 74% da tela
+     vazia dos lados — enquanto cabeçalho e rodapé iam de ponta a ponta.
+     Lia como página quebrada, e era.
+
+     760px é coluna de LEITURA: 65 a 75 caracteres por linha, a medida
+     que a tipografia usa há um século porque o olho volta ao começo da
+     linha seguinte sem se perder. Quem precisa de mais (tabela, grade)
+     pede .wide por dentro. */
+  .shell > main { max-width: var(--read-w); margin-inline: auto; width: 100%; }
+  /* Conteúdo largo dentro da coluna de leitura: sangra até 1040px sem
+     esticar o texto junto. */
+  .shell > main > .wide { width: min(1040px, 92vw); margin-inline: auto; }
   /* O painel de operação NÃO é página de leitura. A retaguarda acima o
      engolia: main.stack caía na coluna de 500px e o admin virava uma
      tela de celular pendurada num monitor — fila de 200 navios num
@@ -418,14 +430,9 @@
   /* pílulas de oferta: ?badge= já é parâmetro da RPC e hoje só é
      alcançável por link do rodapé */
   .offers { display: flex; gap: 6px; flex-wrap: wrap; }
-  .offers a {
-    display: inline-flex; align-items: center; min-height: 44px;
-    padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
-    border: 1px solid var(--line-hi); color: var(--muted); white-space: nowrap;
-    transition: border-color .16s, color .16s, background .16s;
-  }
-  .offers a:hover { border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
-  .offers a.on { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
+  /* O visual dos chips mora no escopo global (60-vitrine): aqui só o
+     alvo de toque maior, porque o iPad também é touch. */
+  .offers a { min-height: 44px; }
 
   /* base dos .chips subiu para o escopo global (mobile também mostra);
      aqui só o ajuste de layout da coluna larga */
