@@ -575,3 +575,45 @@ Corrigidos com teto de tempo, `try/catch` e uma saída honesta:
   Era o contrário, e alinhava os preços da fileira à custa de ~100px de
   branco dentro dos cards de nome curto. A linha do botão é a que o olho
   vê, porque é a peça pesada.
+
+### A gaveta, e por que a auditoria agora abre o que nasce fechado
+
+Um dia inteiro com a marca da loja ilegível no primeiro elemento da
+gaveta de categorias: `.sunlogo .l2` é âmbar cheio — certo sobre o
+azul-noite do cabeçalho, 2,15:1 sobre o papel branco da gaveta. Eu tinha
+excluído `.sunlogo` da varredura justamente por causa do cabeçalho, sem
+notar que o mesmo componente aparece em duas superfícies.
+
+A auditoria não pegou porque a gaveta nasce fechada. **Painel que não se
+abre é painel que não se testa** — então ela passou a abrir, medir e
+fechar os três: gaveta de categorias, gaveta do carrinho e menu da
+conta.
+
+E foi validada como se valida um teste: reintroduzi o defeito de
+propósito, confirmei que ela reprova (`2.15:1 … .l2 … "Gangway"`), e só
+então restaurei a correção. Teste que nunca falhou não é teste, é
+decoração.
+
+De quebra, a gaveta ganhou "Need a hand? WhatsApp us" acima do botão do
+carrinho: eram uns 240px de branco abaixo do último item do menu, e quem
+abre a gaveta procurando por onde falar com a loja não achava nada.
+
+### Faixas de controle antes do primeiro produto
+
+No celular, `/shop?q=coffee` mostrava, nesta ordem: migalha, título,
+"13 results", chip "New 1", dois selects e um chip `Search "coffee" ×`.
+Seis blocos antes do primeiro produto, numa tela de 844px.
+
+- O chip da busca saiu: dizia o que a migalha, o título e a caixa de
+  busca do cabeçalho já diziam — a mesma palavra quatro vezes. Selo e
+  marca ficam, porque chega gente por link com `?badge=`.
+- Contagem e chips voltaram para a MESMA faixa (cada um tinha
+  `flex: 1 1 100%` e uma linha só para si).
+- Os dois selects ficam juntos na faixa de baixo. A quebra de linha é
+  feita pelo rótulo "Sort by", com base 100% e altura zero: no celular
+  ele é invisível e serve de quebra, no desktop volta a ser rótulo e a
+  barra cabe numa linha só. Sem a parte do desktop, "Featured" descia
+  sozinho — regressão que só apareceu porque conferi as três larguras
+  depois de mexer numa.
+
+De seis blocos para quatro. Os produtos começam ~120px mais acima.

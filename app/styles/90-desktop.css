@@ -431,6 +431,12 @@
   .pg-list .listbar .sortlbl { display: inline; }
   .pg-list .listbar .sortsel { width: auto; }
   .pg-list .listbar .sortlbl {
+    /* Desfaz a QUEBRA DE LINHA que o rótulo faz no celular (base
+       100% e altura zero, em 60-vitrine): aqui ele volta a ser o
+       rótulo visível "SORT BY", encostado nos selects, e a barra volta
+       a caber numa linha só. Sem esta parte, "Featured" descia
+       sozinho para uma segunda faixa no desktop. */
+    flex: 0 0 auto; height: auto; overflow: visible; padding: 0;
     margin-left: auto; font-family: var(--font-mono); font-size: 10.5px;
     letter-spacing: .18em; text-transform: uppercase; color: var(--faint);
   }

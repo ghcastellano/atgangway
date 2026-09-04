@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut } from "@/app/account/actions";
 import type { CategoryNode } from "@/lib/catalog";
+import { whatsappLink } from "@/lib/env";
 import { IconAnchor, IconCap, IconCart, IconClose, IconHeart, IconLogin, IconLogout, IconPackage, IconUser } from "./Icon";
 import CategoryIcon from "./CategoryIcon";
 
@@ -176,6 +177,18 @@ export default function CategoryDrawer({
         </div>
 
         <div className="drawer-foot">
+          <p className="drawer-ajuda">
+            Need a hand?{" "}
+            <a
+              href={whatsappLink(
+                "Hi! I'm on atgangway.com and I have a question about supplies for my vessel."
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              WhatsApp us
+            </a>
+          </p>
           <Link className="btn" href="/cart" onClick={onClose}>
             <IconCart size={18} /> Shopping Cart{cartCount > 0 ? ` · ${cartCount}` : ""}
           </Link>

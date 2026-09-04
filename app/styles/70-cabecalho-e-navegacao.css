@@ -256,10 +256,30 @@
   color: var(--ink); font-size: 14.5px; font-weight: 700;
   font-family: var(--font-body); text-align: left; cursor: pointer;
 }
+/* O MESMO logotipo do cabeçalho, só que aqui ele está sobre papel
+   claro — e --amber é cor de fundo: dava 2,15:1, a marca da loja
+   ilegível no primeiro elemento da gaveta. No cabeçalho o âmbar cheio
+   fica, porque lá o fundo é azul-noite. A auditoria não pegou porque a
+   gaveta nasce fechada; por isso ela agora abre a gaveta antes de
+   medir (ver scripts/auditar-contraste.mjs). */
+.drawer .sunlogo .l2,
+.drawer .sunlogo b,
+.drawer .sunlogo .mark { color: var(--amber-hi); }
+
 .drawer-foot {
   padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
+  display: grid; gap: 10px;
 }
+/* A linha de socorro, acima do carrinho. A gaveta de um celular tem uns
+   240px de folga abaixo do último item do menu, e quem abre a gaveta
+   procurando por onde falar com a loja não achava nada — o WhatsApp
+   morava só no rodapé da página. */
+.drawer-ajuda {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 44px; font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.drawer-ajuda a { color: var(--wa); font-weight: 700; }
 .drawer-foot .btn { margin: 0; }
 
 /* --- menu da conta --- */

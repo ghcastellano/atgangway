@@ -43,12 +43,28 @@
   display: flex; flex-wrap: wrap; align-items: center;
   gap: 10px; padding: 12px 14px 4px;
 }
+/* Contagem e chips de oferta na MESMA faixa.
+   Cada um tinha `flex: 1 1 100%` e ficava com uma linha só para si:
+   com os selects, eram TRÊS faixas de controle antes do primeiro
+   produto numa tela de 844px — mais o título e a migalha. "13 results"
+   ocupa 70px e o chip "New 1" outros 72; num celular de 390px eles
+   cabem lado a lado com folga, e quando não couberem o flex-wrap
+   resolve sozinho, que é para o que ele serve. */
 .listbar .count {
-  flex: 1 1 100%;               /* faixa própria */
+  flex: 0 0 auto; margin-right: auto;
   font-family: var(--font-mono); font-size: 11.5px; color: var(--faint);
 }
-.listbar .sortlbl { display: none; }
-.listbar .offers { flex: 1 1 100%; }   /* faixa própria */
+/* O rótulo "Sort by" some da vista no celular, mas não do fluxo: com
+   base 100% e altura zero ele vira a QUEBRA DE LINHA da barra, e os
+   dois selects ficam juntos na faixa de baixo em vez de "Featured"
+   subir sozinho para o lado dos chips e "All brands" ficar órfão numa
+   linha inteira. Continua no fluxo de acessibilidade, rotulando o
+   controle que vem logo depois. */
+.listbar .sortlbl {
+  flex: 1 1 100%; height: 0; overflow: hidden;
+  margin: 0; padding: 0; font-size: 11px;
+}
+.listbar .offers { flex: 0 1 auto; }
 /* Os dois selects dividem a última faixa. 150px é onde "All brands" e
    "Featured" cabem sem cortar; abaixo disso um desce para a linha
    seguinte, que continua legível. */

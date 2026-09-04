@@ -169,13 +169,14 @@ export default async function ShopPage({
 
       {/* O que está filtrando agora, e como sair. Sem isto, quem chega
           por link com ?badge= não descobre por que a lista é curta. */}
-      {(query || sp.badge || brandId) && (
+      {/* A BUSCA saiu daqui. Ela aparecia em quatro lugares na mesma
+          tela — migalha, título, caixa de busca do cabeçalho (que fica
+          preenchida) e este chip —, e no celular era a quarta faixa de
+          controle antes do primeiro produto, numa tela de 844px. Selo e
+          marca ficam, porque chega gente por link com ?badge= e sem o
+          chip não há como descobrir por que a lista é curta. */}
+      {(sp.badge || brandId) && (
         <div className="chips">
-          {query && (
-            <Link href={keep({ q: null, cursor: null })} prefetch={false}>
-              <b>Search</b> “{query}”
-            </Link>
-          )}
           {sp.badge && (
             <Link href={keep({ badge: null, cursor: null })} prefetch={false}>
               <b>Offer</b> {BADGE_LABEL[sp.badge as "promo" | "new" | "outlet"]}

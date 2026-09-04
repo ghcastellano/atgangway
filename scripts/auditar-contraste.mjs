@@ -14,6 +14,11 @@
  * mistura de fundos translúcidos. É o que o olho vê.
  *
  *   node scripts/auditar-contraste.mjs http://127.0.0.1:3000
+ *
+ * Ela também ABRE o que nasce fechado antes de medir. O logotipo da
+ * gaveta de categorias ficou ilegível por um dia inteiro — âmbar cheio
+ * sobre papel, 2,15:1 — porque a gaveta nasce fechada e nenhuma medição
+ * chegava lá. Painel que não se abre é painel que não se testa.
  */
 import { chromium } from "playwright";
 
@@ -96,6 +101,16 @@ const MEDIDOR = () => {
   return achados;
 };
 
+/**
+ * Painéis que nascem fechados. Cada um é aberto, medido e fechado —
+ * um de cada vez, para o relatório dizer QUAL painel tem o defeito.
+ */
+const PAINEIS = [
+  { nome: "gaveta de categorias", abrir: ".hamb", fechar: ".drawer .iconbtn, .drawer [aria-label*='lose']" },
+  { nome: "gaveta do carrinho", abrir: "button[aria-label^='Cart']", fechar: ".minicart [aria-label*='lose']" },
+  { nome: "menu da conta", abrir: "button[aria-label='Account menu']", fechar: "button[aria-label='Account menu']" },
+];
+
 const nav = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 let total = 0;
 for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]]) {
@@ -121,6 +136,32 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
           `  ${String(a.razao).padStart(5)}:1 (min ${a.minimo})  .${a.classe}  ${a.cor} sobre ${a.fundo}  ${a.px}px/${a.peso}  “${a.texto}”`
         );
       }
+    }
+
+    // Os painéis só na vitrine: é onde eles existem, e abrir em toda
+    // rota multiplicaria o tempo por três sem achar nada novo.
+    if (rota !== "/shop") continue;
+    for (const painel of PAINEIS) {
+      const gatilho = pg.locator(painel.abrir).first();
+      if (!(await gatilho.isVisible().catch(() => false))) continue;
+      await gatilho.click().catch(() => {});
+      await pg.waitForTimeout(400);
+      const dentro = await pg.evaluate(MEDIDOR);
+      if (dentro.length) {
+        console.log(`\n### ${rota} → ${painel.nome}  (${larguraNome})`);
+        const vistos2 = new Set();
+        for (const a of dentro) {
+          const k = `${a.cor}|${a.fundo}|${a.classe}`;
+          if (vistos2.has(k)) continue;
+          vistos2.add(k);
+          total++;
+          console.log(
+            `  ${String(a.razao).padStart(5)}:1 (min ${a.minimo})  .${a.classe}  ${a.cor} sobre ${a.fundo}  ${a.px}px/${a.peso}  “${a.texto}”`
+          );
+        }
+      }
+      await pg.keyboard.press("Escape").catch(() => {});
+      await pg.waitForTimeout(250);
     }
   }
   await ctx.close();
