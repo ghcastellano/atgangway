@@ -2,12 +2,19 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/Breadcrumb";
 import DeliveryStrip from "@/components/DeliveryStrip";
-import { createClient } from "@/lib/supabase/server";
+import { clientePublico } from "@/lib/supabase/publico";
 import {
   resolveDelivery,
   type PortRule,
 } from "@/lib/delivery";
 import { usd } from "@/lib/money";
+
+/* OBRIGATÓRIO aqui, não enfeite. Esta página calcula a janela que vale
+   AGORA (`resolveDelivery` com `new Date()`), e página pré-renderizada
+   sem revalidação congela a hora do build: a loja passaria a anunciar
+   um corte que já passou. Cinco minutos é folga suficiente — as janelas
+   viram de hora em hora, não de minuto em minuto. */
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Ports & delivery schedule",
@@ -83,7 +90,7 @@ function stayLabel(r: PortRule): string {
 export default async function PortsPage() {
   let ports: PortRow[] = [];
   try {
-    const supabase = await createClient();
+    const supabase = clientePublico();
     const { data } = await supabase
       .from("ports")
       .select(

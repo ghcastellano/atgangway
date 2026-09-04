@@ -68,3 +68,39 @@ export async function wishCount(): Promise<number> {
     return 0;
   }
 }
+
+/**
+ * Contagem E ids da lista, numa consulta só — o que o cabeçalho semeia
+ * no navegador uma vez por visita.
+ *
+ * Substitui o par `wishCount()` + `wishedProductIds()` que rodava em
+ * TODA página de catálogo. O motivo não é economizar uma consulta: é
+ * que as duas liam cookie, e ler cookie numa página impede a Vercel de
+ * guardar essa página pronta. A vitrine passa a ser pré-renderizada, e
+ * o estado de quem está olhando chega por fora.
+ *
+ * `count: "exact"` devolve o total REAL mesmo com `.limit()` aplicado,
+ * então o selo continua certo para quem tem mais de 500 favoritos —
+ * apenas os corações além disso nascem vazios, e o próprio toque
+ * corrige. A RLS já limita ao dono; sem sessão a consulta nem sai.
+ */
+export async function resumoDaLista(): Promise<{ count: number; ids: string[] }> {
+  const vazio = { count: 0, ids: [] as string[] };
+  try {
+    const supabase = await createClient();
+    const user = await sessionUser(supabase);
+    if (!user) return vazio;
+
+    const { data, count, error } = await supabase
+      .from("wishlists")
+      .select("product_id", { count: "exact" })
+      .eq("user_id", user.id)
+      .limit(500);
+
+    if (error) return vazio;
+    return { count: count ?? 0, ids: (data ?? []).map((r) => r.product_id as string) };
+  } catch {
+    // Lista de desejos é enfeite: nunca pode derrubar o cabeçalho.
+    return vazio;
+  }
+}

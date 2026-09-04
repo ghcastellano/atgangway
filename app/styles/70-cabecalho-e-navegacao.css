@@ -265,9 +265,13 @@
   position: absolute; top: calc(100% + 6px); right: 0; z-index: 95;
   min-width: 218px; background: var(--card);
   border: 1px solid var(--line-hi); border-radius: 12px;
-  box-shadow: 0 18px 44px rgba(1,6,13,.6); overflow: hidden;
+  box-shadow: var(--sh-3); overflow: hidden;
   animation: dropIn .16s var(--ease);
 }
+/* O lugar do "Sign in / Sign out" enquanto o servidor não disse qual
+   dos dois é. Ocupa a altura exata do item para o menu não pular
+   quando a resposta chega. */
+.acctwait { display: block; padding: 12px 15px; font-size: 13.5px; }
 .acctmenu a, .acctmenu button {
   display: block; width: 100%; text-align: left;
   padding: 12px 15px; color: var(--ink); font-size: 13.5px;

@@ -21,7 +21,6 @@ import {
   type CategoryNode,
   type SortKey,
 } from "@/lib/catalog";
-import { wishedProductIds } from "@/lib/wishlist";
 
 export const revalidate = 300;
 
@@ -90,7 +89,6 @@ export default async function CategoryPage({
 
   // O coração precisa nascer no estado certo: vazio quando já está
   // salvo vira toque duplo, e o toque duplo desmarca.
-  const wished = await wishedProductIds(items.map((i) => i.id));
 
   // Preserva sort E badge. O more() antigo só carregava o sort, então
   // paginar dentro de um filtro apagava o filtro em silêncio.
@@ -197,7 +195,7 @@ export default async function CategoryPage({
       ) : (
         <div className="pgrid">
           {items.map((p, i) => (
-            <ProductCardView key={p.id} p={p} priority={i < 4} wished={wished.has(p.id)} />
+            <ProductCardView key={p.id} p={p} priority={i < 4} />
           ))}
         </div>
       )}

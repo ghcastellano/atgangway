@@ -24,8 +24,8 @@ export default function GlobalError({
           minHeight: "100vh",
           display: "grid",
           placeItems: "center",
-          background: "#01060D",
-          color: "#EEF4F8",
+          background: "#F5F8FB",
+          color: "#0B1B30",
           fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
           padding: 24,
           textAlign: "center",
@@ -36,13 +36,13 @@ export default function GlobalError({
             ⚓
           </div>
           <h1 style={{ fontSize: 20, margin: "0 0 8px" }}>At Gangway is down for a moment</h1>
-          <p style={{ color: "#9FB4C8", fontSize: 14, margin: "0 0 20px" }}>
+          <p style={{ color: "#47596F", fontSize: 14, margin: "0 0 20px" }}>
             We hit an error loading the site. Try again in a few seconds.
           </p>
           <button
             onClick={reset}
             style={{
-              background: "#FFB648",
+              background: "#F0A030",
               color: "#0B1B30",
               border: 0,
               borderRadius: 10,
@@ -55,7 +55,7 @@ export default function GlobalError({
             Try again
           </button>
           {error.digest && (
-            <p style={{ color: "#6B8299", fontSize: 12, marginTop: 18, fontFamily: "monospace" }}>
+            <p style={{ color: "#5A6A7D", fontSize: 12, marginTop: 18, fontFamily: "monospace" }}>
               {error.digest}
             </p>
           )}

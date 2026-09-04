@@ -36,15 +36,40 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Gangway",
-    statusBarStyle: "black-translucent",
+    // "black-translucent" desenha a barra de status transparente com
+    // ÍCONES BRANCOS por cima do conteúdo. Fazia sentido sobre a loja
+    // escura; sobre o fundo claro de hoje os ícones somem — relógio e
+    // bateria brancos sobre #E9EEF4. "default" devolve a barra opaca
+    // com ícones escuros, que é o que se lê.
+    statusBarStyle: "default",
   },
 };
 
-// Correção do bug de viewport mobile: theme-color escuro + viewport-fit=cover
-// fazem o app pintar o viewport inteiro, sem faixa clara sobrando.
+/**
+ * A moldura do navegador no celular.
+ *
+ * Estes dois valores sobraram da época em que a loja era escura e não
+ * foram junto na inversão para o tema claro — e não era detalhe:
+ *
+ *   themeColor pinta a barra de status do iOS e a de endereço do
+ *   Android. Ficou #01060D, quase preto, encostada numa página de
+ *   fundo #F5F8FB. É a faixa que o cliente vê antes de qualquer
+ *   conteúdo carregar.
+ *
+ *   colorScheme: "dark" é pior porque é funcional: ela manda o sistema
+ *   desenhar os controles NATIVOS em modo escuro — <select>, campo de
+ *   data, barra de rolagem, o menu de sugestão do teclado. O
+ *   formulário do checkout ficava com caixas escuras no meio de cartões
+ *   brancos, e a rolagem sumia contra o fundo.
+ *
+ * O valor agora é --abyss, que é o fundo REAL do <body> (conferido no
+ * navegador, não no token que eu supunha) — a barra do sistema e a
+ * página viram uma superfície só. O viewport-fit=cover continua, que é
+ * o que faz o app ocupar a tela inteira do iPhone com entalhe.
+ */
 export const viewport: Viewport = {
-  themeColor: "#01060D",
-  colorScheme: "dark",
+  themeColor: "#E9EEF4",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

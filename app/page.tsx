@@ -12,7 +12,6 @@ import CategoryIcon from "@/components/CategoryIcon";
 import ProductCardView from "@/components/ProductCard";
 import { createClient } from "@/lib/supabase/server";
 import { imageUrl, listProducts, type Category, type ProductCard } from "@/lib/catalog";
-import { wishedProductIds } from "@/lib/wishlist";
 import { SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 import { DEPOSIT_PCT } from "@/lib/money";
 import { resolveDelivery, type PortRule } from "@/lib/delivery";
@@ -24,10 +23,20 @@ import { sessionUser } from "@/lib/supabase/session";
  * O seletor de navio saiu daqui — navio agora mora no perfil, e a
  * pessoa chega na loja querendo ver o que tem, não preencher um passo.
  *
- * A rota é dinâmica porque a tira do navio lê a sessão, e sessão não
- * cabe em página estática. Isso NÃO custa o cache: as quatro consultas
- * públicas da vitrine ficam em unstable_cache por 300s (o revalidate
- * que a espec pede), então o que renderiza por requisição é só a tira.
+ * A rota segue DINÂMICA, e agora é decisão, não herança. A casca do
+ * site parou de ler cookie (ver components/SiteChrome), então /p, /faq,
+ * /ports e as demais páginas de conteúdo passaram a sair prontas do
+ * cache da borda. Aqui não: o que depende de quem está olhando — a
+ * janela de entrega, os três passos do herói, o painel da escala, a
+ * faixa do Captain — não está num canto, está COSTURADO no meio do
+ * herói e da primeira dobra. Servir casca guardada e preencher depois
+ * faria a página mais vista da loja saltar na frente da pessoa, e
+ * conteúdo que pula é exatamente o que faz um site parecer barato.
+ *
+ * O preço disso é pequeno e conhecido: as quatro consultas públicas da
+ * vitrine estão em unstable_cache por 300s, e a sessão é conferida pelo
+ * JWT local, sem ida ao servidor de Auth. Para quem chega deslogado —
+ * a maioria — o render por requisição não toca o banco nenhuma vez.
  */
 export const dynamic = "force-dynamic";
 
@@ -293,12 +302,6 @@ export default async function Home() {
   // Resolvida aqui, fora do cache: a promessa depende da hora.
   const promise = grid ? resolveDelivery(grid.rules, new Date(), grid.timezone) : null;
 
-  // Fora do cache da vitrine de propósito: a lista de desejos é de
-  // cada pessoa, e um cache compartilhado mostraria o coração de
-  // outro marinheiro. As faixas são cacheadas; o estado do coração,
-  // não.
-  const wished = await wishedProductIds([...store.promo, ...store.fresh].map((p) => p.id));
-
   // Categoria vazia não entra na vitrine. "Promo · 0 items" convida o
   // toque e entrega uma página em branco — pior que não oferecer. Elas
   // continuam no drawer, que é onde se navega a estrutura inteira.
@@ -490,7 +493,7 @@ export default async function Home() {
               // categorias empurra as faixas para fora da primeira
               // tela, e priority em foto que ninguém vê rouba banda
               // do LCP real — que aqui é o texto do hero.
-              <ProductCardView key={p.id} p={p} wished={wished.has(p.id)} sizes="(max-width: 620px) 92vw, (max-width: 767px) 46vw, (max-width: 1023px) 30vw, 360px" />
+              <ProductCardView key={p.id} p={p} sizes="(max-width: 620px) 92vw, (max-width: 767px) 46vw, (max-width: 1023px) 30vw, 360px" />
             ))}
           </div>
         </section>
@@ -506,7 +509,7 @@ export default async function Home() {
           </h2>
           <div className="rail">
             {store.fresh.map((p) => (
-              <ProductCardView key={p.id} p={p} wished={wished.has(p.id)} sizes="(max-width: 620px) 92vw, (max-width: 767px) 46vw, (max-width: 1023px) 30vw, 360px" />
+              <ProductCardView key={p.id} p={p} sizes="(max-width: 620px) 92vw, (max-width: 767px) 46vw, (max-width: 1023px) 30vw, 360px" />
             ))}
           </div>
         </section>

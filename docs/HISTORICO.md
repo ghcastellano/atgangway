@@ -248,6 +248,9 @@ virar componente de cliente que busca a sessão por uma rota de API.
 e o ganho hoje é zero — não há visitante. Vale fazer quando houver
 tráfego real, com uma medição antes e depois.
 
+> **Feito em 2026-09-04** — pela segunda alternativa, não pela primeira.
+> Ver a seção "o teto caiu" no fim deste arquivo.
+
 ### 2026-09-04 — o filtro que não podia dar certo, e o acabamento
 
 Relato do Gustavo: "New Arrivals + Promo não traz nada, mas tem produto
@@ -342,3 +345,92 @@ psql "$DATABASE_URL" -f supabase/tests/dinheiro.sql                       # 11 �
 
 No painel (`/admin`, conta com `profiles.role = 'admin'`), a faixa de saúde no
 topo diz em vermelho se o line-up parou, o PTAX envelheceu ou um cron falhou.
+
+## 2026-09-04 — o teto caiu: a casca do site parou de ler cookie
+
+O teto documentado acima (todas as rotas dinâmicas, `x-vercel-cache:
+MISS` até em `/faq`) foi derrubado. A causa era a que estava escrita:
+`SiteChrome`, no layout raiz, lia cookie para saber se havia sessão.
+
+**O caminho que NÃO deu**: PPR. No Next 16.3 o `experimental.ppr` foi
+absorvido pelo `cacheComponents`, que é booleano — não existe modo
+incremental. Ligá-lo obrigaria a migrar as 43 rotas para `"use cache"`,
+`cacheLife` e `cacheTag` de uma vez, e a trocar todos os
+`export const revalidate`. Cheguei a escrever a versão com
+`ppr: "incremental"`; o build recusou com a mensagem da mudança. Reverti
+em vez de forçar: uma migração dessas não se faz junto com outra coisa.
+
+**O caminho que deu**: o documento passa a ser idêntico para todo
+visitante, e a personalização chega por fora.
+
+- `app/api/sessao/route.ts` responde `{ logado, count, ids }` — sessão,
+  contagem de favoritos e quais produtos estão na lista. Cabeçalhos
+  `private, no-store`: uma resposta destas vazando para o cache mostraria
+  a lista de desejos alheia.
+- `components/SessaoSeed.tsx` é componente de cliente, busca isso depois
+  da tela pintada, com `AbortController` de 8 s (wifi de navio pendura em
+  vez de recusar) e, se falhar, assume deslogado — ficar em "não sei"
+  deixaria o menu da conta sem decidir para sempre.
+- `lib/wish.tsx` deixou de ser só o contador: guarda `count`, `ids` e
+  `logado`. `logado` nasce `null` e o menu mostra um item neutro até
+  saber — desenhar "Sign in" no escuro faria quem TEM sessão achar que
+  caiu.
+- `wishedProductIds()` saiu da home, de `/shop`, `/c/[slug]` e
+  `/p/[slug]`. `WishButton` decide pelo contexto; `initial` continua
+  existindo só para `/wishlist`, onde a página sabe mesmo.
+- `/ports`, `/attributions` e `/p/[slug]` liam catálogo público com o
+  cliente de sessão. Passaram a usar `lib/supabase/publico.ts`, que não
+  toca em `cookies()`.
+- `generateStaticParams` na ficha de produto. **Este foi o detalhe que
+  custou uma medição**: mesmo sem cookie em lugar nenhum, rota com
+  segmento dinâmico e sem `generateStaticParams` o Next trata como
+  totalmente dinâmica — `/p/x` continuava com `private, no-store`. São
+  500 slugs no build; o resto e todo produto novo continuam sendo
+  gerados na primeira visita, porque `dynamicParams` segue `true`.
+
+Medido no build de produção, servindo local:
+
+| rota | antes | depois |
+|---|---|---|
+| `/faq` | MISS, ~350 ms | `x-nextjs-cache: HIT`, **4 ms** |
+| `/ports` | MISS | HIT, **11 ms** |
+| `/attributions` | MISS | HIT |
+| `/p/<slug>` | MISS | HIT, **15 ms** |
+| `/shop`, `/c/<slug>` | MISS | segue dinâmica (usa `searchParams`) |
+| `/` | MISS | segue dinâmica (por decisão, abaixo) |
+
+No build: 15 rotas HTML estáticas mais 130 fichas de produto, contra 6
+assets antes.
+
+**O que continua dinâmico, e por quê.** `/shop` e `/c/[slug]` leem
+`searchParams` — no App Router isso é dinâmico e não tem volta sem
+`cacheComponents`. Custa pouco: o catálogo delas já está em
+`unstable_cache`. A **home** ficou de fora por decisão de UI, não por
+limitação: a janela de entrega, os três passos do herói, o painel da
+escala e a faixa do Captain estão costurados no meio da primeira dobra,
+e servir casca guardada preenchendo depois faria a página mais vista da
+loja saltar na frente da pessoa. Conteúdo que pula é o que faz um site
+parecer barato — e era exatamente a queixa que abriu este trabalho.
+
+**Custo honesto da troca**: cada carregamento completo passa a fazer uma
+chamada a `/api/sessao`. É uma função pequena (JWT conferido localmente,
+e sem sessão nem toca no banco) contra a página INTEIRA que era função
+antes. Continua sendo troca boa, mas não é "de graça".
+
+### O que sobrou do tema escuro
+
+A inversão para o tema claro deixou três valores para trás, todos fora
+do CSS — por isso os testes de contraste não os pegaram:
+
+- `viewport.themeColor` estava `#01060D`. É a faixa que o celular pinta
+  na barra de status antes de qualquer conteúdo aparecer. Agora
+  `#E9EEF4`, que é o fundo REAL do `<body>` (conferido no navegador —
+  `--abyss`, não o `--night` que eu supunha).
+- `viewport.colorScheme: "dark"` era o pior dos três porque é funcional:
+  manda o sistema desenhar `<select>`, campo de data e barra de rolagem
+  em modo escuro. O checkout tinha caixas pretas entre cartões brancos.
+- `appleWebApp.statusBarStyle: "black-translucent"` desenha relógio e
+  bateria em BRANCO sobre o conteúdo. Sobre fundo claro, somem. Virou
+  `"default"`.
+- `manifest.ts` (`background_color`/`theme_color`) e `global-error.tsx`
+  (que não tem CSS, por definição) também estavam escuros.

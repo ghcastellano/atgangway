@@ -11,7 +11,6 @@ import {
   listarProdutos,
   marcasEmUso,
 } from "@/lib/vitrine";
-import { wishedProductIds } from "@/lib/wishlist";
 import {
   BADGE_LABEL,
   buildTree,
@@ -62,7 +61,6 @@ export default async function ShopPage({
   const selosDisponiveis = (["promo", "new", "outlet"] as const).filter((b) => (selos[b] ?? 0) > 0);
 
   // O coração precisa nascer no estado certo, senão parece que não salvou.
-  const wished = await wishedProductIds(items.map((i) => i.id));
 
   const roots = buildTree(cats);
   const keep = (extra: Record<string, string | null>) => {
@@ -206,7 +204,7 @@ export default async function ShopPage({
       ) : (
         <div className="pgrid">
           {items.map((p, i) => (
-            <ProductCardView key={p.id} p={p} priority={i < 4} wished={wished.has(p.id)} />
+            <ProductCardView key={p.id} p={p} priority={i < 4} />
           ))}
         </div>
       )}

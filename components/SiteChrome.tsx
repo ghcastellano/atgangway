@@ -1,11 +1,8 @@
 import { unstable_cache } from "next/cache";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import SiteHeader from "./SiteHeader";
-import { createClient } from "@/lib/supabase/server";
+import SessaoSeed from "./SessaoSeed";
 import { buildTree, type Category, type CategoryNode } from "@/lib/catalog";
-import { wishCount } from "@/lib/wishlist";
-import { sessionUser } from "@/lib/supabase/session";
-import { WishSeed } from "@/lib/wish";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 
 /**
@@ -13,34 +10,30 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
  * ele faz, ele faz UMA VEZ POR PÁGINA DO SITE — e era aí que estava a
  * lentidão que parecia não ter dono.
  *
- * Eram três idas ao Supabase, em SEQUÊNCIA: a árvore de categorias, a
- * contagem de desejos e o getUser(). O tempo era a soma das três, e
- * pagava em toda tela — inclusive nas que não têm dado nenhum. Medido
- * aqui, /faq (texto puro, zero consultas próprias) respondia em ~400 ms
- * contra 2 ms de um arquivo estático. Não era o middleware, como cheguei
- * a supor e a testar: era o cabeçalho perguntando três coisas ao banco
- * antes de desenhar uma página que não precisava de nenhuma delas.
+ * Primeiro corte (já feito): eram três idas ao Supabase EM SEQUÊNCIA —
+ * árvore de categorias, contagem de desejos e getUser(). A árvore foi
+ * para unstable_cache com a tag "catalog", e o resto passou a rodar em
+ * paralelo.
  *
- * Duas correções:
+ * Este é o segundo corte, e é o que faltava. Paralelizar encurtou a
+ * espera; não mudou a NATUREZA dela. Enquanto o cabeçalho lesse cookie,
+ * nenhuma página do site podia ser guardada pronta: um `cookies()` no
+ * layout raiz marca a rota inteira como dinâmica, e o layout raiz está
+ * em todas. Cada visita a /faq — texto que não muda há meses — abria
+ * uma função na Vercel e uma conexão com o banco para descobrir se
+ * havia sessão, para desenhar um cabeçalho que é igual para todo mundo.
  *
- * 1. A árvore de categorias sai do caminho crítico. Ela é IDÊNTICA para
- *    todo visitante e muda quando o catálogo muda — ou seja, quase
- *    nunca. Vai para unstable_cache com a tag "catalog", a mesma que as
- *    ações do admin já invalidam, então editar categoria continua
- *    aparecendo na hora. Cliente anônimo de propósito: unstable_cache
- *    não pode tocar em nada de escopo de requisição (cookies() aborta o
- *    cache), e a RLS de leitura pública cobre categories ativas.
+ * Agora o corpo daqui é IMÓVEL: a árvore de categorias, e nada mais. O
+ * que depende de quem está olhando saiu para <SessaoSeed/>, dentro de
+ * um <Suspense> — que é o buraco que o PPR deixa em branco no HTML
+ * guardado e preenche por visitante. Com `ppr: "incremental"` no
+ * next.config, cada rota escolhe entrar (ver `experimental_ppr`), então
+ * o que não foi auditado continua se comportando exatamente como antes.
  *
- * 2. O que sobrou roda em PARALELO. As duas restantes são por usuário e
- *    não dá para cachear, mas nada obrigava uma a esperar a outra: o
- *    custo passa a ser o maior dos dois, não a soma dos três.
- *
- * O comentário antigo dizia que paralelizar "não adianta aqui, a árvore
- * já voltou". Estava certo sobre a ordem em que as linhas rodavam e
- * errado sobre a conclusão: a resposta não era aceitar a sequência, era
- * desfazê-la.
+ * Cliente anônimo de propósito: unstable_cache não pode tocar em nada
+ * de escopo de requisição, e a RLS de leitura pública cobre categories
+ * ativas.
  */
-
 const carregarArvore = unstable_cache(
   async (): Promise<CategoryNode[]> => {
     if (!supabaseConfigured) return [];
@@ -63,29 +56,15 @@ const carregarArvore = unstable_cache(
   { revalidate: 300, tags: ["catalog"] }
 );
 
-/**
- * Sessão pelo JWT verificado localmente (lib/supabase/session), não por
- * uma viagem ao servidor de Auth: o cabeçalho roda em TODA página.
- */
-async function quemEsta() {
-  try {
-    const supabase = await createClient();
-    return await sessionUser(supabase);
-  } catch {
-    return null;
-  }
-}
-
 export default async function SiteChrome() {
-  // A sessão é local (sem rede) e decide se a contagem de favoritos
-  // precisa ir ao banco: visitante deslogado não gasta consulta nenhuma.
-  const [tree, user] = await Promise.all([carregarArvore(), quemEsta()]);
-  const wishes = user ? await wishCount() : 0;
+  const tree = await carregarArvore();
 
   return (
     <>
-      <WishSeed count={wishes} />
-      <SiteHeader tree={tree} signedIn={Boolean(user)} />
+      {/* Componente de CLIENTE: busca a sessão depois da tela pintada.
+          É o que permite este arquivo inteiro ser imóvel. */}
+      <SessaoSeed />
+      <SiteHeader tree={tree} />
     </>
   );
 }

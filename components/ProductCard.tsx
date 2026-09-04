@@ -38,12 +38,17 @@ import { discountPercent, usd } from "@/lib/money";
 export default function ProductCardView({
   p,
   priority = false,
-  wished = false,
+  wished,
   sizes = "(max-width: 620px) 92vw, (max-width: 900px) 46vw, 300px",
 }: {
   p: Card;
   priority?: boolean;
-  /** Já está na wishlist — usado na página da lista, para o coração nascer cheio. */
+  /**
+   * Já está na wishlist. Só /wishlist informa — lá todo item é favorito
+   * por definição. As vitrines deixam `undefined`: elas são
+   * pré-renderizadas e iguais para todos, e quem sabe o que ESTA pessoa
+   * marcou é o contexto semeado pelo cabeçalho.
+   */
   wished?: boolean;
   /** O trilho da home mostra o card a ~74vw; a grade, a ~92vw. Servir a
    *  imagem no tamanho errado é foto borrada de um lado ou byte jogado

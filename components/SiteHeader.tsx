@@ -21,17 +21,13 @@ import type { CategoryNode } from "@/lib/catalog";
  * A ordem dos ícones e a busca embaixo são o que a tripulação já tem
  * na memória muscular. Não é lugar para criatividade.
  */
-export default function SiteHeader({
-  tree,
-  signedIn = false,
-}: {
-  tree: CategoryNode[];
-  /** Decide entre "Sign in" e um Sign out que desloga de verdade. */
-  signedIn?: boolean;
-}) {
+export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
   const { count, ready } = useCart();
-  // Favoritos: semeado pelo servidor, atualizado na hora pelo coração.
-  const { count: wishCount } = useWish();
+  // Favoritos e sessão: semeados uma vez pelo servidor (SessaoSeed),
+  // atualizados na hora pelo coração. `signedIn` era prop e virou
+  // contexto porque saber quem está logado exige ler cookie — e ler
+  // cookie aqui, no layout raiz, tornava dinâmica cada página do site.
+  const { count: wishCount, logado } = useWish();
   const [drawer, setDrawer] = useState(false);
   const [cart, setCart] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -123,7 +119,15 @@ export default function SiteHeader({
                       mesma tela, sem sair. Sair é uma AÇÃO — precisa
                       apagar o cookie no servidor, e por isso é um form,
                       não um link. */}
-                  {signedIn ? (
+                  {/* `logado` nasce null: ainda não sabemos. Desenhar
+                      "Sign in" nesse instante faria quem TEM sessão
+                      achar que caiu — então o item nasce neutro e só
+                      assume um dos dois quando a resposta chega. */}
+                  {logado === null ? (
+                    <span className="acctwait" aria-hidden>
+                      &nbsp;
+                    </span>
+                  ) : logado ? (
                     <form action={signOut}>
                       <button type="submit" role="menuitem" onClick={() => setMenu(false)}>
                         Sign out
@@ -255,7 +259,7 @@ export default function SiteHeader({
         tree={tree}
         cartCount={count}
         wishCount={wishCount}
-        signedIn={signedIn}
+        signedIn={logado === true}
       />
       <MiniCart open={cart} onClose={() => setCart(false)} />
     </>

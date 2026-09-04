@@ -3,16 +3,50 @@ import { notFound } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
 import ProductBuy from "@/components/ProductBuy";
 import ProductCardView from "@/components/ProductCard";
-import { createClient } from "@/lib/supabase/server";
+import { clientePublico } from "@/lib/supabase/publico";
 import { listProducts, type ProductDetail } from "@/lib/catalog";
-import { wishedProductIds } from "@/lib/wishlist";
 import { ELIGIBILITY } from "@/lib/taxregime";
 
 export const revalidate = 300;
 
+/**
+ * A ficha de produto sai pronta do build — e sem isto ela não sai.
+ *
+ * O detalhe que custou uma medição para achar: rota com segmento
+ * dinâmico e SEM generateStaticParams o Next trata como totalmente
+ * dinâmica. Mesmo depois de tirar o cookie daqui e da casca do site,
+ * /p/qualquer-coisa continuava respondendo
+ * `Cache-Control: private, no-store` — render por visita, para uma
+ * página que é idêntica para todo mundo. E esta é a página que o
+ * Google rastreia e a que viaja colada em grupo de tripulação.
+ *
+ * Com a lista aqui, os produtos ativos viram HTML no build. Os demais
+ * — e todo produto novo, sem redeploy — continuam sendo gerados na
+ * primeira visita e guardados a partir dela: `dynamicParams` é `true`
+ * por padrão, e é de propósito que fica assim.
+ *
+ * O teto de 500 é para o build não crescer junto com o catálogo. Quem
+ * ficar de fora não perde nada além da primeira visita.
+ */
+export async function generateStaticParams() {
+  try {
+    const { data } = await clientePublico()
+      .from("products")
+      .select("slug")
+      .eq("active", true)
+      .order("updated_at", { ascending: false })
+      .limit(500);
+    return (data ?? []).map((r) => ({ slug: r.slug as string }));
+  } catch {
+    // Banco fora do ar no build não pode derrubar o deploy: sem lista,
+    // todas as fichas passam a ser geradas na primeira visita.
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = clientePublico();
   const { data } = await supabase
     .from("products")
     .select("name, short_description")
@@ -26,7 +60,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const supabase = clientePublico();
 
   const { data } = await supabase
     .from("products")
@@ -66,10 +100,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       )
     : [];
 
-  // A ficha e os relacionados numa consulta só: o coração do produto
-  // aberto e o dos cards ao lado nascem no estado real.
-  const wished = await wishedProductIds([p.id, ...related.map((r) => r.id)]);
-
   return (
     <main className="pb-dock pg-pdp">
       <Breadcrumb
@@ -96,7 +126,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           ? [{ id: "primary", path: p.primary_image_path, alt: p.name, sort_order: 0 }]
           : []}
         variants={variants}
-        wished={wished.has(p.id)}
       />
 
       {(p.specs?.length || p.description) && (
@@ -154,7 +183,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <p className="subhead">More in {cat?.name}</p>
           <div className="pgrid">
             {related.slice(0, 4).map((r) => (
-              <ProductCardView key={r.id} p={r} wished={wished.has(r.id)} />
+              <ProductCardView key={r.id} p={r} />
             ))}
           </div>
           <div className="stack" style={{ paddingTop: 2 }}>

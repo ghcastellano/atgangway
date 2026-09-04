@@ -35,7 +35,7 @@ export default function ProductBuy({
   product,
   images,
   variants,
-  wished = false,
+  wished,
 }: {
   product: Head;
   images: ProductImage[];

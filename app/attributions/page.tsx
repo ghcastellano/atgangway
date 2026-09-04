@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/Breadcrumb";
-import { createClient } from "@/lib/supabase/server";
+import { clientePublico } from "@/lib/supabase/publico";
 import { imageUrl } from "@/lib/catalog";
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ type Row = {
 export default async function AttributionsPage() {
   let rows: Row[] = [];
   try {
-    const supabase = await createClient();
+    const supabase = clientePublico();
     const { data } = await supabase
       .from("product_images")
       .select(
