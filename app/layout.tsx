@@ -4,6 +4,7 @@ import { CartProvider } from "@/lib/cart";
 import { WishProvider } from "@/lib/wish";
 import ReferralClaim from "@/components/ReferralClaim";
 import WishClaim from "@/components/WishClaim";
+import { Analytics } from "@vercel/analytics/next";
 import ChromeGate from "@/components/ChromeGate";
 import SiteChrome from "@/components/SiteChrome";
 import SiteFooter from "@/components/SiteFooter";
@@ -69,6 +70,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </CartProvider>
+        {/* Contagem de visitas da Vercel: sem cookie, sem dado pessoal —
+            é o que responde "quantos acessos e de onde". Precisa estar
+            ligado no painel do projeto (Analytics → Enable) para
+            registrar; sem isso o script não custa nada e não conta. */}
+        <Analytics />
         <ReferralClaim />
         {/* Dentro do WishProvider: ele soma ao selo o que gravou após o login. */}
         <WishClaim />

@@ -89,6 +89,7 @@ input:-webkit-autofill:focus {
    Escopo no irmão adjacente porque .finehint também aparece na conta,
    onde não segue botão nenhum e o espaçamento atual está certo. */
 .btn + .finehint { margin-top: var(--sp-3); }
+.linkline a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
 .linkline { text-align: center; font-size: 13px; color: var(--muted); padding: 4px 0; }
 .linkline a, .alink { color: var(--amber-hi); font-weight: 600; }
 .alink:hover, .linkline a:hover { text-decoration: underline; }

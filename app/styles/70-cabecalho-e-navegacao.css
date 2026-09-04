@@ -207,15 +207,18 @@
   font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-align: center;
 }
 
-/* No celular o cabeçalho fica com hambúrguer · marca · carrinho.
-   Três ícones à direita mais a marca centralizada não cabem em 360px:
-   sobravam 4px entre o "SUPPLY" e o ícone de conta, que a olho lê como
-   colado — e era colado de fato antes da correção da grade. Conta e
-   lista de desejos passam para a gaveta, que é onde toda loja de
-   celular séria as guarda, e a marca ganha o espaço. */
+/* No celular o cabeçalho fica com hambúrguer · marca · ♡ · carrinho.
+   Eram três ícones à direita e a marca centralizada, o que não cabia em
+   360px — então conta E lista de desejos foram para a gaveta. Foi longe
+   demais: o coração é o gesto que a pessoa acabou de fazer na vitrine, e
+   sem o selo no cabeçalho ela não tem prova de que salvou (o relato foi
+   exatamente esse, "o coração não aparece no Chrome do celular").
+
+   A conta continua na gaveta — ela é destino, não gesto repetido. Com
+   dois ícones a conta fecha: 2×36 + hambúrguer 36 = 108, e sobram 236px
+   para a marca, que ocupa 130. */
 @media (max-width: 767.98px) {
-  .headicons > .acctwrap,
-  .headicons > a.headicon { display: none; }
+  .headicons > .acctwrap { display: none; }
 }
 .drawer-back {
   display: flex; align-items: center; gap: 8px; width: 100%;
@@ -261,7 +264,10 @@
 .sunfoot-sec > summary::-webkit-details-marker { display: none; }
 .sunfoot-sec > summary::after { content: "⌄"; color: var(--faint); font-size: 15px; }
 .sunfoot-sec[open] > summary::after { content: "⌃"; }
-.sunfoot-body { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 9px; }
+.sunfoot-body { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 2px; }
+/* Link de rodapé no celular é alvo de dedo, não linha de texto: 20px de
+   altura com 9px de vão lia como uma parede de links quase colados. */
+.sunfoot-body a, .sunfoot-body span { min-height: 40px; display: flex; align-items: center; }
 .sunfoot-body a, .sunfoot-body span {
   color: var(--muted); font-size: 13px; text-decoration: none; line-height: 1.5;
 }
@@ -288,14 +294,22 @@
   text-align: center; padding: 12px 18px calc(24px + env(safe-area-inset-bottom));
   color: var(--faint); font-size: 11.5px; line-height: 1.9;
 }
-.sunfoot-legal a { color: var(--faint); }
+/* Terms · Privacy · Photo credits eram três alvos de 14px de altura
+   separados por um "·": no dedo, um acerta o outro. Cada um vira uma
+   caixa de 40px; a partir do tablet voltam para a mesma linha. */
+.sunfoot-legal a {
+  color: var(--faint);
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 8px;
+}
 
 /* --- migalha de pão --- */
 .crumb {
   display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
   font-size: 12px; color: var(--faint);
 }
-.crumb a { color: var(--faint); text-decoration: none; }
+/* Cada degrau é um alvo de dedo (medido em 34×18 antes): a altura sobe
+   para 36 sem mexer no tamanho da letra nem na altura da trilha. */
+.crumb a { color: var(--faint); text-decoration: none; display: inline-flex; align-items: center; min-height: 36px; }
 .crumb a:hover { color: var(--amber); }
 .crumb .sep { opacity: .5; }
 /* a página atual meio tom acima dos ancestrais: o olho acha "onde

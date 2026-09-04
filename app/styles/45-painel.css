@@ -72,8 +72,16 @@
 }
 .adm-top h1 { margin: 0; font-family: var(--font-disp); font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
 .adm-top-acoes { margin-left: auto; display: flex; align-items: center; gap: 6px; }
-.adm-content { padding: 16px 16px calc(var(--tabs-h) + 16px); display: grid; gap: 16px; align-content: start; }
-.adm-page { display: grid; gap: 16px; }
+/* minmax(0, 1fr) e não o `auto` implícito: numa grade de uma coluna, um
+   filho com conteúdo largo (o cartão de KPI com "publicados e vendendo")
+   empurra a coluna além da tela — em 360px a página inteira ganhava 1px
+   de rolagem lateral. É a mesma correção que .shell > main já tinha. */
+.adm-content {
+  padding: 16px 16px calc(var(--tabs-h) + 16px);
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start;
+}
+.adm-page { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.adm-page > *, .adm-kpis > * { min-width: 0; }
 
 /* ---- abas inferiores (celular) ------------------------------- */
 .adm-tabs {
@@ -153,7 +161,17 @@
 
 /* ---- notificações ------------------------------------------- */
 .adm-sino { position: relative; }
-.adm-notifs { width: min(360px, calc(100vw - 24px)); }
+/* No celular o painel de avisos é ancorado à TELA, não ao sino: preso
+   ao botão (que fica a ~330px da esquerda) ele nascia com a borda
+   esquerda fora da janela e o título aparecia cortado ("otificações").
+   A partir do tablet volta a pender do próprio sino. */
+.adm-notifs {
+  position: fixed; top: calc(var(--top-h) + 8px); right: 12px; left: 12px;
+  width: auto; max-width: 380px; margin-left: auto;
+}
+@media (min-width: 768px) {
+  .adm-notifs { position: absolute; top: calc(100% + 8px); left: auto; right: 0; width: 360px; }
+}
 .adm-pop-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
 .adm-notifs ul { list-style: none; margin: 0; padding: 0; max-height: 60dvh; overflow-y: auto; }
 .adm-notifs li { display: grid; grid-template-columns: 10px 1fr; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
@@ -175,7 +193,11 @@
 .adm-kpi.teal b { color: var(--teal); }
 
 /* ---- toolbar: filtros + busca -------------------------------- */
-.adm-toolbar { display: grid; gap: 10px; }
+/* A fita de filtros rola sozinha (overflow-x: auto), mas só quando o
+   pai a deixa encolher: dentro de uma grade sem minmax(0,1fr) ela
+   mantinha a largura de todos os chips somados e empurrava a página. */
+.adm-toolbar { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.adm-toolbar > * { min-width: 0; }
 .adm-toolbar-right { display: flex; gap: 8px; align-items: center; }
 .adm-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .adm-chips::-webkit-scrollbar { display: none; }
@@ -432,3 +454,37 @@
   .adm, .adm-table, .adm-tablewrap { color: #000; background: #fff; border-color: #ccc; }
   .adm-table td small, .adm-kpi span { color: #444; }
 }
+
+
+/* ------------------------------------------------------------------
+   Ajustes de respiro medidos no navegador (360, 390, 768, 1024, 1440).
+   ------------------------------------------------------------------ */
+
+/* A grade de KPIs em 360px: dois cartões de número longo (US$ 1.234,56)
+   estouravam a linha e empurravam a página para o lado. */
+@media (max-width: 380px) {
+  .adm-kpis { gap: 8px; }
+  .adm-kpi { padding: 12px 12px; }
+  .adm-kpi b { font-size: 19px; }
+}
+
+/* A barra lateral só aparece a partir de 1024px, e ali ela ocupa 232px
+   de uma tela de 1024: sobram 792 para uma tabela de sete colunas, que
+   estourava. Nesse degrau a lateral encolhe e a tabela respira. */
+@media (min-width: 1024px) and (max-width: 1180px) {
+  .adm { --side-w: 196px; }
+  .adm-content { padding: 20px 18px 32px; }
+  .adm-table td, .adm-table thead th { padding: 10px 10px; }
+}
+
+/* Alvos de toque do painel que a auditoria pegou abaixo de 44px. */
+.adm-side-link { display: inline-flex; align-items: center; min-height: 44px; }
+/* A caixa de seleção do catálogo é o alvo mais tocado da tela em massa:
+   22px de desenho dentro de 44px de área. */
+.adm-linha input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--amber); margin: 11px; }
+.adm-lista .adm-link { display: inline-flex; align-items: center; min-height: 40px; }
+
+/* Duas linhas de filtro coladas no celular: o vão entre elas era o
+   mesmo de dentro de cada uma, então liam como uma fita só. */
+.adm-page > .adm-chips + .adm-chips { margin-top: -4px; }
+.adm-toolbar + .adm-chips { margin-top: 2px; }

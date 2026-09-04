@@ -40,8 +40,17 @@ const EMAIL_ON: Partial<Record<OrderStatus, EmailKind>> = {
 
 const SEM_ACESSO = "Sua sessão expirou ou esta conta não é da equipe.";
 
-function revalidaCliente() {
+/**
+ * O que o CLIENTE vê precisa mudar junto.
+ *
+ * `revalidatePath("/orders")` sozinho não alcançava `/orders/AG-1204`:
+ * são rotas diferentes, e a de detalhe é justamente a que mostra a
+ * trilha de status. O pedido mudava no painel e a página do marinheiro
+ * continuava na versão anterior até ele recarregar à força.
+ */
+function revalidaCliente(code?: string) {
   revalidatePath("/orders");
+  if (code) revalidatePath(`/orders/${code}`);
   revalidatePath("/admin/shopping-list");
 }
 
@@ -74,8 +83,8 @@ export async function mudarStatus(id: string, to: OrderStatus): Promise<Resultad
   const kind = EMAIL_ON[to];
   if (kind) await sendOrderEmail(supabase, id, kind);
 
-  revalidaCliente();
   const row = await lerPedido(supabase, id);
+  revalidaCliente(row?.code);
   return row ? { ok: true, row } : { ok: false, error: "Mudou, mas não consegui reler o pedido." };
 }
 
@@ -112,8 +121,8 @@ export async function desfazerStatus(id: string): Promise<Resultado<Pedido>> {
   const { error } = await supabase.from("orders").update(patch).eq("id", id);
   if (error) return { ok: false, error: "O banco recusou. Tente de novo." };
 
-  revalidaCliente();
   const row = await lerPedido(supabase, id);
+  revalidaCliente(row?.code);
   return row ? { ok: true, row } : { ok: false, error: "Desfez, mas não consegui reler o pedido." };
 }
 
@@ -156,8 +165,8 @@ export async function entregar(formData: FormData): Promise<Resultado<Pedido>> {
   if (error) return { ok: false, error: "O banco recusou a entrega. Tente de novo." };
 
   await sendOrderEmail(supabase, id, "delivered");
-  revalidaCliente();
   const row = await lerPedido(supabase, id);
+  revalidaCliente(row?.code);
   return row ? { ok: true, row } : { ok: false, error: "Entregou, mas não consegui reler o pedido." };
 }
 

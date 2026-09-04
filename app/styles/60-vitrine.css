@@ -14,18 +14,32 @@
 .catcard .ct { font-family: var(--font-mono); font-size: 10px; color: var(--faint); }
 
 /* ===== barra de filtro/ordenação ===== */
+/* No celular a barra é uma GRADE de duas linhas, não um flex que quebra
+   onde der: com o filtro de marca somado ao "Sort by", os quatro itens
+   caíam em ordem imprevisível e encostavam uns nos outros — a contagem
+   colada no rótulo, o seletor de marca espremido embaixo. Agora: a
+   contagem sozinha em cima, os dois seletores lado a lado embaixo, com
+   vão de verdade entre eles.
+
+   O rótulo "Sort by" some no celular (o próprio <select> já mostra
+   "Featured", e a palavra roubava a largura do seletor de marca); a
+   partir de 1024px ele volta, junto com o layout de uma linha só. */
 .listbar {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 10px 14px 2px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  align-items: center; padding: 12px 14px 4px;
 }
-.listbar .count { font-family: var(--font-mono); font-size: 11px; color: var(--faint); margin-right: auto; }
+.listbar .count {
+  grid-column: 1 / -1; font-family: var(--font-mono); font-size: 11px; color: var(--faint);
+}
+.listbar .sortlbl { display: none; }
+.listbar .sortsel { width: 100%; min-height: 44px; }
 
 /* chips de filtro ativo — fora do @media de propósito: quem chega no
    celular por link com ?brand=/?badge= precisa VER o que corta a lista
    e ter onde limpar. Escondê-los era um beco sem saída de catálogo
    curto sem explicação. O padding de 14px alinha com o .listbar; o
    desktop zera porque a coluna da lista já traz o respiro. */
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; padding: 0 14px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 16px; padding: 0 14px; }
 .chips a {
   display: inline-flex; align-items: center; gap: 8px; min-height: 40px;
   padding: 5px 11px 5px 13px; border-radius: 999px;

@@ -400,11 +400,16 @@
   .pg-list .crumb { font-size: 13px; }
   .pg-list .secttl.left { font-size: 30px; }
 
+  /* Largura sobrando: volta a ser uma linha só, com a contagem à
+     esquerda e os controles à direita. */
   .pg-list .listbar {
+    display: flex; align-items: center;
     padding-top: 14px; padding-bottom: 12px; gap: 10px; row-gap: 10px; flex-wrap: wrap;
     border-bottom: 1px solid var(--line); margin-bottom: 14px;
   }
-  .pg-list .listbar .count { font-size: 12px; margin-right: 0; }
+  .pg-list .listbar .count { font-size: 12px; margin-right: auto; }
+  .pg-list .listbar .sortlbl { display: inline; }
+  .pg-list .listbar .sortsel { width: auto; }
   .pg-list .listbar .sortlbl {
     margin-left: auto; font-family: var(--font-mono); font-size: 10.5px;
     letter-spacing: .18em; text-transform: uppercase; color: var(--faint);

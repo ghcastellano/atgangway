@@ -6,6 +6,8 @@ import { hoursUntil, santosTime } from "@/lib/format";
 import { toCents, usd } from "@/lib/money";
 import {
   DELIVERY_BUCKET,
+  ORDER_FLOW,
+  orderStep,
   PAYMENT_LABEL,
   STATUS_LABEL,
   STATUS_PILL,
@@ -41,15 +43,6 @@ type Row = {
     unit_price_usd: number;
     qty: number;
   }[];
-};
-
-// awaiting_deposit → passo 0 ativo; deposit_paid/preparing → passo 1; at_gangway → 2; delivered → tudo feito
-const STEP_NOW: Partial<Record<OrderStatus, number>> = {
-  awaiting_deposit: 0,
-  deposit_paid: 1,
-  preparing: 1,
-  at_gangway: 2,
-  delivered: 4,
 };
 
 export default async function OrderDetailPage({
@@ -96,17 +89,21 @@ export default async function OrderDetailPage({
   const balance = o.balance_cents ?? toCents(o.balance_usd);
   const credit = toCents(o.credit_applied_usd);
   const dueNow = Math.max(0, deposit - credit);
-  const stepNow = STEP_NOW[o.status];
+  // O passo sai da régua única (lib/types), a mesma que o painel percorre.
+  const stepNow = orderStep(o.status);
 
-  const steps = [
-    {
-      t: "Deposit received",
-      p: `30% · ${usd(deposit)}${o.payment_method ? " — " + PAYMENT_LABEL[o.payment_method] : ""}`,
-    },
-    { t: "We shop & pack", p: "Buying fresh in Santos, matched to your ETA" },
-    { t: "At the gangway", p: "Waiting when lines are fast · photo proof" },
-    { t: "Delivered on board", p: `Balance ${usd(balance)} by card at delivery` },
-  ];
+  // Um marco por estado do fluxo, com o MESMO rótulo do selo do pedido:
+  // ver "Deposit received" no topo e "We shop & pack" aceso na trilha
+  // era o que fazia o cliente achar que a loja estava adiantada — ou
+  // atrasada, quando o painel já tinha andado e a palavra não mudava.
+  const DETALHE: Partial<Record<OrderStatus, string>> = {
+    awaiting_deposit: `30% · ${usd(dueNow)} to reserve your gangway window`,
+    deposit_paid: `Deposit cleared${o.payment_method ? ` — ${PAYMENT_LABEL[o.payment_method]}` : ""} · your slot is confirmed`,
+    preparing: "Buying fresh in Santos, matched to your ETA",
+    at_gangway: "Waiting when lines are fast · photo proof",
+    delivered: `Balance ${usd(balance)} by card at delivery`,
+  };
+  const steps = ORDER_FLOW.map((s) => ({ t: STATUS_LABEL[s], p: DETALHE[s] ?? "" }));
 
   return (
     <main>
@@ -173,7 +170,7 @@ export default async function OrderDetailPage({
         </div>
       )}
 
-      {stepNow !== undefined && (
+      {stepNow !== null && (
         <div className="track">
           {steps.map((s, k) => (
             <div key={s.t} className={`step ${k < stepNow ? "done" : k === stepNow ? "now" : ""}`}>

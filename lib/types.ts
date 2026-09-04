@@ -86,6 +86,26 @@ export const ORDER_FLOW: OrderStatus[] = [
   "delivered",
 ];
 
+/**
+ * Em que ponto do fluxo o pedido está — o índice em ORDER_FLOW.
+ *
+ * Existia um mapa PARALELO na página do cliente, com quatro passos e
+ * outros rótulos, e ele divergia do painel: `awaiting_deposit` acendia
+ * "Deposit received" como passo ATUAL (o depósito não tinha entrado), e
+ * `deposit_paid` acendia "We shop & pack" (a separação nem havia
+ * começado — no painel o botão ainda era "Iniciar separação"). O cliente
+ * via um estado que o staff ainda não tinha alcançado, e a palavra na
+ * trilha nunca era a mesma do selo do pedido.
+ *
+ * Uma régua só, aqui, do mesmo ORDER_FLOW que o admin percorre. Estado
+ * fora do fluxo (creditado, cancelado) devolve null: esses têm aviso
+ * próprio e trilha nenhuma, porque a viagem não terminou — ela desviou.
+ */
+export function orderStep(status: OrderStatus): number | null {
+  const i = ORDER_FLOW.indexOf(status);
+  return i === -1 ? null : i;
+}
+
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   awaiting_deposit: "Awaiting deposit",
   deposit_paid: "Deposit received",

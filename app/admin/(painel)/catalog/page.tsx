@@ -129,7 +129,7 @@ export default async function CatalogoPage({
                     {r.tracks_stock ? ` · estoque ${r.stock_qty}` : " · sem controle de estoque"}
                   </div>
                 </div>
-                <input type="checkbox" name="ids" value={r.id} form="bulkform" aria-label={`Selecionar ${r.name}`} style={{ width: 20, height: 20, accentColor: "var(--amber)" }} />
+                <input type="checkbox" name="ids" value={r.id} form="bulkform" aria-label={`Selecionar ${r.name}`} />
               </label>
             );
           })}

@@ -505,9 +505,13 @@
 .pwbar { flex: 1; height: 4px; border-radius: 999px; background: var(--line-hi); overflow: hidden; }
 .pwbar i { display: block; height: 100%; transition: width .2s, background .2s; }
 .pwlabel { font-size: 11px; color: var(--faint); flex: none; }
+/* O olho da senha era 27×31: alvo de dedo abaixo do mínimo, dentro de
+   um campo de 44. Cresce para 44 sem empurrar o campo (o padding do
+   input já reserva o espaço à direita). */
 .pweye {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
   background: none; border: 0; color: var(--faint); font-size: 15px; cursor: pointer; padding: 6px;
+  min-width: 44px; min-height: 44px;
 }
 .field.haseye { position: relative; }
 .field.haseye input { padding-right: 40px; }
