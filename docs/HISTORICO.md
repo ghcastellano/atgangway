@@ -686,3 +686,26 @@ compilado, por `curl`:
 CSS=$(curl -s https://atgangway.com/faq | grep -o 'href="[^"]*\.css[^"]*"')
 curl -s "https://atgangway.com${CSS#href=\"}" | grep -c '255,182,72'   # 0 = âmbar morto não voltou
 ```
+
+### E o sinal errado que o zero silencioso escondia
+
+Com o script reprovando por rota não coberta, apareceu o que o silêncio
+guardava: `/orders` e `/captain` estouravam 20 s. **Não era a página.**
+As duas redirecionam para `/login`, e a tela de login tem uma dúzia de
+`<Link>` visíveis — o App Router busca a rota de cada um em rajada
+(`?_rsc=`) e a janela de 500 ms sem rede que o `networkidle` espera
+nunca fecha.
+
+Trocado por `domcontentloaded` + `load`. Mais rápido, sem flakiness, e
+mede o mesmo.
+
+Medi o prefetch de passagem, porque parecia desperdício de banda de
+navio: 19 requisições e 11 KB no desktop, 7 e 6 KB no celular, a partir
+de UMA visita a `/faq`. Ficou como está — depois que essas rotas viraram
+estáticas, cada prefetch é acerto de CDN, não invocação de função. É
+exatamente para isso que o prefetch serve.
+
+O teste foi validado duas vezes, reintroduzindo defeito de propósito:
+o logotipo da gaveta (pega, `2.15:1 … "Gangway"`) e o selo "New"
+(pega, `3.25:1`, `exit 1`, seis rotas). Estado final: `exit 0`, 19
+rotas × 2 larguras + 3 painéis, 0 regras abaixo do AA; 254 testes.

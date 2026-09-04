@@ -193,7 +193,17 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
      * nenhum, porque dá confiança. Agora ele acumula e reprova no fim.
      */
     try {
-      const r = await pg.goto(BASE + rota, { waitUntil: "networkidle", timeout: 20000 });
+      // `domcontentloaded`, e NÃO `networkidle`.
+      //
+      // Com networkidle, /captain e /account estouravam 20s. Não era a
+      // página: era o PREFETCH do App Router. A tela de login tem uma
+      // dúzia de <Link> visíveis, o roteador busca a rota de cada um em
+      // rajada, e a janela de 500ms sem rede nunca fecha. O teste
+      // reprovava por um sinal errado — e antes disso passava em
+      // silêncio, que era pior.
+      const r = await pg.goto(BASE + rota, { waitUntil: "domcontentloaded", timeout: 20000 });
+      // Fontes e imagens entram depois do DOM e mudam o que se mede.
+      await pg.waitForLoadState("load").catch(() => {});
       if (!r || r.status() >= 400) {
         inacessiveis.push(`${rota} (${larguraNome}) → HTTP ${r ? r.status() : "sem resposta"}`);
         continue;
@@ -202,7 +212,7 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
       inacessiveis.push(`${rota} (${larguraNome}) → ${String(e).split("\n")[0].slice(0, 90)}`);
       continue;
     }
-    await pg.waitForTimeout(250);
+    await pg.waitForTimeout(400);
     const achados = await pg.evaluate(MEDIDOR);
     if (achados.length) {
       console.log(`\n### ${rota}  (${larguraNome})`);
