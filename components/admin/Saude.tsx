@@ -30,7 +30,7 @@ const horas = (iso: string | null, agora: string) =>
   iso ? (new Date(agora).getTime() - new Date(iso).getTime()) / 36e5 : Infinity;
 
 const idade = (h: number) =>
-  !isFinite(h) ? "never" : h < 1 ? `${Math.round(h * 60)} min ago` : h < 48 ? `${Math.round(h)}h ago` : `${Math.round(h / 24)}d ago`;
+  !isFinite(h) ? "nunca" : h < 1 ? `há ${Math.round(h * 60)} min` : h < 48 ? `há ${Math.round(h)} h` : `há ${Math.round(h / 24)} d`;
 
 export default function SaudeStrip({ s }: { s: Saude }) {
   const hSync = horas(s.lineup.ultimo_sync, s.agora);
@@ -44,42 +44,43 @@ export default function SaudeStrip({ s }: { s: Saude }) {
     {
       alerta: hSync > 2,
       rotulo: "Line-up",
-      texto: `${s.lineup.escalas_futuras} calls ahead · ${s.lineup.janelas_abertas} taking orders`,
-      quando: `synced ${idade(hSync)}`,
+      texto: `${s.lineup.escalas_futuras} escalas à frente · ${s.lineup.janelas_abertas} vendendo`,
+      quando: `sincronizado ${idade(hSync)}`,
     },
     {
       alerta: dPtax > 3,
       rotulo: "PTAX",
-      texto: s.ptax.venda ? `R$ ${Number(s.ptax.venda).toFixed(4)} / USD` : "no rate on file",
-      quando: s.ptax.data_cotacao ? `quote ${s.ptax.data_cotacao}` : "never",
+      texto: s.ptax.venda ? `R$ ${Number(s.ptax.venda).toFixed(4)} / USD` : "sem cotação",
+      quando: s.ptax.data_cotacao ? `cotação de ${s.ptax.data_cotacao}` : "nunca",
     },
     {
       alerta: cronRuim.length > 0,
-      rotulo: "Crons",
+      rotulo: "Rotinas",
       texto: cronRuim.length
-        ? cronRuim.map((c) => `${c.job}: ${c.falhas_24h} failure${c.falhas_24h === 1 ? "" : "s"} in 24h`).join(" · ")
-        : s.crons.map((c) => c.job.replace("vessel-", "")).join(" · ") + " — all green",
-      quando: s.crons.length ? `last run ${santosTime(s.crons.map((c) => c.ultima).filter(Boolean).sort().at(-1) as string)}` : "none",
+        ? cronRuim.map((c) => `${c.job.replace("vessel-", "")}: ${c.falhas_24h} falha${c.falhas_24h === 1 ? "" : "s"} em 24h`).join(" · ")
+        : s.crons.map((c) => c.job.replace("vessel-", "")).join(" · ") + " — tudo verde",
+      quando: s.crons.length ? `última ${santosTime(s.crons.map((c) => c.ultima).filter(Boolean).sort().at(-1) as string)}` : "nenhuma",
     },
     {
       alerta: !isFinite(hMail) || (hMail > 24 * 7 && s.pedidos.abertos > 0),
       rotulo: "E-mail",
       texto: s.pedidos.aguardando_deposito_24h > 0
-        ? `${s.pedidos.aguardando_deposito_24h} order${s.pedidos.aguardando_deposito_24h === 1 ? "" : "s"} awaiting deposit for over 24h`
-        : `${s.pedidos.abertos} open order${s.pedidos.abertos === 1 ? "" : "s"}`,
-      quando: `last sent ${idade(hMail)}`,
+        ? `${s.pedidos.aguardando_deposito_24h} pedido${s.pedidos.aguardando_deposito_24h === 1 ? "" : "s"} há mais de 24h sem depósito`
+        : `${s.pedidos.abertos} pedido${s.pedidos.abertos === 1 ? "" : "s"} em aberto`,
+      quando: `último enviado ${idade(hMail)}`,
     },
   ];
 
   return (
-    <ul className="saude" aria-label="Operations health">
+    <ul className="adm-saude" aria-label="Saúde da operação">
       {linhas.map((l) => (
         <li key={l.rotulo} className={l.alerta ? "alerta" : ""}>
           <i aria-hidden />
-          <span>
-            <b>{l.rotulo}</b> · {l.texto}
-          </span>
-          <span className="quando">{l.quando}</span>
+          <div>
+            <b>{l.rotulo}</b>
+            <span>{l.texto}</span>
+            <span className="quando">{l.quando}</span>
+          </div>
         </li>
       ))}
     </ul>

@@ -7,6 +7,7 @@ import {
   tableRows,
 } from "../../../../lib/lineup.ts";
 import { sendMail, sendOrderEmail } from "../../../../lib/mailer.ts";
+import { alertarAtrasos } from "../../../../lib/alertas.ts";
 import { buildLastCallEmail, type LastCallData } from "../../../../lib/emails.ts";
 import { SITE_URL } from "../../../../lib/env.ts";
 
@@ -129,6 +130,13 @@ export async function GET(request: Request) {
     } else summary.unchanged++;
   }
 
+  /* Atraso de navio é notícia para NÓS antes de ser para o cliente: a
+     compra é feita contra o ETA, e um navio que escorrega 12 h muda o
+     dia de ir ao mercado. Cada mudança relevante vira um aviso no sino
+     do painel (deduplicado por navio + ETA novo) e um e-mail para a
+     caixa da operação. */
+  const alertas = await alertarAtrasos(supabase, changes, secret);
+
   /* Trazer as escalas era metade do trabalho: alguém tem de decidir
      quais estão EM CENA. Sem esta chamada o campo `active` só sabia
      envelhecer, e a loja chegou a ficar com os quatro navios ativos
@@ -193,5 +201,6 @@ export async function GET(request: Request) {
     rotation: giro ?? null,
     deviation: { credited: creditados.length, emailed: avisados, detail: desvio ?? null },
     lastCall: { claimed: lembretes.length, emailed: lembrados },
+    alerts: alertas,
   });
 }

@@ -24,7 +24,7 @@ import { useFormStatus } from "react-dom";
 export default function BotaoAcao({
   children,
   ocupado,
-  className = "btn small",
+  className = "adm-btn",
 }: {
   children: React.ReactNode;
   /** Rótulo enquanto a ação viaja. Sem ele, repete o rótulo normal. */
@@ -34,6 +34,7 @@ export default function BotaoAcao({
   const { pending } = useFormStatus();
   return (
     <button className={className} type="submit" disabled={pending} aria-busy={pending}>
+      {pending ? <span className="adm-spin" aria-hidden /> : null}
       {pending ? (ocupado ?? children) : children}
     </button>
   );

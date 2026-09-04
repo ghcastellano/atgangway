@@ -46,9 +46,13 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const needsAuth = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
 
-  if (needsAuth && !user) {
+  // O painel tem porta própria: quem cai em /admin deslogado vai para
+  // /admin/login, não para o login da loja. E a tela de login do painel
+  // não pode exigir login para ser vista.
+  const staffLogin = pathname === "/admin/login";
+  if (needsAuth && !user && !staffLogin) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
     url.search = "";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);

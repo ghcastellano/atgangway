@@ -30,49 +30,49 @@ export default function BulkBar({
   const armed = confirm.trim().toUpperCase() === "EXCLUIR";
 
   return (
-    <form id="bulkform" action={bulkCatalogAction} className="bulkbar">
+    <form id="bulkform" action={bulkCatalogAction} className="adm-card adm-form bulkbar">
       {categoryPath && (
         <input type="hidden" name="category_path" value={scope === "category" ? categoryPath : ""} />
       )}
 
-      <div className="bulkrow">
-        <button className="btn small ghost" name="action" value="activate" type="submit">
+      <div className="adm-form-acoes">
+        <button className="adm-btn ghost small" name="action" value="activate" type="submit">
           Publicar
         </button>
-        <button className="btn small ghost" name="action" value="deactivate" type="submit">
+        <button className="adm-btn ghost small" name="action" value="deactivate" type="submit">
           Despublicar
         </button>
-        <button className="btn small ghost" name="action" value="clear_badge" type="submit">
+        <button className="adm-btn ghost small" name="action" value="clear_badge" type="submit">
           Tirar selo
         </button>
       </div>
 
       {categoryPath && (
-        <div className="bulkrow">
-          <label className="checkline" style={{ margin: 0 }}>
+        <div className="adm-form-acoes">
+          <label className="check">
             <input
               type="checkbox"
               checked={scope === "category"}
               onChange={(e) => setScope(e.target.checked ? "category" : "selected")}
             />
-            Aplicar a TODA a categoria {categoryName} ({categoryTotal} itens), não só ao que está marcado
+            Aplicar a TODA a categoria {categoryName} ({categoryTotal} itens), não só aos marcados
           </label>
         </div>
       )}
 
-      <div className="bulkrow danger-row">
+      <div className="adm-form-acoes">
         <input
-          className="bulkconfirm"
+          className="adm-busca" style={{ maxWidth: 260 }}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           placeholder="digite EXCLUIR para liberar"
           aria-label="Confirmação de exclusão"
         />
-        <button className="btn small danger" name="action" value="delete" type="submit" disabled={!armed}>
+        <button className="adm-btn perigo small" name="action" value="delete" type="submit" disabled={!armed}>
           Excluir {scope === "category" ? `categoria (${categoryTotal})` : "marcados"}
         </button>
       </div>
-      <p className="finehint" style={{ margin: "2px 16px 0" }}>
+      <p className="adm-muted" style={{ margin: 0 }}>
         {rows.length} nesta página. Exclusão remove produto, variantes e fotos — não tem desfazer.
       </p>
     </form>

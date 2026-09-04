@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AccountRail from "@/components/AccountRail";
+import AccountTabs from "@/components/AccountTabs";
 import { ehAdmin } from "@/lib/admin";
 import { IconHeart } from "@/components/Icon";
 import { redirect } from "next/navigation";
@@ -84,6 +85,7 @@ export default async function WishlistPage() {
       <h1 className="secttl left">My Wish List</h1>
 
       <AccountRail current="/wishlist" isAdmin={isAdmin} />
+      <AccountTabs />
 
       <div className="acct-main">
 

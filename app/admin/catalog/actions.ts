@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/admin";
 import { parseCsvRows } from "@/lib/csv";
 import { buildImportPlan, diffAgainstExisting, type ImportProduct } from "@/lib/import";
 import { toCents } from "@/lib/money";
@@ -11,17 +12,7 @@ import { creditoDaFoto } from "@/lib/fotolicenca";
 import { normalizarFoto } from "@/lib/fotonormaliza";
 import { sessionUser } from "@/lib/supabase/session";
 
-async function adminClient() {
-  const supabase = await createClient();
-  const user = await sessionUser(supabase);
-  if (!user) return null;
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-  return profile?.role === "admin" ? supabase : null;
-}
+const adminClient = requireAdmin;
 
 type Db = NonNullable<Awaited<ReturnType<typeof adminClient>>>;
 
@@ -129,6 +120,9 @@ export async function saveCatalogProduct(formData: FormData) {
   }
 
   refresh();
+  // A tela do produto recebe o aviso pela URL e o mostra como toast:
+  // "salvou" precisa ser dito, não deduzido do formulário que não mudou.
+  redirect(`/admin/catalog/${productId}?ok=${encodeURIComponent(id ? "Produto salvo" : "Produto criado")}`);
 }
 
 /**
@@ -170,6 +164,11 @@ export async function bulkCatalogAction(formData: FormData) {
   }
 
   refresh();
+  const msg =
+    action === "delete" ? `${targets.length} produto(s) excluído(s)` :
+    action === "activate" ? `${targets.length} publicado(s)` :
+    action === "deactivate" ? `${targets.length} despublicado(s)` : `Selo removido de ${targets.length}`;
+  redirect(`/admin/catalog?ok=${encodeURIComponent(msg)}`);
 }
 
 export async function uploadProductImage(formData: FormData) {
@@ -202,6 +201,7 @@ export async function uploadProductImage(formData: FormData) {
 
   revalidatePath(`/admin/catalog/${productId}`);
   refresh();
+  redirect(`/admin/catalog/${productId}?ok=${encodeURIComponent("Foto enviada")}`);
 }
 
 export async function deleteProductImage(formData: FormData) {
@@ -221,6 +221,7 @@ export async function deleteProductImage(formData: FormData) {
 
   revalidatePath(`/admin/catalog/${productId}`);
   refresh();
+  redirect(`/admin/catalog/${productId}?ok=${encodeURIComponent("Foto removida")}`);
 }
 
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import QRCode from "qrcode";
 import Breadcrumb from "@/components/Breadcrumb";
 import AccountRail from "@/components/AccountRail";
+import AccountTabs from "@/components/AccountTabs";
 import ShareCode from "@/components/ShareCode";
 import { createClient } from "@/lib/supabase/server";
 import { SITE_URL } from "@/lib/env";
@@ -58,6 +59,7 @@ export default async function CaptainPage() {
       {/* Esta tela era a única da área de conta sem menu nenhum: quem
           entrava em Captain rewards só saía pelo cabeçalho. */}
       <AccountRail current="/captain" isAdmin={isAdmin} />
+      <AccountTabs />
 
       <div className="acct-main">
 

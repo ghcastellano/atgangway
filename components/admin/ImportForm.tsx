@@ -21,7 +21,7 @@ export default function ImportForm() {
   return (
     <>
       <form action={action} className="adm-form">
-        <div className="field">
+        <div className="adm-field">
           <label htmlFor="file">Arquivo CSV</label>
           <input
             id="file"
@@ -31,14 +31,14 @@ export default function ImportForm() {
             required
             onChange={(e) => setFile(e.target.files?.[0]?.name ?? "")}
           />
-          {file && <p className="finehint">{file}</p>}
+          {file && <p className="adm-muted">{file}</p>}
         </div>
 
-        <div className="actions">
-          <button className="btn small ghost" type="submit" name="apply" value="0" disabled={pending}>
+        <div className="adm-form-acoes">
+          <button className="adm-btn ghost" type="submit" name="apply" value="0" disabled={pending}>
             {pending ? "Lendo…" : "Ensaiar (não grava)"}
           </button>
-          <button className="btn small" type="submit" name="apply" value="1" disabled={pending}>
+          <button className="adm-btn primario" type="submit" name="apply" value="1" disabled={pending}>
             {pending ? "Gravando…" : "Aplicar"}
           </button>
         </div>

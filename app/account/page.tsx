@@ -11,6 +11,7 @@ import { COUNTRIES } from "@/lib/countries";
 
 import { createClient } from "@/lib/supabase/client";
 import AccountRail from "@/components/AccountRail";
+import AccountTabs from "@/components/AccountTabs";
 import { missingProfileFields } from "@/lib/profile";
 import { saveProfile } from "./actions";
 
@@ -368,6 +369,7 @@ export default function AccountPage() {
           sessão. Menu igual nas quatro telas exige que o menu seja dono
           das próprias partes. */}
       <AccountRail current="/account" isAdmin={isAdmin} />
+      <AccountTabs />
 
     </main>
   );

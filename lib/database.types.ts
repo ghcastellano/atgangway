@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          id: string
+          kind: string
+          severity: string
+          title: string
+          body: string | null
+          ship_id: string | null
+          order_id: string | null
+          dedupe_key: string | null
+          created_at: string
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          kind: string
+          severity?: string
+          title: string
+          body?: string | null
+          ship_id?: string | null
+          order_id?: string | null
+          dedupe_key?: string | null
+          created_at?: string
+          read_at?: string | null
+        }
+        Update: {
+          id?: string
+          kind?: string
+          severity?: string
+          title?: string
+          body?: string | null
+          ship_id?: string | null
+          order_id?: string | null
+          dedupe_key?: string | null
+          created_at?: string
+          read_at?: string | null
+        }
+        Relationships: []
+      }
       app_secrets: {
         Row: {
           key: string
@@ -1142,6 +1181,19 @@ export type Database = {
       gen_referral_code: { Args: never; Returns: string }
       imo_checksum_ok: { Args: { p_imo: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      notify_admin: {
+        Args: {
+          p_kind: string
+          p_severity: string
+          p_title: string
+          p_body: string
+          p_ship?: string | null
+          p_order?: string | null
+          p_dedupe?: string | null
+          p_secret?: string | null
+        }
+        Returns: boolean
+      }
       is_cron_secret: { Args: { p_secret: string }; Returns: boolean }
       list_products: {
         Args: {

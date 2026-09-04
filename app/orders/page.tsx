@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AccountRail from "@/components/AccountRail";
+import AccountTabs from "@/components/AccountTabs";
 import { ehAdmin } from "@/lib/admin";
 import { IconPackage } from "@/components/Icon";
 import { redirect } from "next/navigation";
@@ -49,6 +50,7 @@ export default async function OrdersPage() {
       </div>
 
       <AccountRail current="/orders" isAdmin={isAdmin} />
+      <AccountTabs />
 
       <div className="acct-main">
       {orders.length === 0 ? (
