@@ -1279,6 +1279,10 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       slugify: { Args: { p: string }; Returns: string }
+      sync_ship_etas: {
+        Args: { p_rows: Json; p_secret?: string | null }
+        Returns: Json
+      }
       sync_ship_eta: {
         Args: {
           p_berth?: string

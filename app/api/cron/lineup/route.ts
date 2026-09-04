@@ -110,23 +110,23 @@ export async function GET(request: Request) {
     (a, b) => new Date(a.eta).getTime() - new Date(b.eta).getTime()
   );
 
-  for (const r of upcoming) {
-    const { data, error } = await supabase.rpc("sync_ship_eta", {
-      p_name: r.name,
-      p_eta: r.eta,
-      p_berth: r.berth,
-      p_imo: r.imo,
-      p_voyage: r.voyage,
-      p_source: "port_lineup",
-      p_secret: secret,
-    });
-    const action = (data as { action?: string } | null)?.action;
-    if (error || !data) summary.failed++;
+  /* Uma chamada com a lista inteira, não uma por navio: eram ~165 idas e
+     voltas Vercel → Supabase por hora (18 mil no relatório do banco). O
+     banco itera por dentro com a mesma sync_ship_eta de sempre. */
+  const lote = upcoming.map((r) => ({
+    name: r.name, eta: r.eta, berth: r.berth, imo: r.imo, voyage: r.voyage, source: "port_lineup",
+  }));
+  const { data: loteRes, error: loteErr } = await supabase.rpc("sync_ship_etas", { p_rows: lote, p_secret: secret });
+  const resultados = ((loteRes as { results?: Record<string, unknown>[] } | null)?.results ?? []);
+  if (loteErr || !resultados.length) summary.failed = upcoming.length;
+  for (const data of resultados) {
+    const action = data?.action as string | undefined;
+    if (!data?.ok) summary.failed++;
     else if (action === "created") summary.created++;
     else if (action === "new_voyage") summary.new_voyage++;
     else if (action === "eta_changed") {
       summary.eta_changed++;
-      changes.push(data as Record<string, unknown>);
+      changes.push(data);
     } else summary.unchanged++;
   }
 

@@ -4,24 +4,21 @@ import ProductCardView from "@/components/ProductCard";
 import FacetRail from "@/components/FacetRail";
 import CategoryIcon from "@/components/CategoryIcon";
 import { IconCompass } from "@/components/Icon";
-import { listBrandsInUse } from "@/lib/brands";
-import { createClient } from "@/lib/supabase/server";
+import { categoriasAtivas, contagensPorCategoria, listarProdutos, marcasEmUso } from "@/lib/vitrine";
 import { wishedProductIds } from "@/lib/wishlist";
 import {
   BADGE_LABEL,
   buildTree,
-  listProducts,
   PAGE_SIZE,
   SORT_LABEL,
-  type Category,
   type SortKey,
 } from "@/lib/catalog";
 import SortSelect from "@/components/SortSelect";
 import BrandSelect from "@/components/BrandSelect";
 
-// A vitrine muda pouco e é lida muito: revalidação em vez de dinâmica
-// por requisição. Alterar produto no painel revalida na hora seguinte,
-// e a listagem serve do cache até lá.
+// A vitrine muda pouco e é lida muito. O catálogo vem de unstable_cache
+// (lib/vitrine, tag "catalog", 300 s); a única coisa por visitante é o
+// coração da lista de desejos, e só para quem está logado.
 export const revalidate = 300;
 
 /** Coleções são curadorias sobre a MESMA prateleira (o item de New
@@ -35,41 +32,31 @@ export default async function ShopPage({
   searchParams: Promise<{ q?: string; sort?: string; cursor?: string; badge?: string; brand?: string }>;
 }) {
   const sp = await searchParams;
-  const supabase = await createClient();
   const sort = (sp.sort as SortKey) ?? "featured";
   const query = sp.q?.trim() || null;
 
-  // As marcas vêm antes dos produtos porque a RPC recebe o UUID, não o
-  // slug — a URL carrega slug (legível e estável) e a tradução acontece
-  // aqui. Slug inexistente vira null: o filtro é ignorado em vez de
-  // estourar tipo no Postgres.
-  const brands = await listBrandsInUse();
+  // Tudo abaixo é catálogo público e vem do cache (lib/vitrine): a
+  // página deixou de refazer cinco consultas por visita. As marcas vêm
+  // antes porque a RPC recebe UUID e a URL carrega slug.
+  const brands = await marcasEmUso();
   const brandId = sp.brand ? (brands.find((b) => b.slug === sp.brand)?.id ?? null) : null;
 
-  const [{ items, nextCursor }, cats, contagens] = await Promise.all([
-    listProducts(supabase, {
+  const [{ items, nextCursor }, cats, counts] = await Promise.all([
+    listarProdutos({
       query,
       sort,
       cursor: sp.cursor ?? null,
       badge: sp.badge ?? null,
       brand: brandId,
     }),
-    supabase
-      .from("categories")
-      .select("id, parent_id, slug, name, icon, image_path, path, depth, active, sort_order")
-      .eq("active", true)
-      .order("sort_order"),
-    supabase.rpc("category_counts"),
+    categoriasAtivas(),
+    contagensPorCategoria(),
   ]);
 
   // O coração precisa nascer no estado certo, senão parece que não salvou.
   const wished = await wishedProductIds(items.map((i) => i.id));
 
-  const roots = buildTree((cats.data ?? []) as Category[]);
-  const counts: Record<string, number> = {};
-  for (const r of (contagens.data ?? []) as { category_id: string; product_count: number }[]) {
-    counts[r.category_id] = Number(r.product_count) || 0;
-  }
+  const roots = buildTree(cats);
   const keep = (extra: Record<string, string | null>) => {
     const p = new URLSearchParams();
     if (query) p.set("q", query);

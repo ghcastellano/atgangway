@@ -4,17 +4,14 @@ import Breadcrumb from "@/components/Breadcrumb";
 import ProductCardView from "@/components/ProductCard";
 import FacetRail from "@/components/FacetRail";
 import { IconCompass } from "@/components/Icon";
-import { listBrandsInUse } from "@/lib/brands";
+import { categoriasAtivas, contagensPorCategoria, listarProdutos, marcasEmUso } from "@/lib/vitrine";
 import SortSelect from "@/components/SortSelect";
 import BrandSelect from "@/components/BrandSelect";
-import { createClient } from "@/lib/supabase/server";
 import {
   BADGE_LABEL,
   buildTree,
-  listProducts,
   PAGE_SIZE,
   SORT_LABEL,
-  type Category,
   type CategoryNode,
   type SortKey,
 } from "@/lib/catalog";
@@ -24,12 +21,10 @@ export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("categories")
-    .select("name, description")
-    .eq("slug", slug)
-    .maybeSingle();
+  // Da mesma árvore em cache que a página usa: zero consulta extra.
+  const data = (await categoriasAtivas()).find((c) => c.slug === slug) as
+    | { name: string; description?: string | null }
+    | undefined;
   const nome = data?.name;
   return {
     title: nome ?? undefined,
@@ -53,26 +48,15 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const sp = await searchParams;
-  const supabase = await createClient();
   const sort = (sp.sort as SortKey) ?? "featured";
 
-  // Uma consulta só da árvore ativa, em vez de três (categoria, filhos
-  // e pai): o trilho de filtros precisa da árvore inteira de qualquer
-  // jeito, e pai e filhos saem dela de graça, em memória.
-  const [{ data: todas }, contagens] = await Promise.all([
-    supabase
-      .from("categories")
-      .select("id, parent_id, slug, name, icon, image_path, path, depth, active, sort_order")
-      .eq("active", true)
-      .order("sort_order"),
-    supabase.rpc("category_counts"),
+  // Árvore, contagens e marcas do cache público (lib/vitrine); pai e
+  // filhos saem da árvore em memória. Nada disso depende de quem olha.
+  const [planas, counts, brands] = await Promise.all([
+    categoriasAtivas(),
+    contagensPorCategoria(),
+    marcasEmUso(),
   ]);
-  const counts: Record<string, number> = {};
-  for (const r of (contagens.data ?? []) as { category_id: string; product_count: number }[]) {
-    counts[r.category_id] = Number(r.product_count) || 0;
-  }
-
-  const planas = (todas ?? []) as Category[];
   const roots = buildTree(planas);
   const achada = planas.find((c) => c.slug === slug);
   if (!achada) notFound();
@@ -83,12 +67,10 @@ export default async function CategoryPage({
     ? (planas.find((c) => c.id === category.parent_id) ?? null)
     : null;
 
-  // A RPC recebe UUID; a URL carrega slug. Slug inexistente vira null
-  // e o filtro some, em vez de estourar tipo no Postgres.
-  const brands = await listBrandsInUse();
+  // A RPC recebe UUID; a URL carrega slug. Slug inexistente vira null.
   const brandId = sp.brand ? (brands.find((b) => b.slug === sp.brand)?.id ?? null) : null;
 
-  const { items, nextCursor } = await listProducts(supabase, {
+  const { items, nextCursor } = await listarProdutos({
     category: category.path,
     sort,
     badge: (sp.badge as "promo" | "new" | "outlet" | undefined) ?? null,
