@@ -162,8 +162,6 @@ button { font-family: inherit; }
 .disp { font-family: var(--font-disp); }
 .mono { font-family: var(--font-mono); }
 
-
-
 /* Só para leitor de tela: fora do fluxo visual, dentro da árvore de
    acessibilidade. Usado pela região aria-live do mini-carrinho. */
 .sr-only {

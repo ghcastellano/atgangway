@@ -1,10 +1,4 @@
-/* ===== admin ===== */
-.admtabs {
-  display: flex; gap: 8px; padding: 12px 16px 4px; overflow-x: auto; scrollbar-width: none;
-  position: sticky; top: 57px; z-index: 15; background: rgba(4,13,26,.92);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
-.admtabs::-webkit-scrollbar { display: none; }
+
 .subhead {
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
   color: var(--faint); padding: 18px 18px 8px; margin: 0;
@@ -22,16 +16,6 @@
   margin: 8px 16px; background: var(--panel); border: 1px solid var(--line);
   border-radius: 16px; padding: 16px; display: grid; gap: 12px;
 }
-.form2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.checkline { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--muted); }
-.checkline input { accent-color: #FFB648; width: 17px; height: 17px; }
-.shoprow {
-  display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center;
-  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 13px 15px;
-}
-.shoprow .em { font-size: 22px; text-align: center; }
-.shoprow .qtybig { font-family: var(--font-mono); font-size: 18px; color: var(--amber-hi); font-variant-numeric: tabular-nums; }
-.shoprow .per { font-size: 11.5px; color: var(--faint); }
 
 /* ===== footer / staff access ===== */
 .foot {
@@ -42,51 +26,13 @@
 .foot a { color: var(--muted); font-size: 12.5px; }
 .foot a:hover { color: var(--amber-hi); }
 
-/* ===== admin em telas grandes: painel largo =====
-   O cap era 960px fixo, e como `.shell:has(.admin-wide)` tem
-   especificidade maior que `.shell`, ele vencia o --page-w do bloco de
-   desktop em QUALQUER largura. Num notebook de 16" o painel virava uma
-   coluna estreita no meio da tela: os quatro KPIs quebravam o rótulo em
-   três linhas, o resumo do pedido quebrava em três, e "Deposit paid" e
-   "Cancel" empilhavam por falta de 40px.
-
-   Agora o painel acompanha a largura da página, e a grade de pedidos é
-   auto-fill: o número de colunas sai da largura disponível em vez de
-   uma tabela de breakpoints que envelhece a cada monitor novo. */
-@media (min-width: 960px) {
-  /* O painel tem teto PROPRIO, e nao o da loja. --page-w para em 1520px
-     porque vitrine com linha longa demais cansa; retaguarda tem o
-     problema oposto — quanto mais pedido cabe na tela de uma vez, menos
-     rolagem entre atender um navio e o seguinte. min() em vez de valor
-     fixo: em 1920 preenche, em ultrawide para antes de virar campo de
-     futebol. */
-  .shell:has(.admin-wide) { max-width: min(96vw, 1800px); }
-
-  /* Os KPIs são quatro números curtos: lado a lado sempre, e o mínimo de
-     200px garante que o rótulo caiba numa linha só. */
-  .shell:has(.admin-wide) .kpis {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-
-  /* 340px é a largura em que o resumo do pedido ("1× eSIM Brasil 20 GB ·
-     1× Snack kit grande") cabe em duas linhas e os dois botões de ação
-     ficam lado a lado. Abaixo disso o card volta a empilhar. */
-  .shell:has(.admin-wide) .cart-list {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    align-items: start;
-  }
-
-  /* Formulário continua estreito de propósito: campo de texto largo
-     demais é mais difícil de ler e de preencher, não mais fácil. */
-  .shell:has(.admin-wide) .adm-form { max-width: 620px; }
-
-  /* Uma folga maior nas bordas quando o painel é largo — 16px num
-     container de 1400px cola o conteúdo na borda. */
-  .shell:has(.admin-wide) .kpis,
-  .shell:has(.admin-wide) .cart-list,
-  .shell:has(.admin-wide) .admtabs,
-  .shell:has(.admin-wide) .subhead { padding-inline: 24px; }
-}
+/* O bloco "admin em telas grandes" saiu daqui.
+   Ele pendurava tudo em `.shell:has(.admin-wide)`, e nenhum componente
+   renderiza `.admin-wide` desde a reescrita do painel — era CSS que
+   nunca casava. Não é regressão: o painel novo resolve o mesmo problema
+   melhor, em 45-painel.css, com `.shell:has(.adm) { max-width: none }`
+   e um teto próprio no `.adm-content`. Isto aqui era o andaime que
+   sobrou depois de a parede ficar pronta. */
 
 /* ===== util ===== */
 .spin {
@@ -96,7 +42,6 @@
 }
 @keyframes rot { to { transform: rotate(1turn); } }
 .center { text-align: center; }
-.mt0 { margin-top: 0; }
 
 /* Foco de teclado da casa: âmbar, 2px de folga, em TODO interativo.
    Âmbar e não teal: âmbar já é a cor de "isto age" (botão, link, aba

@@ -2,19 +2,24 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-export type CartShip = {
-  id: string;
-  name: string;
-  berth: string | null;
-  eta: string;
-  cutoff_hours: number;
-};
-
+/**
+ * O carrinho guarda ITENS, e só.
+ *
+ * Guardava também um navio (`ship` / `setShip`), do desenho antigo em
+ * que a pessoa escolhia a escala dentro do carrinho. O navio mudou de
+ * casa faz tempo — mora no perfil, é o `profiles.ship_id`, e é de lá
+ * que o checkout o lê. Ninguém escrevia nem lia este campo havia
+ * versões; ele só continuava sendo serializado no localStorage de todo
+ * visitante e aparecendo na assinatura do contexto, onde lê como se
+ * ainda fosse a fonte da verdade. Dois lugares dizendo qual é o navio é
+ * como o pedido chega no navio errado.
+ *
+ * Carrinho antigo com a chave `ship` continua sendo lido sem erro: o
+ * campo simplesmente é ignorado, e a próxima gravação o remove.
+ */
 type CartState = {
   ready: boolean;
-  ship: CartShip | null;
   items: Record<string, number>; // variant_id -> qty
-  setShip: (ship: CartShip | null) => void;
   add: (variantId: string, qty?: number) => void;
   change: (variantId: string, delta: number) => void;
   clear: () => void;
@@ -29,11 +34,10 @@ const CartContext = createContext<CartState | null>(null);
 // um carrinho vazio.
 const LS_KEY = "ms.cart.v2";
 
-type Persisted = { ship: CartShip | null; items: Record<string, number> };
+type Persisted = { items: Record<string, number> };
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [ship, setShipState] = useState<CartShip | null>(null);
   const [items, setItems] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -41,7 +45,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) {
         const data = JSON.parse(raw) as Persisted;
-        if (data.ship) setShipState(data.ship);
         if (data.items) setItems(data.items);
       }
     } catch {
@@ -53,13 +56,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready) return;
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ ship, items } satisfies Persisted));
+      localStorage.setItem(LS_KEY, JSON.stringify({ items } satisfies Persisted));
     } catch {
       // sem persistência — ok
     }
-  }, [ready, ship, items]);
-
-  const setShip = useCallback((s: CartShip | null) => setShipState(s), []);
+  }, [ready, items]);
 
   const add = useCallback((id: string, qty = 1) => {
     setItems((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + Math.max(1, qty) }));
@@ -80,8 +81,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const count = useMemo(() => Object.values(items).reduce((a, b) => a + b, 0), [items]);
 
   const value = useMemo(
-    () => ({ ready, ship, items, setShip, add, change, clear, count }),
-    [ready, ship, items, setShip, add, change, clear, count]
+    () => ({ ready, items, add, change, clear, count }),
+    [ready, items, add, change, clear, count]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

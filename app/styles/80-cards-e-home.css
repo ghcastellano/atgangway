@@ -83,11 +83,6 @@
    a fileira vira grade para duzentos navios serem varridos em coluna,
    com o botão sempre no mesmo lugar. */
 @media (min-width: 768px) and (min-height: 520px) {
-  .queue-row {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center; gap: var(--sp-4);
-  }
-  .queue-row .meta { font-variant-numeric: tabular-nums; }
 }
 
 /* ===== faixa do Captain na home =====
@@ -834,7 +829,6 @@
 .vpanel.fechado .corte .barra i { background: var(--faint); }
 
 .vpanel .acao { text-decoration: none; }
-
 
 /* ===== carrinho ===== */
 /* "Apply Discount Code" recolhível. No nosso não há cupom para digitar:

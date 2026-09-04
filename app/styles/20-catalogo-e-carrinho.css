@@ -174,13 +174,6 @@
   background: linear-gradient(180deg, rgba(var(--ink-rgb),0), var(--night) 34%);
   pointer-events: none;
 }
-/* CTA convivendo com o menu fixo: flutua logo acima dele */
-.cta-dock.above-nav {
-  bottom: calc(66px + env(safe-area-inset-bottom));
-  padding-bottom: 12px;
-  z-index: 29;
-}
-.pb-both { padding-bottom: calc(205px + env(safe-area-inset-bottom)); }
 .cta-dock > * { pointer-events: auto; }
 .cta {
   width: 100%; border: 0; border-radius: 14px; padding: 16px; cursor: pointer;

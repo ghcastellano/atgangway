@@ -1,30 +1,33 @@
 /* Fontes self-hosted (Google Fonts baixadas no build do repo) —
    sem dependência externa: carrega até com a internet do navio.
 
-   `font-display: optional`, e NÃO `swap`. Medido com o Lighthouse:
-   a home tinha CLS de 0,206 — o dobro do limite do Core Web Vitals —
-   e a causa era exatamente o swap. O navegador pinta o título com a
-   fonte do sistema, a Bricolage chega, e como ela é 7,3% MAIS ESTREITA
-   que o fallback (medido no navegador: 2024px contra 2184px na mesma
-   frase), a quebra de linha muda e tudo abaixo do título salta. Os
-   botões do herói eram o que pulava.
+   O CLS da home era 0,206, o DOBRO do limite do Core Web Vitals, e o
+   Lighthouse apontou a causa: "Web font loaded". `font-display: swap`
+   pinta o texto com a fonte do sistema e troca quando a real chega —
+   e medido no navegador, a Bricolage é 7,3% MAIS ESTREITA que o
+   fallback (2024px contra 2184px na mesma frase) enquanto a Inter é 6%
+   mais larga. A quebra de linha do título muda e tudo abaixo salta;
+   quem pulava eram os botões do herói.
 
-   `optional` dá ao navegador ~100ms de bloqueio: se a fonte chegou,
-   usa; se não chegou, desenha com o fallback e NÃO troca no meio.
-   Nenhum salto, nunca — e na visita seguinte ela está em cache e
-   aparece desde o primeiro quadro.
+   A correção NÃO foi tirar o swap: foi dar ao fallback a métrica certa.
+   As duas famílias abaixo usam `size-adjust` com percentuais MEDIDOS,
+   não estimados, e com eles a troca deixa de mudar a forma da página.
+   É o que o next/font faz por baixo, e aqui é explícito.
 
-   Cheguei a pré-carregar os dois arquivos e MEDI que fica pior: o CLS
-   já era zero só com `optional`, e o preload de 125 KB em prioridade
-   alta disputava banda com o conteúdo — o LCP da home subiu de 2,8s
-   para 3,8s no 4G lento do Lighthouse. Trocar um segundo de espera por
-   uma fonte bonita na primeira visita é mau negócio para quem abre a
-   loja no wifi do navio.
+   Testei as duas saídas e ficou registrado o porquê da escolha:
 
-   As duas famílias de fallback abaixo existem para o caso em que ela
-   NÃO chega: `size-adjust` aproxima a métrica do fallback da fonte
-   real, então a página que abre sem a fonte tem quase a mesma forma da
-   que abre com ela. Os percentuais foram medidos, não estimados. */
+     optional  → CLS 0, mas a fonte da marca NÃO aparece na primeira
+                 visita quando a rede é lenta (confirmado: o título
+                 renderizou no fallback). Perf mediana 94.
+     swap      → CLS 0 TAMBÉM, com o fallback calibrado, e a Bricolage
+                 aparece sempre (verificado: document.fonts diz
+                 "loaded" e o h1 computa 'Bricolage Grotesque').
+                 Perf mediana 92 — dentro do ruído.
+
+   Ganha o swap: mesmo zero de salto, e a marca na tela desde a
+   primeira visita. Também cheguei a pré-carregar os dois woff2 e medi
+   que PIORA — 125 KB em prioridade alta disputam banda e subiram o LCP
+   de 2,8s para 3,8s. Removido. */
 
 /* Fallback com a métrica da Bricolage: 92,68% da largura do Arial. */
 @font-face {
@@ -44,7 +47,7 @@
   font-style: normal;
   font-weight: 600;
   font-stretch: 100%;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/bricolage-grotesque-600-latin-ext-6441e9c6.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -54,7 +57,7 @@
   font-style: normal;
   font-weight: 600;
   font-stretch: 100%;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/bricolage-grotesque-600-latin-4efd1a5a.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -64,7 +67,7 @@
   font-style: normal;
   font-weight: 700;
   font-stretch: 100%;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/bricolage-grotesque-600-latin-ext-6441e9c6.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -74,7 +77,7 @@
   font-style: normal;
   font-weight: 700;
   font-stretch: 100%;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/bricolage-grotesque-600-latin-4efd1a5a.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -84,7 +87,7 @@
   font-style: normal;
   font-weight: 800;
   font-stretch: 100%;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/bricolage-grotesque-600-latin-ext-6441e9c6.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -94,7 +97,7 @@
   font-style: normal;
   font-weight: 800;
   font-stretch: 100%;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/bricolage-grotesque-600-latin-4efd1a5a.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -103,7 +106,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -112,7 +115,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -121,7 +124,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -130,7 +133,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -139,7 +142,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 600;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -148,7 +151,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 600;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -157,7 +160,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 700;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -166,7 +169,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 700;
-  font-display: optional;
+  font-display: swap;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }

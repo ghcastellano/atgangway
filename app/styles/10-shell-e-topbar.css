@@ -49,9 +49,6 @@
    jeito de um trilho horizontal terminar rente à borda sem que o
    primeiro card fique colado nela. */
 .bleed { margin-inline: calc(var(--gut) * -1); }
-
-/* conteúdo que convive com barras fixas embaixo */
-.pb-nav  { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 .pb-dock { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
 
 /* ===== top bar ===== */
@@ -76,7 +73,6 @@
   transition: color .2s;
 }
 .back:hover { color: var(--amber-hi); }
-.top-side { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .iconbtn {
   background: none; border: 1px solid var(--line-hi); border-radius: 999px;
   width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;

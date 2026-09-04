@@ -23,8 +23,7 @@
 .catbar,
 .hamb-label,
 .sunfoot-brand,
-.facets,
-.wide-only      { display: none; }
+.facets      { display: none; }
 
 /* ---- rail da conta: o MESMO menu no celular e no desktop ----------
    Ele era display:none abaixo de 1024 e a navegação da conta no celular
@@ -74,7 +73,6 @@
      folga aqui, então a resposta é limitar a coluna. */
   .pg-form > * { max-width: 620px; margin-inline: auto; width: 100%; }
 
-
   :root {
     --page-w: 1440px;
     --gut:      20px;
@@ -103,9 +101,6 @@
      linha seguinte sem se perder. Quem precisa de mais (tabela, grade)
      pede .wide por dentro. */
   .shell > main { max-width: var(--read-w); margin-inline: auto; width: 100%; }
-  /* Conteúdo largo dentro da coluna de leitura: sangra até 1040px sem
-     esticar o texto junto. */
-  .shell > main > .wide { width: min(1040px, 92vw); margin-inline: auto; }
   /* O painel de operação NÃO é página de leitura. A retaguarda acima o
      engolia: main.stack caía na coluna de 500px e o admin virava uma
      tela de celular pendurada num monitor — fila de 200 navios num
@@ -775,8 +770,6 @@
     min-height: 440px;
   }
   .pg-cart .cartslot > .spin, .pg-cart .cartslot > .empty { grid-column: 1 / -1; }
-  .pg-cart .cartmain { grid-column: 1; grid-row: 1; min-width: 0; }
-  .pg-cart .cartmain > .stack { padding: 0 0 12px; }
   .pg-cart .cartslot > .sumcard {
     grid-column: 2; grid-row: 1; margin: 0; max-width: none;
     position: sticky; top: calc(var(--head-h) + 16px);
@@ -880,7 +873,6 @@
   .sunfoot-brand p { margin: 0 0 10px; color: var(--muted); font-size: 13.5px; line-height: 1.6; max-width: 32ch; }
   .sunfoot-brand a { color: var(--amber); font-size: 13.5px; }
   .sunfoot-brand a:hover { color: var(--amber-hi); }
-
 
   .pg-list .secttl.left { font-size: 36px; }
 
