@@ -770,3 +770,82 @@ nomeando a causa —
 ```
 
 — e só então restaurei. Estado final: `exit 0`, 0 achados, 254 testes.
+
+## 2026-09-04 — revisão geral: o banco
+
+### O que o linter apontou e era real
+
+- **RLS reavaliada POR LINHA** em 5 policies (`credits`, `order_items`,
+  `orders`, `profiles` ×2): `auth.uid()` e `is_admin()` escritos nus são
+  reexecutados para cada linha examinada. Envolvidos em `(select ...)`
+  viram InitPlan — uma vez por consulta. Com 6 pedidos não se mede; com
+  60 mil linhas de `order_items` é a diferença entre a página do cliente
+  abrir e não abrir. Metade das policies já estava certa; estas ficaram
+  para trás.
+- **14 chaves estrangeiras sem índice.** O custo não aparece na leitura:
+  aparece no DELETE, que varre a tabela filha SEGURANDO LOCK para checar
+  a FK. Todas indexadas. Uma delas não é só de FK —
+  `profiles(referred_by)` é o `where` de `referral_order_count`, que
+  roda toda vez que alguém abre a página do Captain.
+- **Índice duplicado** em `ships` (dois idênticos sobre `imo`). Ficou o
+  UNIQUE, que além de servir à busca garante a regra: um IMO, um casco.
+- `imo_checksum_ok` sem `search_path` fixo. É a função que impede dois
+  cascos de compartilharem identidade.
+- A função de GATILHO `order_stock_on_status_trg` estava exposta como
+  RPC em `/rest/v1/rpc/`. Revogada: superfície que não serve a ninguém
+  não deve existir.
+
+Depois: `auth_rls_initplan` **zerado**, `unindexed_foreign_keys`
+**zerado**, `duplicate_index` **zerado**.
+
+### O que o linter apontou e é ruído
+
+Os ~30 avisos de "SECURITY DEFINER executável por anon" foram lidos um a
+um. As funções **se defendem por dentro** — `apply_order_credit` filtra
+por `user_id = auth.uid()`, `referral_order_count` exige
+`p_user = auth.uid() or is_admin()`, `create_vessel` começa com um teste
+de sessão, e as de cron exigem o segredo. Não é ruído por preguiça: é
+ruído porque o guard está uma camada abaixo do que o linter enxerga.
+
+`is_cron_secret` segue executável por anon, e é um oráculo — dá para
+tentar adivinhar o segredo uma chamada por vez. Revogar quebraria todos
+os crons, porque eles rodam com a chave ANÔNIMA e se autenticam por essa
+função. Não existe service_role neste projeto, o que é uma boa
+propriedade (não há chave de deus no ambiente da Vercel) e não vou
+trocá-la por outra num patch de índice. A saída certa está no roadmap.
+
+As policies "admin write" são `FOR ALL` e por isso também rodam no
+SELECT ao lado da leitura pública. Separá-las em INSERT/UPDATE/DELETE
+seriam 33 policies novas para economizar UMA chamada de função por
+consulta — que depois deste patch é InitPlan. Não paga.
+
+### Nenhuma tabela morta
+
+As 23 tabelas são lidas. `credits` e `call_reminders` estão em zero
+linhas porque a funcionalidade ainda não disparou, não porque morreram.
+
+### E um erro meu, com estrago em produção
+
+Rodei o pgTAP de dinheiro pelo MCP recopiando os statements do MEIO do
+arquivo — sem o `begin;` da primeira linha e o `rollback;` da última.
+Os 11 testes passaram e **nada foi desfeito**. Ficaram em produção:
+
+- um pedido de teste (AG-1211) na conta do Gustavo, e seu item;
+- a variante do Lacta Diamante Negro com `track_stock = true` e saldo
+  zero — ou seja, **um produto anunciado como esgotado na loja**;
+- o pedido mínimo de Santos em **zero** em vez de USD 60,00.
+
+Revertido em seguida: pedido apagado, variante de volta a
+`track_stock = false` (era a única das 131 com controle de saldo, o que
+prova que o `true` veio do teste), mínimo de volta a 6000. Conferido na
+loja: o produto responde "In stock" e "Add to cart".
+
+Duas lições viraram código: o cabeçalho dos dois arquivos de pgTAP agora
+avisa em caixa alta para rodar o arquivo INTEIRO, e ficou registrado que
+`begin`/`rollback` **funcionam** pelo MCP — verifiquei com um update
+descartável. O problema nunca foi a ferramenta.
+
+Fica um item que NÃO consigo restaurar: o teste também fez
+`update profiles set ship_id = (...)` no primeiro perfil, que é o do
+Gustavo. O valor anterior não é recuperável. Confira o navio em
+/account.

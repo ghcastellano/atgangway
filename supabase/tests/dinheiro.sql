@@ -6,6 +6,17 @@
 -- Por que no banco e não no app: RLS, lock e CHECK vivem no Postgres.
 -- Um mock no Node prova que o Node chama a RPC; só isto prova que a RPC
 -- e as políticas fazem o que dizem.
+-- ============================================================
+--  RODE O ARQUIVO INTEIRO. NUNCA statement por statement.
+--
+--  O `begin;` da primeira linha e o `rollback;` da última são o que
+--  protege a produção: este teste CRIA PEDIDO, mexe em estoque e zera
+--  o mínimo do porto. Já aconteceu de eu recopiar os statements do
+--  meio sem as duas pontas — o MCP executou, nada desfez, e sobrou em
+--  produção um pedido de teste, um produto marcado como esgotado e o
+--  pedido mínimo de Santos em zero. Conferido: com as duas pontas, o
+--  rollback funciona pelo MCP.
+-- ============================================================
 begin;
 select extensions.plan(11);
 create temp table _t as

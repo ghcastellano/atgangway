@@ -1,6 +1,17 @@
 -- pgTAP: o picker de navio só oferece escala com janela aberta.
 -- Roda com execute_sql (MCP) ou psql, sempre em transação que volta atrás.
 -- Resultado esperado: 5 linhas "ok N - ...".
+-- ============================================================
+--  RODE O ARQUIVO INTEIRO. NUNCA statement por statement.
+--
+--  O `begin;` da primeira linha e o `rollback;` da última são o que
+--  protege a produção: este teste CRIA PEDIDO, mexe em estoque e zera
+--  o mínimo do porto. Já aconteceu de eu recopiar os statements do
+--  meio sem as duas pontas — o MCP executou, nada desfez, e sobrou em
+--  produção um pedido de teste, um produto marcado como esgotado e o
+--  pedido mínimo de Santos em zero. Conferido: com as duas pontas, o
+--  rollback funciona pelo MCP.
+-- ============================================================
 begin;
 select extensions.plan(5);
 create temp table _tap (n int, r text);
