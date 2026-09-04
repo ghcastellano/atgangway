@@ -8,6 +8,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import ProductCardView from "@/components/ProductCard";
 import { createClient } from "@/lib/supabase/server";
 import type { ProductCard } from "@/lib/catalog";
+import { sessionUser } from "@/lib/supabase/session";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +37,7 @@ type Row = {
 
 export default async function WishlistPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) redirect("/login?next=/wishlist");
 
   // O embed nomeia a chave estrangeira de propósito: products tem DUAS

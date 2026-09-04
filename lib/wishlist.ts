@@ -18,15 +18,14 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { sessionUser } from "@/lib/supabase/session";
 
 export async function wishedProductIds(productIds: string[]): Promise<Set<string>> {
   const empty = new Set<string>();
   if (productIds.length === 0) return empty;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   // Visitante deslogado: nem vai ao banco, e o coração nasce vazio de
   // verdade — o próprio toque manda para o login.
   if (!user) return empty;

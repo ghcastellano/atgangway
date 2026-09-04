@@ -12,6 +12,7 @@ import {
   type OrderStatus,
   type PaymentMethod,
 } from "@/lib/types";
+import { sessionUser } from "@/lib/supabase/session";
 
 export const dynamic = "force-dynamic";
 
@@ -62,9 +63,7 @@ export default async function OrderDetailPage({
   const { placed, paid } = await searchParams;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) redirect(`/login?next=/orders/${code}`);
 
   const { data } = await supabase

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toggleWish } from "@/app/wishlist/actions";
 import { WISH_KEY, togglePending } from "@/lib/wishstash";
+import { useWish } from "@/lib/wish";
 
 /**
  * Coração de wishlist, no mesmo lugar do Sunny: ao lado do botão de
@@ -27,6 +28,7 @@ export default function WishButton({
   const [on, setOn] = useState(initial);
   const [pending, start] = useTransition();
   const [failed, setFailed] = useState(false);
+  const { bump } = useWish();
 
   // O servidor manda o estado real a cada render, e o botão precisa
   // acompanhar: quando a fila guardada é gravada depois do login, a
@@ -58,9 +60,13 @@ export default function WishButton({
         setFailed(false);
         const next = !on;
         setOn(next);
+        // O selo do cabeçalho muda junto com o coração, não quando o
+        // servidor responder.
+        bump(next ? 1 : -1);
         start(async () => {
           const res = await toggleWish(productId);
           if (res.needsAuth) {
+            bump(next ? -1 : 1);
             // Guarda a intenção ANTES de sair da página. Sem isto a
             // pessoa faz login, volta para a vitrine e o item não está
             // lá — exatamente o que ela achava ter feito.
@@ -77,9 +83,12 @@ export default function WishButton({
           }
           if (!res.ok) {
             setOn(!next);
+            bump(next ? -1 : 1);
             setFailed(true);
             return;
           }
+          // O servidor pode discordar (dois aparelhos): acerta o selo.
+          if (res.wished !== next) bump(res.wished ? 1 : -1);
           setOn(res.wished);
         });
       }}

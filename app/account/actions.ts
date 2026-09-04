@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { missingProfileFields } from "@/lib/profile";
+import { sessionUser } from "@/lib/supabase/session";
 
 /**
  * Sair — de verdade, inclusive na tela.
@@ -72,9 +73,7 @@ const clean = (v: string | null | undefined, max: number) =>
  */
 export async function saveProfile(input: ProfileInput): Promise<SaveProfileResult> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) return { ok: false, error: "Your session expired — please sign in again." };
 
   // O banco guarda um full_name só: é o nome que vai na prancha de
@@ -210,9 +209,7 @@ async function callClosed(
  */
 export async function switchVessel(shipId: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) return { ok: false, error: "Your session expired — please sign in again." };
 
   // Os dados do navio são copiados para o perfil de propósito: o pedido

@@ -9,12 +9,11 @@ import { PRODUCT_BUCKET } from "@/lib/catalog";
 import { lookup } from "node:dns/promises";
 import { creditoDaFoto } from "@/lib/fotolicenca";
 import { normalizarFoto } from "@/lib/fotonormaliza";
+import { sessionUser } from "@/lib/supabase/session";
 
 async function adminClient() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) return null;
   const { data: profile } = await supabase
     .from("profiles")

@@ -10,6 +10,7 @@ import HeaderSearch from "./HeaderSearch";
 import MiniCart from "./MiniCart";
 import { IconAnchor, IconCart, IconHeart, IconMenu, IconUser } from "./Icon";
 import { useCart } from "@/lib/cart";
+import { useWish } from "@/lib/wish";
 import type { CategoryNode } from "@/lib/catalog";
 
 /**
@@ -22,16 +23,15 @@ import type { CategoryNode } from "@/lib/catalog";
  */
 export default function SiteHeader({
   tree,
-  wishCount = 0,
   signedIn = false,
 }: {
   tree: CategoryNode[];
-  /** Favoritos da pessoa logada. Zero esconde o selo. */
-  wishCount?: number;
   /** Decide entre "Sign in" e um Sign out que desloga de verdade. */
   signedIn?: boolean;
 }) {
   const { count, ready } = useCart();
+  // Favoritos: semeado pelo servidor, atualizado na hora pelo coração.
+  const { count: wishCount } = useWish();
   const [drawer, setDrawer] = useState(false);
   const [cart, setCart] = useState(false);
   const [menu, setMenu] = useState(false);

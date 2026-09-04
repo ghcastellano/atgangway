@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { createClient } from "@/lib/supabase/server";
 import { toCents, usd } from "@/lib/money";
 import { STATUS_LABEL, STATUS_PILL, type OrderStatus } from "@/lib/types";
+import { sessionUser } from "@/lib/supabase/session";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,7 @@ type Row = {
 
 export default async function OrdersPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) redirect("/login?next=/orders");
 
   const { data } = await supabase

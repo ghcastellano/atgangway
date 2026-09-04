@@ -9,6 +9,7 @@ import CheckoutClient from "./CheckoutClient";
 import { currentFxRate } from "@/lib/fxrate";
 import { orderCloseAt, santosTime } from "@/lib/format";
 import { callState } from "@/lib/callstate";
+import { sessionUser } from "@/lib/supabase/session";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +45,7 @@ type ProfileRow = {
  */
 export default async function CheckoutPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
 
   if (!user) redirect("/login?next=/checkout");
 

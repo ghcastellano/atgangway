@@ -7,12 +7,11 @@ import { sendOrderEmail } from "@/lib/mailer";
 import type { EmailKind } from "@/lib/emails";
 import { DELIVERY_BUCKET, type OrderStatus } from "@/lib/types";
 import type { TablesUpdate } from "@/lib/database.types";
+import { sessionUser } from "@/lib/supabase/session";
 
 async function adminClient() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) return null;
   const { data: profile } = await supabase
     .from("profiles")

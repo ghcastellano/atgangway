@@ -6,6 +6,7 @@ import { depositIdempotencyKey, getStripe, stripeConfigured } from "@/lib/stripe
 import { SITE_URL } from "@/lib/env";
 import { usd } from "@/lib/format";
 import { placeOrderErrorMessage, type PlaceOrderRpcError } from "@/lib/pedido";
+import { sessionUser } from "@/lib/supabase/session";
 
 export type PlaceOrderInput = {
   /** Uma por TENTATIVA de compra, gerada no navegador: reenviar a mesma
@@ -110,9 +111,7 @@ async function createDepositSession(db: Db, input: SessionInput, origin: string)
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) return { ok: false, error: "You need to sign in to place an order." };
 
   // Sem chave de idempotência (ou fora do formato) não há como prometer
@@ -216,9 +215,7 @@ export async function payOrderDeposit(code: string): Promise<{ url?: string; err
   if (!stripeConfigured()) return { error: "Online payment isn't enabled yet." };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) return { error: "Sign in first." };
 
   const { data: order } = await supabase

@@ -16,6 +16,7 @@ import { wishedProductIds } from "@/lib/wishlist";
 import { SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 import { DEPOSIT_PCT } from "@/lib/money";
 import { resolveDelivery, type PortRule } from "@/lib/delivery";
+import { sessionUser } from "@/lib/supabase/session";
 
 /**
  * Home = vitrine, na ordem do Sunny: hero, "Categories", grade de
@@ -200,9 +201,7 @@ async function loadCrew(): Promise<Crew> {
   if (!supabaseConfigured) return null;
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await sessionUser(supabase);
     if (!user) return null;
 
     // Berço, IMO, viagem, bandeira, ATA e atraso já estavam no banco e

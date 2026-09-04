@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { claimWishes } from "@/app/wishlist/actions";
 import { WISH_KEY, readPending } from "@/lib/wishstash";
+import { useWish } from "@/lib/wish";
 
 /**
  * Grava os corações marcados antes do login, assim que a sessão
@@ -26,6 +27,7 @@ export default function WishClaim() {
   const router = useRouter();
   const pathname = usePathname();
   const running = useRef(false);
+  const { bump } = useWish();
 
   useEffect(() => {
     let ids: string[] = [];
@@ -50,12 +52,15 @@ export default function WishClaim() {
         }
         // Redesenha para o coração nascer cheio onde a pessoa tocou,
         // em vez de continuar vazio até a próxima navegação.
-        if (res.saved > 0) router.refresh();
+        if (res.saved > 0) {
+          bump(res.saved);
+          router.refresh();
+        }
       } finally {
         running.current = false;
       }
     })();
-  }, [pathname, router]);
+  }, [pathname, router, bump]);
 
   return null;
 }

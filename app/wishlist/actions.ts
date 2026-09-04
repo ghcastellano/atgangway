@@ -2,23 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { sessionUser } from "@/lib/supabase/session";
 
 export type WishResult = { ok: boolean; wished: boolean; needsAuth?: boolean };
 
 /**
- * O que precisa ser redesenhado quando a lista muda.
- *
- * A página da lista é óbvia. O layout raiz entra porque o selo do ♡ no
- * cabeçalho mora lá: sem invalidar o layout, marcar um coração no
- * /shop deixaria o número do cabeçalho parado até a próxima recarga.
- *
- * É o martelo grande — invalida a árvore inteira. Cabe aqui porque as
- * telas já são dinâmicas e o que sobra de cache é a vitrine em
- * unstable_cache, que volta em uma consulta e vale por 300s.
+ * Só a página da lista precisa ser redesenhada. O selo do ♡ no
+ * cabeçalho já não depende do servidor: vive no navegador (lib/wish) e
+ * muda no toque. O `revalidatePath("/", "layout")` que ficava aqui
+ * redesenhava o site inteiro para trocar um dígito — e era isso que o
+ * cliente esperava, segundos, depois de cada coração.
  */
 function refreshWishViews() {
   revalidatePath("/wishlist");
-  revalidatePath("/", "layout");
 }
 
 /**
@@ -33,9 +29,7 @@ export async function toggleWish(productId: string): Promise<WishResult> {
   if (!productId) return { ok: false, wished: false };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) return { ok: false, wished: false, needsAuth: true };
 
   const { data: existing } = await supabase
@@ -83,9 +77,7 @@ export async function claimWishes(
   if (ids.length === 0) return { ok: true, saved: 0 };
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   // Ainda sem sessão: devolve sem apagar a fila, para tentar de novo.
   if (!user) return { ok: false, saved: 0, needsAuth: true };
 

@@ -7,6 +7,7 @@ import ShareCode from "@/components/ShareCode";
 import { createClient } from "@/lib/supabase/server";
 import { SITE_URL } from "@/lib/env";
 import { usd } from "@/lib/format";
+import { sessionUser } from "@/lib/supabase/session";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +19,7 @@ const TIERS = [
 
 export default async function CaptainPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) redirect("/login?next=/captain");
 
   const { data: profile } = await supabase

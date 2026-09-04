@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfigured } from "@/lib/env";
+import { sessionUser } from "@/lib/supabase/session";
 
 const PROTECTED_PREFIXES = ["/account", "/orders", "/checkout", "/admin", "/captain"];
 
@@ -36,14 +37,11 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // IMPORTANTE: nada entre criar o client e getUser() — mantém a sessão viva.
-  let user = null;
-  try {
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
-  } catch {
-    // backend fora do ar — não derruba a navegação pública
-  }
+  // IMPORTANTE: nada entre criar o client e a leitura da sessão — é ela
+  // que renova o token vencido e grava o cookie novo. getClaims() faz
+  // isso verificando o JWT localmente (chave pública em memória), sem a
+  // viagem ao servidor de Auth que getUser() fazia em TODA requisição.
+  const user = await sessionUser(supabase);
 
   const { pathname } = request.nextUrl;
   const needsAuth = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));

@@ -4,6 +4,8 @@ import SiteHeader from "./SiteHeader";
 import { createClient } from "@/lib/supabase/server";
 import { buildTree, type Category, type CategoryNode } from "@/lib/catalog";
 import { wishCount } from "@/lib/wishlist";
+import { sessionUser } from "@/lib/supabase/session";
+import { WishSeed } from "@/lib/wish";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 
 /**
@@ -62,26 +64,28 @@ const carregarArvore = unstable_cache(
 );
 
 /**
- * O cabeçalho precisa saber se há sessão: sem isso o menu mostrava
- * "Sign in / Sign out" como um link só, para /login, que não desloga
- * ninguém — quem estava logado clicava e nada acontecia.
+ * Sessão pelo JWT verificado localmente (lib/supabase/session), não por
+ * uma viagem ao servidor de Auth: o cabeçalho roda em TODA página.
  */
-async function temSessao(): Promise<boolean> {
+async function quemEsta() {
   try {
     const supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    return Boolean(data.user);
+    return await sessionUser(supabase);
   } catch {
-    return false;
+    return null;
   }
 }
 
 export default async function SiteChrome() {
-  const [tree, wishes, signedIn] = await Promise.all([
-    carregarArvore(),
-    wishCount(),
-    temSessao(),
-  ]);
+  // A sessão é local (sem rede) e decide se a contagem de favoritos
+  // precisa ir ao banco: visitante deslogado não gasta consulta nenhuma.
+  const [tree, user] = await Promise.all([carregarArvore(), quemEsta()]);
+  const wishes = user ? await wishCount() : 0;
 
-  return <SiteHeader tree={tree} wishCount={wishes} signedIn={signedIn} />;
+  return (
+    <>
+      <WishSeed count={wishes} />
+      <SiteHeader tree={tree} signedIn={Boolean(user)} />
+    </>
+  );
 }

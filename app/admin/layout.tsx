@@ -4,6 +4,7 @@ import AdminTabs from "@/components/AdminTabs";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/env";
 import { signOut } from "@/app/account/actions";
+import { sessionUser } from "@/lib/supabase/session";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await sessionUser(supabase);
   if (!user) redirect("/login?next=/admin");
 
   const { data: profile } = await supabase
