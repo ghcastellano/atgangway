@@ -174,13 +174,34 @@ const PAINEIS = [
 
 const nav = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 let total = 0;
+/** Rotas que não abriram. Ver o porquê disto existir logo abaixo. */
+const inacessiveis = [];
 for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]]) {
   const ctx = await nav.newContext({ viewport: { width: w, height: h } });
   const pg = await ctx.newPage();
   for (const rota of ROTAS) {
+    /**
+     * Rota que não abre é ERRO, nunca um "pulo" silencioso.
+     *
+     * Este `catch` engolia a falha e seguia. Rodei a auditoria contra
+     * https://atgangway.com, ela respondeu "0 regras abaixo do AA", e
+     * eu quase reportei isso como prova — mas o navegador desta caixa
+     * não alcança a internet: TODAS as 19 rotas foram puladas em
+     * silêncio e o zero era vácuo, não aprovação.
+     *
+     * Um teste que passa quando não testou nada é pior que teste
+     * nenhum, porque dá confiança. Agora ele acumula e reprova no fim.
+     */
     try {
-      await pg.goto(BASE + rota, { waitUntil: "networkidle", timeout: 20000 });
-    } catch { continue; }
+      const r = await pg.goto(BASE + rota, { waitUntil: "networkidle", timeout: 20000 });
+      if (!r || r.status() >= 400) {
+        inacessiveis.push(`${rota} (${larguraNome}) → HTTP ${r ? r.status() : "sem resposta"}`);
+        continue;
+      }
+    } catch (e) {
+      inacessiveis.push(`${rota} (${larguraNome}) → ${String(e).split("\n")[0].slice(0, 90)}`);
+      continue;
+    }
     await pg.waitForTimeout(250);
     const achados = await pg.evaluate(MEDIDOR);
     if (achados.length) {
@@ -228,5 +249,14 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
   await ctx.close();
 }
 await nav.close();
+
+if (inacessiveis.length) {
+  console.log(`\n!! ${inacessiveis.length} rota(s) NÃO ABRIRAM — a auditoria não cobriu:`);
+  for (const r of inacessiveis) console.log("   " + r);
+  console.log(
+    "\n   O navegador desta máquina alcança o servidor? Aponte para um\n" +
+      "   `next start` local — o artefato é o mesmo do deploy."
+  );
+}
 console.log(`\nTOTAL de regras distintas abaixo do AA: ${total}`);
-process.exit(total > 0 ? 1 : 0);
+process.exit(total > 0 || inacessiveis.length > 0 ? 1 : 0);

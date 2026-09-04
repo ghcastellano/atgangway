@@ -655,3 +655,34 @@ As três viraram isenções explícitas, com a razão escrita ao lado. O "−"
 desabilitado ficou visualmente melhor mesmo sendo isento: 35% de
 opacidade some no papel claro, e botão que some não lê como "desligado",
 lê como "sumiu".
+
+### O zero que não valia nada
+
+Rodei a auditoria contra `https://atgangway.com` para provar que
+produção estava limpa. Ela respondeu **"0 regras abaixo do AA"**, e eu
+quase reportei isso como prova.
+
+Não era. O navegador desta máquina não alcança a internet — o relay
+fecha os túneis do Chromium no meio da troca (`ws_closed_mid_exchange`;
+é o mesmo bloqueio que fez o carrinho girar e revelou aquele defeito).
+As 19 rotas falharam ao abrir, e o `catch { continue }` do script pulou
+todas em silêncio. O zero era vácuo, não aprovação.
+
+**Um teste que passa quando não testou nada é pior que teste nenhum,
+porque dá confiança.** O script agora acumula as rotas que não abriram,
+lista cada uma com o motivo e sai com código 1 — reprova por não ter
+testado, que é o veredito honesto.
+
+Verificado: contra produção inacessível, `exit 1`. Contra um
+`next start` local, `exit 0` com as 19 rotas medidas.
+
+Não contornei o bloqueio desligando a verificação de TLS do navegador —
+tentei o proxy do ambiente e ele não sustenta o tráfego do Chromium.
+A auditoria roda contra o `next start` local, que serve **o mesmo
+artefato** que a Vercel publica; o que se confere em produção é o CSS
+compilado, por `curl`:
+
+```
+CSS=$(curl -s https://atgangway.com/faq | grep -o 'href="[^"]*\.css[^"]*"')
+curl -s "https://atgangway.com${CSS#href=\"}" | grep -c '255,182,72'   # 0 = âmbar morto não voltou
+```
