@@ -220,6 +220,34 @@ gráfico de dez mil séries que ninguém lê.
 Observability. O código não cobra nada sozinho; a cobrança, se houver,
 vem do que for ligado no painel — confira o plano antes de ativar.
 
+### Teto de desempenho encontrado em 2026-09-04 (não corrigido — decisão do Gustavo)
+
+Medindo produção depois do deploy das métricas, o piso ficou em ~350 ms
+e o pico em 1,5 s. A investigação achou a causa, e ela **não** é o banco:
+
+- `/faq` (texto puro, nenhuma consulta) e `/shop` (catálogo inteiro) têm
+  **o mesmo tempo** — 0,35 s as duas. Isso PROVA que o cache do catálogo
+  de `lib/vitrine.ts` está segurando: a página que consulta não custa
+  mais que a que não consulta.
+- Mas as duas respondem `x-vercel-cache: MISS` e
+  `cache-control: private, no-cache, no-store`. E no build, das 43 rotas,
+  só 6 são estáticas — e as 6 são assets (ícone, manifest, robots,
+  sitemap). **Toda página HTML é dinâmica**, inclusive `/faq`.
+
+Causa: o layout raiz renderiza `SiteChrome`, que lê cookie para saber se
+há sessão. No App Router, um layout que usa `cookies()` marca a árvore
+INTEIRA como dinâmica — o `export const revalidate = 300` de `/shop` e
+`/c/[slug]` não vence isso. Nenhuma página é servida do CDN; toda visita
+executa a função em gru1, e os ~350 ms são o custo dessa execução.
+
+Caminho de correção (Next 16): PPR — a casca da página vira estática e
+o cabeçalho fica num `<Suspense>` dinâmico. Alternativa: `SiteChrome`
+virar componente de cliente que busca a sessão por uma rota de API.
+
+**Por que NÃO foi feito agora**: mexe no layout raiz, afeta as 43 rotas,
+e o ganho hoje é zero — não há visitante. Vale fazer quando houver
+tráfego real, com uma medição antes e depois.
+
 ## Como verificar que está tudo vivo (5 min)
 
 ```
