@@ -1,12 +1,50 @@
 /* Fontes self-hosted (Google Fonts baixadas no build do repo) —
-   sem dependência externa: carrega até com a internet do navio. */
+   sem dependência externa: carrega até com a internet do navio.
+
+   `font-display: optional`, e NÃO `swap`. Medido com o Lighthouse:
+   a home tinha CLS de 0,206 — o dobro do limite do Core Web Vitals —
+   e a causa era exatamente o swap. O navegador pinta o título com a
+   fonte do sistema, a Bricolage chega, e como ela é 7,3% MAIS ESTREITA
+   que o fallback (medido no navegador: 2024px contra 2184px na mesma
+   frase), a quebra de linha muda e tudo abaixo do título salta. Os
+   botões do herói eram o que pulava.
+
+   `optional` dá ao navegador ~100ms de bloqueio: se a fonte chegou,
+   usa; se não chegou, desenha com o fallback e NÃO troca no meio.
+   Nenhum salto, nunca — e na visita seguinte ela está em cache e
+   aparece desde o primeiro quadro.
+
+   Cheguei a pré-carregar os dois arquivos e MEDI que fica pior: o CLS
+   já era zero só com `optional`, e o preload de 125 KB em prioridade
+   alta disputava banda com o conteúdo — o LCP da home subiu de 2,8s
+   para 3,8s no 4G lento do Lighthouse. Trocar um segundo de espera por
+   uma fonte bonita na primeira visita é mau negócio para quem abre a
+   loja no wifi do navio.
+
+   As duas famílias de fallback abaixo existem para o caso em que ela
+   NÃO chega: `size-adjust` aproxima a métrica do fallback da fonte
+   real, então a página que abre sem a fonte tem quase a mesma forma da
+   que abre com ela. Os percentuais foram medidos, não estimados. */
+
+/* Fallback com a métrica da Bricolage: 92,68% da largura do Arial. */
+@font-face {
+  font-family: 'Bricolage fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans'), local('Roboto');
+  size-adjust: 92.68%;
+}
+/* Fallback com a métrica da Inter: 106,06% da largura do Arial. */
+@font-face {
+  font-family: 'Inter fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans'), local('Roboto');
+  size-adjust: 106.06%;
+}
 
 @font-face {
   font-family: 'Bricolage Grotesque';
   font-style: normal;
   font-weight: 600;
   font-stretch: 100%;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/bricolage-grotesque-600-latin-ext-6441e9c6.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -16,7 +54,7 @@
   font-style: normal;
   font-weight: 600;
   font-stretch: 100%;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/bricolage-grotesque-600-latin-4efd1a5a.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -26,7 +64,7 @@
   font-style: normal;
   font-weight: 700;
   font-stretch: 100%;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/bricolage-grotesque-600-latin-ext-6441e9c6.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -36,7 +74,7 @@
   font-style: normal;
   font-weight: 700;
   font-stretch: 100%;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/bricolage-grotesque-600-latin-4efd1a5a.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -46,7 +84,7 @@
   font-style: normal;
   font-weight: 800;
   font-stretch: 100%;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/bricolage-grotesque-600-latin-ext-6441e9c6.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -56,7 +94,7 @@
   font-style: normal;
   font-weight: 800;
   font-stretch: 100%;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/bricolage-grotesque-600-latin-4efd1a5a.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -65,7 +103,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -74,7 +112,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -83,7 +121,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -92,7 +130,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 500;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -101,7 +139,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 600;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -110,7 +148,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 600;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
@@ -119,7 +157,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 700;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-ext-749a3084.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -128,7 +166,7 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 700;
-  font-display: swap;
+  font-display: optional;
   src: url(/fonts/inter-400-latin-1ab1ad55.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }

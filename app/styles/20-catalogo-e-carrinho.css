@@ -124,7 +124,18 @@
 /* Altura reservada para o carrinho enquanto ele não resolve. 300px é a
    altura do estado vazio — com isso o caso mais comum (chegou, não tem
    nada) para de empurrar o rodapé, e o caso com itens empurra menos. */
-.cartslot { min-height: 300px; }
+/* A reserva tem de ser a altura REAL do que vai aparecer.
+   Eram 300px contra 363px do estado vazio: 63px de salto, CLS de
+   0,112 medido pelo Lighthouse — acima do limite de 0,1. O número saiu
+   de medição no navegador, não de estimativa.
+
+   O carrinho COM itens ainda salta um pouco: o servidor não sabe o que
+   há no localStorage do aparelho, então não tem como reservar a altura
+   certa. Resolver isso exige espelhar a contagem num cookie para o
+   servidor desenhar N linhas de esqueleto — está no roadmap, e vale
+   quando houver tráfego de gente com carrinho cheio. O caso que a
+   primeira visita vê, que é o vazio, agora não salta. */
+.cartslot { min-height: 364px; }
 .empty .i { font-size: 40px; margin-bottom: 12px; }
 
 /* ---- estado vazio com voz -------------------------------------
