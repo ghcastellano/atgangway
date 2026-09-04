@@ -157,6 +157,42 @@ estoque físico de verdade.
   (`components/AccountTabs.tsx`); o rail lateral só a partir de 1024px.
 - **Fotos**: 4 repostas do acervo aberto, Banana Boat SPF 50 desligado (118 ativos).
 
+### Ainda em 2026-09-04 — desempenho medido e acerto de interface
+
+- **Leitura do relatório de queries** (`pg_stat_statements`, janela de 8 dias):
+  não havia query lenta, havia repetição. `list_products` 58×/h,
+  `category_counts` 48×/h, `brands`+`categories` ~45×/h cada — a vitrine
+  refeita a cada visita porque `/shop` e `/c` abriam o client com cookie,
+  o que tira a página do cache. `lib/vitrine.ts` põe as quatro em
+  `unstable_cache` (client anônimo, tag `catalog`, 300 s). Medido: `/shop`
+  441 ms frio → 22 ms em cache.
+- **`sync_ship_etas`** (migração `20260904050000`): o cron chamava
+  `sync_ship_eta` uma vez por navio (~92×/h, 18 mil na janela). Agora manda
+  a lista inteira numa chamada e o banco itera. Rodada das 05:00 UTC de
+  2026-09-04: 98 navios, 0 falhas.
+- **Status do pedido do cliente**: havia uma régua PARALELA na página do
+  pedido (quatro marcos, outros rótulos) que divergia do painel —
+  `awaiting_deposit` acendia "Deposit received", `deposit_paid` acendia
+  "We shop & pack". Agora o passo vem de `orderStep()` sobre o mesmo
+  `ORDER_FLOW` do painel, com os rótulos de `STATUS_LABEL`. E
+  `revalidatePath("/orders")` não alcançava `/orders/<code>`: as duas rotas
+  são revalidadas.
+- **Coração no celular**: uma regra escondia conta E favoritos abaixo de
+  768px. A conta continua na gaveta; o ♡ voltou ao cabeçalho.
+- **Auditoria de layout no navegador** (14 páginas × 360/390/768/1024/1440),
+  medindo estouro lateral, sobreposição, blocos colados e alvos de toque.
+  Corrigidos: barra da listagem (grade de duas linhas no celular), rodapé,
+  trilha, links legais, olho da senha, KPIs e fita de filtros do painel,
+  popover de avisos. Resultado final: zero estouros, zero sobreposições.
+- **Vercel Web Analytics**: `@vercel/analytics` instalado e no bundle;
+  `/_vercel/insights/script.js` responde 200. **Falta ativar no painel**
+  (Analytics → Enable) para os dados aparecerem — é o plano gratuito.
+  O conector MCP da Vercel devolve 403 de escopo, então não dá para ler os
+  números nem ativar daqui.
+- **Público real em 2026-09-04**: 2 contas (as duas de staff), 1 pessoa com
+  pedido, 6 pedidos, US$ 818,50, 9 favoritos. Não há cliente de fora ainda;
+  todo o movimento nas métricas do banco é build, teste e robô.
+
 ## Como verificar que está tudo vivo (5 min)
 
 ```
