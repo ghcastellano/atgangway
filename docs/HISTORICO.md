@@ -68,17 +68,17 @@ em `atgangway` resolve os links.
 
 ## Estado do catálogo
 
-131 produtos, **119 ativos** (Food & Drinks 81 · Beauty & Health 32 ·
-Connectivity 6), 0 com preço, variante ou caminho de foto vazio. 12 desligados
+131 produtos, **118 ativos** (Food & Drinks 81 · Beauty & Health 31 ·
+Connectivity 6), 0 com preço, variante ou caminho de foto vazio. 13 desligados
 por foto ruim ou regulação. Lista completa com situação de cada foto:
 `docs/fotos-pendentes.csv`.
 
-Auditoria local em **2026-09-02** encontrou cinco caminhos preenchidos que não
-existem em `public/produtos/` e também respondem 404 em produção:
-`EAN-7896005801819`, `EAN-7891000286449`, `EAN-0079656049718`,
-`EAN-0079656026078` e `EAN-42467045`. Os produtos continuam ativos; as fotos
-não foram improvisadas nem copiadas de sites de marca por causa da decisão de
-licença acima.
+Auditoria de **2026-09-02** achou cinco caminhos de foto que não existiam em
+`public/produtos/` (404 em produção). Em **2026-09-04** quatro foram repostos do
+acervo aberto pelo mesmo portão de qualidade e molde de 1000 px
+(`EAN-7896005801819`, `EAN-7891000286449`, `EAN-0079656049718`, `EAN-42467045`);
+o quinto, `EAN-0079656026078` (Banana Boat SPF 50), só tinha no acervo um spray
+Kids desfocado — produto **desligado** até chegar foto de verdade.
 
 `track_stock` está **false** nas 131 variantes (119 com `stock_qty = 0`). O
 mecanismo de estoque está armado; ligar é por produto, no admin, quando houver
@@ -99,8 +99,7 @@ estoque físico de verdade.
    (hoje o modo live tem zero webhooks; o de teste foi corrigido em
    2026-09-03 — apontava para `www.marinerssupplyco.com`, que responde 404).
    O signing secret do endpoint live vai em `STRIPE_WEBHOOK_SECRET`.
-3. **Fotos**: repor primeiro os cinco arquivos ativos com 404 listados acima;
-   mandar `docs/emails-fornecedores.md` (22 grupos, 43 SKUs) e/ou fotografar;
+3. **Fotos**: mandar `docs/emails-fornecedores.md` (22 grupos, 43 SKUs) e/ou fotografar;
    ao receber, `scripts/normalizar-fotos.mjs` põe no molde de 1000 px. Depois
    religar os 8 produtos desligados por foto.
 4. **Primeira necessidade** (lâmina, escova, xampu, sabão em pó, repelente,
