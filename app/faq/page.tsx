@@ -13,7 +13,9 @@ export const metadata: Metadata = {
 /**
  * FAQ no mesmo acordeão do rodapé (.sunfoot-sec): a tripulação já abre
  * e fecha aquilo todo dia, e uma segunda gramática de "abrir seção" na
- * mesma casca só cria dúvida.
+ * mesma casca só cria dúvida. O que é compartilhado é a CASCA — a
+ * resposta tem tipografia própria (.faq-a), porque é texto de leitura
+ * e não uma fileira de links.
  *
  * [otim] <details>/<summary> nativos, sem estado em React: a página é
  * Server Component puro, abre antes de qualquer hidratação e o leitor
@@ -165,9 +167,16 @@ export default function FaqPage() {
       {QA.map((item) => (
         <details key={item.q} className="sunfoot-sec">
           <summary>{item.q}</summary>
-          <div className="sunfoot-body">
-            <span>{item.a}</span>
-          </div>
+          {/* Classe PRÓPRIA, não a do rodapé.
+              O corpo da resposta usava `.sunfoot-body` com a resposta
+              inteira dentro de um <span> — e a regra do rodapé fazia
+              `span { display: flex }`. Flex é em LINHA por padrão, então
+              cada trecho de texto e cada link viravam uma COLUNA: a
+              resposta se partia em três pedaços lado a lado. O acordeão
+              (.sunfoot-sec) continua compartilhado porque é casca; o
+              conteúdo é texto de leitura e não tem nada a ver com uma
+              fileira de links de rodapé. */}
+          <div className="faq-a">{item.a}</div>
         </details>
       ))}
     </main>

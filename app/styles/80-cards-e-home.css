@@ -878,7 +878,12 @@
 .pagettl {
   font-family: var(--font-disp); font-weight: 800; font-size: 26px;
   line-height: 1.12; letter-spacing: -.01em; color: var(--ink);
-  position: relative; margin: 12px 16px 0; padding-bottom: 11px;
+  position: relative; margin: 12px 16px 0;
+  /* 11px não bastava: o traço fica em `bottom: 0` e a perna do Q em
+     "FAQ" descia por cima dele. Título com descida cortada por um filete
+     âmbar é o tipo de detalhe que ninguém sabe nomear e todo mundo
+     sente. */
+  padding-bottom: 16px;
   text-wrap: balance;
 }
 .pagettl::after {
@@ -901,14 +906,20 @@
   color: var(--ink); font-size: 12.5px; line-height: 1.55;
 }
 
-/* Link no meio de resposta do FAQ. No rodapé a linha inteira é link e
-   pintar tudo de --muted funciona; aqui o link mora dentro do parágrafo
-   e sem contraste ninguém percebe que dá para clicar. */
-.sunfoot-body a.alink { color: var(--amber-hi); font-weight: 600; }
-.sunfoot-body a.alink:hover { text-decoration: underline; }
-/* Resposta de FAQ é texto de leitura, não linha de rodapé: 13px de
-   rodapé em parágrafo de cinco linhas cansa. */
-.sunfoot-body .pdp-text { font-size: 14px; }
+/* Corpo da resposta do FAQ.
+   Texto de LEITURA: um parágrafo de cinco linhas a 13px de rodapé
+   cansa, e a medida da linha precisa de teto — linha de 1200px num
+   monitor largo faz o olho perder onde estava ao voltar. */
+.faq-a {
+  padding: 0 18px 18px;
+  max-width: var(--read-w);
+  color: var(--muted); font-size: 14.5px; line-height: 1.65;
+}
+/* Link no meio de resposta: sem contraste ninguém percebe que dá para
+   clicar, e sublinhado permanente numa resposta de cinco linhas vira
+   ruído. Peso e cor sempre; sublinhado no hover e no foco. */
+.faq-a a.alink { color: var(--amber-hi); font-weight: 600; }
+.faq-a a.alink:hover, .faq-a a.alink:focus-visible { text-decoration: underline; }
 
 /* Ícone de categoria em SVG: herda a cor do cartão e ganha o âmbar no
    hover, como o resto da família. O emoji do banco continua servindo

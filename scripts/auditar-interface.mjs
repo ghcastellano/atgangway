@@ -1,5 +1,11 @@
 /**
- * Auditoria de contraste NO NAVEGADOR, sobre a página renderizada.
+ * Auditoria de interface NO NAVEGADOR, sobre a página renderizada.
+ *
+ * Duas famílias de achado, pela mesma razão: defeito que se vê na tela
+ * e não no código.
+ *
+ *   CONTRASTE — cor computada contra fundo efetivo.
+ *   LAYOUT    — texto corrido dentro de um container flex/grid.
  *
  * O teste de cores que já existe (tests/cores.test.mjs) confere pares
  * de TOKENS que eu escolho à mão. Ele é bom e barato, mas só enxerga o
@@ -13,7 +19,7 @@
  * o fundo EFETIVO (subindo a árvore até achar quem pinta), incluindo a
  * mistura de fundos translúcidos. É o que o olho vê.
  *
- *   node scripts/auditar-contraste.mjs http://127.0.0.1:3000
+ *   node scripts/auditar-interface.mjs http://127.0.0.1:3000
  *
  * Ela também ABRE o que nasce fechado antes de medir. O logotipo da
  * gaveta de categorias ficou ilegível por um dia inteiro — âmbar cheio
@@ -172,6 +178,64 @@ const PAINEIS = [
   { nome: "menu da conta", abrir: "button[aria-label='Account menu']", fechar: "button[aria-label='Account menu']" },
 ];
 
+/**
+ * TEXTO CORRIDO DENTRO DE FLEX/GRID.
+ *
+ * Este achado existe por causa de um bug real e feio: a resposta do FAQ
+ * se partia em três colunas — um pedaço da frase, o link numa coluna
+ * estreita, o resto da frase noutra. A causa era uma regra do RODAPÉ,
+ * `.sunfoot-body span { display: flex }`, escrita para uma fileira de
+ * links de uma linha e herdada por uma página que reaproveitou a
+ * classe. Flex é em linha por padrão, então cada trecho de texto vira
+ * uma coluna anônima.
+ *
+ * Nenhum teste pegava, e a auditoria de contraste também não: as cores
+ * estavam certas. O que estava errado era a CAIXA.
+ *
+ * Dois padrões, os dois praticamente impossíveis de serem intenção:
+ *
+ *   texto → elemento → texto   uma frase partida por um <a> ou <b>;
+ *   texto com 40+ caracteres   frase inteira virando item de flex.
+ *
+ * O que NÃO é acusado: ícone + rótulo curto (`<Icon/> Salvar`), que é
+ * o motivo legítimo de haver texto solto num container flex.
+ */
+const MEDIDOR_LAYOUT = () => {
+  const achados = [];
+  for (const el of document.querySelectorAll("body *")) {
+    const st = getComputedStyle(el);
+    if (!/^(inline-)?(flex|grid)$/.test(st.display)) continue;
+    if (st.visibility === "hidden") continue;
+
+    const filhos = [...el.childNodes];
+    const corridos = filhos.filter(
+      (n) => n.nodeType === 3 && n.textContent.trim().length > 0
+    );
+    if (corridos.length === 0) continue;
+
+    // frase partida por um elemento: texto, elemento, texto
+    const seq = filhos
+      .filter((n) => (n.nodeType === 3 ? n.textContent.trim() : n.nodeType === 1))
+      .map((n) => (n.nodeType === 3 ? "t" : "e"))
+      .join("");
+    const partida = /t\s*e\s*t/.test(seq) || seq.includes("tet");
+    const longo = corridos.some((n) => n.textContent.trim().length >= 40);
+    if (!partida && !longo) continue;
+
+    achados.push({
+      classe:
+        el.className && typeof el.className === "string"
+          ? el.className.slice(0, 40)
+          : el.tagName,
+      display: st.display,
+      direcao: st.flexDirection || "",
+      motivo: partida ? "frase partida por elemento" : "frase inteira como item de flex",
+      texto: corridos.map((n) => n.textContent.trim()).join(" ").slice(0, 60),
+    });
+  }
+  return achados;
+};
+
 const nav = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 let total = 0;
 /** Rotas que não abriram. Ver o porquê disto existir logo abaixo. */
@@ -230,6 +294,20 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
       }
     }
 
+    const layout = await pg.evaluate(MEDIDOR_LAYOUT);
+    if (layout.length) {
+      console.log(`\n### ${rota}  (${larguraNome})  — LAYOUT`);
+      const vistos3 = new Set();
+      for (const a of layout) {
+        if (vistos3.has(a.classe)) continue;
+        vistos3.add(a.classe);
+        total++;
+        console.log(
+          `  texto corrido em display:${a.display}${a.direcao ? " / " + a.direcao : ""}  .${a.classe}  — ${a.motivo}  “${a.texto}”`
+        );
+      }
+    }
+
     // Os painéis só na vitrine: é onde eles existem, e abrir em toda
     // rota multiplicaria o tempo por três sem achar nada novo.
     if (rota !== "/shop") continue;
@@ -268,5 +346,5 @@ if (inacessiveis.length) {
       "   `next start` local — o artefato é o mesmo do deploy."
   );
 }
-console.log(`\nTOTAL de regras distintas abaixo do AA: ${total}`);
+console.log(`\nTOTAL de achados distintos (contraste + layout): ${total}`);
 process.exit(total > 0 || inacessiveis.length > 0 ? 1 : 0);

@@ -709,3 +709,64 @@ O teste foi validado duas vezes, reintroduzindo defeito de propósito:
 o logotipo da gaveta (pega, `2.15:1 … "Gangway"`) e o selo "New"
 (pega, `3.25:1`, `exit 1`, seis rotas). Estado final: `exit 0`, 19
 rotas × 2 larguras + 3 painéis, 0 regras abaixo do AA; 254 testes.
+
+## 2026-09-04 — a resposta do FAQ partida em três colunas
+
+Relato do Gustavo, com print: as respostas do FAQ apareciam quebradas —
+um pedaço da frase, o link numa coluna estreita no meio, o resto da
+frase noutra coluna.
+
+A causa é de manual, e vale guardar. O FAQ reaproveitava a casca do
+acordeão do rodapé, e junto veio esta regra:
+
+```css
+.sunfoot-body a, .sunfoot-body span { min-height: 40px; display: flex; }
+```
+
+Ela é CERTA no rodapé, onde cada `<span>` é um rótulo de uma linha e
+precisa de 40px de alvo de dedo. Mas o FAQ envolvia a RESPOSTA INTEIRA
+num `<span>` — e `display: flex` é em linha por padrão, então cada
+trecho de texto e cada `<a>` viravam um item de flex, ou seja, uma
+coluna. A frase se partia em três.
+
+Regra de componente que não diz de que componente é acaba assim: certa
+no lugar em que nasceu, destruidora dois arquivos adiante.
+
+Corrigido nas duas pontas, porque as duas estavam erradas:
+
+- a regra do rodapé foi escopada em `.sunfoot` — não pode mais atingir
+  quem só reaproveita a classe;
+- o FAQ ganhou classe própria (`.faq-a`) com tipografia de LEITURA:
+  14,5px, entrelinha 1,65 e `max-width: var(--read-w)`, porque linha de
+  1200px num monitor largo faz o olho perder onde estava ao voltar. O
+  acordeão (`.sunfoot-sec`) continua compartilhado — casca é casca.
+
+Junto: o filete âmbar de `.pagettl` passava POR CIMA da perna do Q em
+"FAQ". `padding-bottom` de 11px para 16px.
+
+### A auditoria virou de INTERFACE, não só de contraste
+
+Nenhum teste pegava isso, e a auditoria de contraste também não: as
+cores estavam certas. O que estava errado era a CAIXA.
+
+`scripts/auditar-interface.mjs` (`npm run audit:ui`) agora tem duas
+famílias de achado. A nova acusa **texto corrido dentro de container
+flex/grid**, por dois padrões que praticamente nunca são intenção:
+
+- `texto → elemento → texto` — uma frase partida por um `<a>` ou `<b>`;
+- um trecho de texto solto com 40+ caracteres — frase inteira virando
+  item de flex.
+
+O que ela NÃO acusa é ícone + rótulo curto (`<Icon/> Salvar`), que é o
+motivo legítimo de haver texto solto num container flex.
+
+Validada do mesmo jeito que as outras: reintroduzi o bug (as duas
+metades — o `<span>` e a regra sem escopo), confirmei que ela reprova
+nomeando a causa —
+
+```
+### /faq (desktop) — LAYOUT
+  texto corrido em display:flex / row  .SPAN  — frase partida por elemento
+```
+
+— e só então restaurei. Estado final: `exit 0`, 0 achados, 254 testes.

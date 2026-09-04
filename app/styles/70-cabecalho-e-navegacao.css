@@ -319,12 +319,22 @@
 .sunfoot-sec[open] > summary::after { content: "⌃"; }
 .sunfoot-body { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 2px; }
 /* Link de rodapé no celular é alvo de dedo, não linha de texto: 20px de
-   altura com 9px de vão lia como uma parede de links quase colados. */
-.sunfoot-body a, .sunfoot-body span { min-height: 40px; display: flex; align-items: center; }
-.sunfoot-body a, .sunfoot-body span {
+   altura com 9px de vão lia como uma parede de links quase colados.
+   
+   ESCOPADO EM .sunfoot, e isso não é zelo: sem o escopo, `span` vira
+   `display: flex` em qualquer lugar que reaproveite a classe. O FAQ
+   reaproveitava, e como flex é EM LINHA por padrão, a resposta inteira
+   se partia em colunas — um pedaço do texto, o link numa coluna
+   estreita, o resto do texto noutra. Regra de componente que não diz
+   de que componente é acaba assim: certa no lugar em que nasceu,
+   destruidora dois arquivos adiante. */
+.sunfoot .sunfoot-body a, .sunfoot .sunfoot-body span {
+  min-height: 40px; display: flex; align-items: center;
+}
+.sunfoot .sunfoot-body a, .sunfoot .sunfoot-body span {
   color: var(--muted); font-size: 13px; text-decoration: none; line-height: 1.5;
 }
-.sunfoot-body a:hover { color: var(--amber-hi); }
+.sunfoot .sunfoot-body a:hover { color: var(--amber-hi); }
 /* Chips de pagamento no padrão de mercado: mesmo tamanho, contorno
    discreto, marca desenhada em um tom só. Nem as pastilhas brancas da
    primeira versão (o elemento mais claro da página inteira), nem o
