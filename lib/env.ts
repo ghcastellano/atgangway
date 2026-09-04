@@ -43,3 +43,21 @@ export const SITE_URL =
 
 export const CONTACT_EMAIL =
   process.env.NEXT_PUBLIC_CONTACT_EMAIL || "help@atgangway.com";
+
+/**
+ * O WhatsApp do balcão, e o link já com mensagem dentro.
+ *
+ * Morava cravado no rodapé. Agora que o herói também oferece a
+ * conversa, um número em dois lugares é um número que um dia vai
+ * divergir — e o que diverge é justamente o canal pelo qual o cliente
+ * pede socorro na véspera de atracar.
+ *
+ * `wa.me` SEM `?text=` abre a conversa em branco: a pessoa toca, cai
+ * num chat vazio com um número desconhecido e fecha. O texto entra
+ * sempre, e diz de onde ela veio.
+ */
+export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP || "5511970561448";
+
+export function whatsappLink(mensagem: string): string {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensagem)}`;
+}

@@ -244,4 +244,5 @@ export function packSize(name: string): { title: string; unit: string | null } {
   return { title, unit: m[1].replace(/\s+/g, " ").trim() };
 }
 
-export type BrandOption = { id: string; slug: string; name: string };
+/** Marca com produto ativo. `count` é o que o filtro devolve se clicado. */
+export type BrandOption = { id: string; slug: string; name: string; count: number };

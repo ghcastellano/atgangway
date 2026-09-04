@@ -1,13 +1,16 @@
 /* ===== grade de categorias ===== */
 .catgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
-@media (min-width: 560px) { .catgrid { grid-template-columns: repeat(3, 1fr); } }
+/* Era 3 colunas a partir de 560px, e por vir depois na cascata era ela
+   que valia no tablet — daí o 3 + 1 com buraco. Quem manda agora é a
+   escada de 80-cards-e-home (1 → 2 → 3), que fecha a grade em todas as
+   larguras. */
 .catcard {
   display: flex; align-items: center; gap: 10px;
   background: var(--card); border: 1px solid var(--line); border-radius: 13px;
   padding: 13px 12px; text-decoration: none; color: var(--ink);
   transition: border-color .16s, background .16s;
 }
-.catcard:hover { border-color: rgba(255,182,72,.45); background: var(--card-hi); }
+.catcard:hover { border-color: rgba(var(--amber-rgb),.45); background: var(--card-hi); }
 .catcard .ic { font-size: 20px; line-height: 1; flex: none; }
 .catcard .tx { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .catcard .nm { font-size: 13px; font-weight: 600; line-height: 1.2; }
@@ -70,7 +73,7 @@
   font-weight: 500; font-size: 12px; color: var(--faint);
   font-variant-numeric: tabular-nums;
 }
-.offers a:hover { border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
+.offers a:hover { border-color: rgba(var(--amber-rgb),.5); color: var(--amber-hi); }
 .offers a.on { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
 .offers a.on b { color: var(--amber-ink); opacity: .75; }
 
@@ -97,7 +100,7 @@
   color: var(--ink); font-size: 13px; padding: 7px 10px; font-family: var(--font-body);
   cursor: pointer; transition: border-color .2s;
 }
-.sortsel:hover { border-color: rgba(255,182,72,.5); }
+.sortsel:hover { border-color: rgba(var(--amber-rgb),.5); }
 
 /* ===== busca ===== */
 .searchwrap { padding: 10px 14px 2px; }
@@ -112,7 +115,7 @@
   font-size: 16px; /* 16px impede o zoom automático do iOS ao focar */
   padding: 12px 0; font-family: var(--font-body);
 }
-.searchbox button { background: none; border: 0; color: var(--amber); font-size: 17px; cursor: pointer; padding: 4px; transition: color .15s; }
+.searchbox button { background: none; border: 0; color: var(--amber-hi); font-size: 17px; cursor: pointer; padding: 4px; transition: color .15s; }
 .searchbox button:hover { color: var(--amber-hi); }
 
 /* ===== ficha do produto ===== */
@@ -156,7 +159,7 @@
 .stockline i { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); flex: none; }
 /* "Only 3 left" em âmbar: é urgência, não a mesma boa notícia do
    "In stock" — em teal os dois liam igual e o aviso não avisava. */
-.stockline.low { color: var(--amber); }
+.stockline.low { color: var(--amber-hi); }
 .stockline.low i { background: var(--amber); }
 .stockline.out { color: var(--faint); }
 .stockline.out i { background: var(--faint); }
@@ -218,7 +221,7 @@
 }
 .specs li::before {
   content: "•"; position: absolute; left: 2px; top: -1px;
-  color: var(--amber); font-size: 15px;
+  color: var(--amber-hi); font-size: 15px;
 }
 
 /* Barra fixa de compra: a ficha é longa e ninguém deveria rolar de
@@ -228,7 +231,23 @@
   width: 100%; max-width: var(--shell-w);
   display: flex; align-items: center; gap: 10px;
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(4,13,26,.94); backdrop-filter: blur(12px);
+  /* Superfície ESCURA por escolha, como o cabeçalho: as duas emolduram
+     o app e dizem "isto é a casca, não a página". O que estava errado
+     era a tinta dentro dela — .nm usava var(--ink), que na inversão
+     virou #0B1B30, e o NOME DO PRODUTO ficava invisível sobre o
+     azul-noite. Sobrava a miniatura, um preço âmbar e um "Add" sem
+     objeto: a barra que fecha a compra não dizia o que se estava
+     comprando.
+
+     A correção é a mesma do .sunhead: redefinir os tokens no escopo,
+     em vez de recolorir cada regra de dentro. */
+  --ink: var(--dark-ink);
+  --muted: var(--dark-muted);
+  --faint: var(--dark-faint);
+  --line-hi: rgba(238,244,248,.20);
+  --amber-hi: var(--amber-on-dark);
+  color: var(--ink);
+  background: rgba(var(--ink-rgb),.96); backdrop-filter: blur(12px);
   border-top: 1px solid var(--line-hi);
   /* Sobe uma vez na chegada — anuncia que a compra viaja junto com a
      rolagem. O translateX(-50%) da centralização precisa sobreviver
@@ -245,7 +264,7 @@
   color: var(--ink); font-size: 12.5px; font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.buydock .pr { color: var(--amber); font-size: 14px; font-weight: 700; }
+.buydock .pr { color: var(--amber-hi); font-size: 14px; font-weight: 700; }
 .buydock .btn { margin: 0; flex: none; width: auto; padding: 11px 20px; }
 /* A área segura tem de voltar: esta regra sobrescrevia a da linha 99 e
    perdia o env(), então no iPhone com home indicator os últimos 34px da
@@ -328,5 +347,5 @@
   padding: 10px 12px; max-height: 260px; overflow: auto;
 }
 .impissues li { font-size: 12px; color: var(--muted); padding: 3px 0; list-style: none; }
-.impissues li b { color: var(--amber); font-family: var(--font-mono); }
+.impissues li b { color: var(--amber-hi); font-family: var(--font-mono); }
 

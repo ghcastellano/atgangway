@@ -13,6 +13,9 @@ import type { BrandOption, CategoryNode } from "@/lib/catalog";
  * aberta são 28 linhas de uma vez — vira parede, não navegação.
  */
 
+/** Quantas marcas o trilho mostra sem precisar abrir. */
+const MAIS_VISIVEIS = 8;
+
 function ramoAberto(root: CategoryNode, activeSlug: string | null): boolean {
   if (!activeSlug) return false;
   if (root.slug === activeSlug) return true;
@@ -41,6 +44,23 @@ export default function FacetRail({
   brandHref?: (slug: string | null) => string;
 }) {
   if (tree.length === 0) return null;
+
+  // O trilho listava TODAS as marcas, em ordem de cadastro, sem número
+  // e sem fim: em 1920px a lista passava da dobra e empurrava a coluna
+  // inteira: quem rolava a página rolava um índice de fornecedor. Agora
+  // aparecem as MAIS_VISIVEIS com mais produto (a ordem vem de
+  // marcasEmUso), e as demais ficam atrás de "N more brands".
+  //
+  // A marca ATIVA entra na lista visível mesmo que seja a trigésima —
+  // filtro ligado escondido dentro de um acordeão fechado é filtro que
+  // a pessoa não consegue desligar.
+  const visiveis = brands.slice(0, MAIS_VISIVEIS);
+  const ativaEscondida =
+    activeBrand && !visiveis.some((b) => b.slug === activeBrand)
+      ? brands.find((b) => b.slug === activeBrand)
+      : undefined;
+  const aMostrar = ativaEscondida ? [ativaEscondida, ...visiveis] : visiveis;
+  const resto = brands.filter((b) => !aMostrar.some((v) => v.id === b.id));
 
   return (
     <aside className="facets" aria-label="Filters">
@@ -94,17 +114,42 @@ export default function FacetRail({
                 <Link href={brandHref(null)}>All brands</Link>
               </li>
             )}
-            {brands.map((b) => (
+            {aMostrar.map((b) => (
               <li key={b.id}>
                 <Link
                   href={brandHref(b.slug === activeBrand ? null : b.slug)}
                   className={b.slug === activeBrand ? "on" : ""}
                 >
                   {b.name}
+                  <span className="ct">{b.count}</span>
                 </Link>
               </li>
             ))}
           </ul>
+
+          {/* O resto atrás de um <details>: sem JavaScript, e fechado
+              por padrão porque o trilho é navegação lateral, não um
+              índice do fornecedor. */}
+          {resto.length > 0 && (
+            <details className="facet-mais">
+              <summary>
+                {resto.length} more brand{resto.length === 1 ? "" : "s"}
+              </summary>
+              <ul className="facet-l">
+                {resto.map((b) => (
+                  <li key={b.id}>
+                    <Link
+                      href={brandHref(b.slug === activeBrand ? null : b.slug)}
+                      className={b.slug === activeBrand ? "on" : ""}
+                    >
+                      {b.name}
+                      <span className="ct">{b.count}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
         </div>
       )}
     </aside>

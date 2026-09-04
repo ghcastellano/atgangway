@@ -32,6 +32,8 @@ type Line = {
 export default function MiniCart({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { items, change, count } = useCart();
   const [lines, setLines] = useState<Line[] | null>(null);
+  /** A leitura do catálogo não voltou — ver o efeito abaixo. */
+  const [falhaCarga, setFalhaCarga] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const ids = useMemo(() => Object.keys(items), [items]);
 
@@ -41,15 +43,30 @@ export default function MiniCart({ open, onClose }: { open: boolean; onClose: ()
       setLines([]);
       return;
     }
-    const supabase = createClient();
-    supabase
-      .from("product_variants")
-      .select(
-        `id, sku, option_label, price_cents, image_path, active,
-         products!product_variants_product_id_fkey!inner(name, slug, primary_image_path, active)`
-      )
-      .in("id", ids)
-      .then(({ data }) => {
+    // Mesmo teto de tempo do carrinho e do checkout, mais curto porque
+    // isto é uma gaveta: 8 s. Sem `abortSignal` o wifi de bordo não
+    // recusa, ele PENDURA — e a gaveta ficava girando por cima da
+    // vitrine, sem dizer nada e sem fechar sozinha.
+    const ctl = new AbortController();
+    const relogio = setTimeout(() => ctl.abort(), 8_000);
+    let cancelado = false;
+    setFalhaCarga(false);
+
+    (async () => {
+      try {
+        const { data, error } = await createClient()
+          .from("product_variants")
+          .select(
+            `id, sku, option_label, price_cents, image_path, active,
+             products!product_variants_product_id_fkey!inner(name, slug, primary_image_path, active)`
+          )
+          .in("id", ids)
+          .abortSignal(ctl.signal);
+        if (cancelado) return;
+        if (error) {
+          setFalhaCarga(true);
+          return;
+        }
         const linhas = (data ?? []) as unknown as Line[];
         setLines(linhas);
         // O carrinho vive no aparelho; o catálogo, no banco. Quando um
@@ -61,7 +78,18 @@ export default function MiniCart({ open, onClose }: { open: boolean; onClose: ()
         for (const id of ids) {
           if (!vivos.has(id)) change(id, -(items[id] ?? 0));
         }
-      });
+      } catch {
+        if (!cancelado) setFalhaCarga(true);
+      } finally {
+        clearTimeout(relogio);
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+      clearTimeout(relogio);
+      ctl.abort();
+    };
   }, [open, ids.join(",")]);
 
   /**
@@ -150,7 +178,13 @@ export default function MiniCart({ open, onClose }: { open: boolean; onClose: ()
         </div>
 
         <div className="minicart-list">
-          {lines === null ? (
+          {falhaCarga ? (
+            <p className="mc-falha">
+              Couldn&apos;t reach the catalog. Your {ids.length} item
+              {ids.length === 1 ? "" : "s"} {ids.length === 1 ? "is" : "are"} still saved —{" "}
+              <Link href="/cart" onClick={onClose}>open the cart</Link> to try again.
+            </p>
+          ) : lines === null ? (
             <div className="spin" aria-label="Loading" />
           ) : rows.length === 0 ? (
             <div className="empty" style={{ padding: "48px 24px" }}>

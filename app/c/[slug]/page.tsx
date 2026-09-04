@@ -75,6 +75,9 @@ export default async function CategoryPage({
   // A RPC recebe UUID; a URL carrega slug. Slug inexistente vira null.
   const brandId = sp.brand ? (brands.find((b) => b.slug === sp.brand)?.id ?? null) : null;
 
+  /** Filtro ligado: o número passa a ser o do resultado, não o da categoria. */
+  const temFiltro = Boolean(sp.brand || sp.badge || sp.cursor);
+
   const [{ items, nextCursor }, selos] = await Promise.all([
     listarProdutos({
       category: category.path,
@@ -141,8 +144,18 @@ export default async function CategoryPage({
 
       <div className="listbar">
         <span className="count">
-          {items.length}
-          {nextCursor ? "+" : ""} item{items.length === 1 ? "" : "s"}
+          {/* O TOTAL da subárvore, não o tamanho da página. Dizia
+              "24+ items" enquanto o trilho, dois centímetros à
+              esquerda, dizia "Food & Drinks 81" — dois números para a
+              mesma categoria, na mesma tela, e o menor deles com um
+              "+" que não explica nada. O total só sai de cena quando
+              há filtro aplicado, porque aí ele deixaria de ser o
+              número do que está na tela. */}
+          {temFiltro
+            ? `${items.length}${nextCursor ? "+" : ""} item${items.length === 1 ? "" : "s"}`
+            : `${counts[category.id] ?? items.length} item${
+                (counts[category.id] ?? items.length) === 1 ? "" : "s"
+              }`}
         </span>
         {/* Só o selo que TEM produto aqui, e com quantos. Um filtro que
             devolve zero não é filtro, é beco. */}

@@ -10,7 +10,8 @@
     "test:responsivo": "node --experimental-strip-types --test tests/responsivo.test.mjs",
     "fotos:colher": "node scripts/colher-fotos-off.mjs",
     "fotos:cosmos": "node scripts/colher-fotos-cosmos.mjs",
-    "fotos": "node scripts/normalizar-fotos.mjs"
+    "fotos": "node scripts/normalizar-fotos.mjs",
+    "audit:contraste": "node scripts/auditar-contraste.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

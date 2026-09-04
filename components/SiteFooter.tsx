@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CONTACT_EMAIL } from "@/lib/env";
+import { CONTACT_EMAIL, whatsappLink } from "@/lib/env";
 
 /**
  * Rodapé em acordeão, como o do Sunny. Fechado por padrão: no celular
@@ -44,9 +44,9 @@ const SECTIONS = [
       // mensagem já vem escrita, e diz de onde veio.
       {
         label: "WhatsApp",
-        href:
-          "https://wa.me/5511970561448?text=" +
-          encodeURIComponent("Hi! I'm on atgangway.com and I have a question about supplies for my vessel."),
+        href: whatsappLink(
+          "Hi! I'm on atgangway.com and I have a question about supplies for my vessel."
+        ),
       },
     ],
   },

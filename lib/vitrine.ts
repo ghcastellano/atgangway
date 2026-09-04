@@ -77,8 +77,21 @@ export const marcasEmUso = unstable_cache(
         ]),
       { consulta: "marcas" }
     );
-    const emUso = new Set(((usadas.data ?? []) as { brand_id: string | null }[]).map((p) => p.brand_id));
-    return ((marcas.data ?? []) as BrandOption[]).filter((b) => emUso.has(b.id));
+    // Quantos produtos ativos cada marca tem. O número não é enfeite:
+    // é o que decide QUAIS marcas o trilho mostra sem abrir, e é a
+    // promessa do que o clique devolve — a mesma regra dos números das
+    // categorias. Antes só existia o conjunto "tem ou não tem produto",
+    // e o trilho listava as trinta em ordem de cadastro.
+    const porMarca = new Map<string, number>();
+    for (const p of (usadas.data ?? []) as { brand_id: string | null }[]) {
+      if (p.brand_id) porMarca.set(p.brand_id, (porMarca.get(p.brand_id) ?? 0) + 1);
+    }
+    return ((marcas.data ?? []) as { id: string; slug: string; name: string }[])
+      .filter((b) => porMarca.has(b.id))
+      .map((b) => ({ ...b, count: porMarca.get(b.id) ?? 0 }))
+      // Maior primeiro: quem procura marca procura a que a loja tem de
+      // verdade. Empate volta para a ordem alfabética, que é estável.
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   },
   ["vitrine-marcas"],
   OPTS

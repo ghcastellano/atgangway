@@ -434,3 +434,144 @@ do CSS — por isso os testes de contraste não os pegaram:
   `"default"`.
 - `manifest.ts` (`background_color`/`theme_color`) e `global-error.tsx`
   (que não tem CSS, por definição) também estavam escuros.
+
+## 2026-09-04 — o acabamento: o que o teste de cores não via
+
+O tema claro tinha sido invertido nos TOKENS, e os testes conferiam
+pares de tokens que eu escolhi à mão. Passavam. O site continuava com
+defeitos visíveis, porque o problema não estava nos tokens: estava em
+quarenta lugares que nunca usaram token nenhum.
+
+### A ferramenta antes das correções
+
+`scripts/auditar-contraste.mjs` (`npm run audit:contraste <url>`) mede o
+site RENDERIZADO: para cada texto visível, a cor computada contra o
+fundo efetivo — subindo a árvore e compondo camadas translúcidas, que é
+o que o olho vê. Roda 19 rotas em duas larguras.
+
+Primeira execução: **20 regras abaixo do AA**, nenhuma delas coberta
+pelo teste de tokens. A raiz era uma só, repetida: `--amber` usado como
+TINTA. Ele é cor de FUNDO — 2,15:1 sobre branco. `--amber-hi` (#A85E00,
+4,8:1) é a versão legível, e existe desde a inversão; o CSS é que não
+tinha sido atualizado. Estavam assim, entre outros:
+
+- o número do CORTE no painel da escala (`.vpanel .corte strong`), que é
+  o dado mais importante da tela mais importante para quem já comprou;
+- o `−`/`+` do contador do carrinho;
+- "Browse all ›", o kicker do herói, os números 01/02/03;
+- o nome do produto no título da descrição da ficha.
+
+A troca foi mecânica e segura porque as superfícies escuras (cabeçalho,
+rodapé, painel, barra de compra) redefinem `--amber-hi` como
+`--amber-on-dark` no próprio escopo — o mesmo `var(--amber-hi)` resolve
+para o âmbar claro lá dentro. Exceções mantidas à mão: os logotipos
+sobre escuro, onde o âmbar cheio é identidade e já passa folgado.
+
+Depois: **0 regras abaixo do AA**.
+
+### Cores do tema escuro que sobraram fora dos tokens
+
+Não eram cor de texto, então nenhum teste as via:
+
+- **43** usos de `rgba(255,182,72,…)` — o âmbar da loja ESCURA, morto na
+  inversão. Anéis de foco, bordas de hover, lavagens de destaque: cada
+  um invisível sozinho, todos juntos fazendo um site em que o realce
+  nunca é exatamente a cor do botão. Viraram `rgba(var(--amber-rgb),…)`.
+- **13** usos de `rgba(46,230,200,…)`, o teal neon. Mesma história,
+  agora `--teal-rgb`.
+- `.cta-dock`: gradiente até `rgba(1,6,13,.9)` — preto a 90% — no pé da
+  ficha de produto. Sobre o papel claro virava uma faixa preta que
+  **comia o preço** logo acima dela, na tela em que se decide a compra.
+- `.buydock` (a barra fixa de comprar): fundo escuro com `.nm` em
+  `var(--ink)`. O NOME DO PRODUTO estava invisível — sobravam a
+  miniatura, um preço e um "Add" sem objeto. Corrigido pela mesma
+  técnica do cabeçalho: redefinir os tokens no escopo.
+- `.capcode`: o código de indicação numa caixa escura translúcida dentro
+  de um cartão branco.
+- `.proof-thumb span`: tarja sobre foto com tinta `--muted`, que na
+  inversão virou cinza-escuro sobre escuro.
+- `.payopt input { accent-color: #FFB648 }` no rádio de pagamento.
+- `viewport.colorScheme: "dark"`, que mandava o sistema desenhar
+  `<select>` e barra de rolagem escuros — caixas pretas no meio do
+  checkout claro.
+
+### Hierarquia: quatro botões âmbar não são hierarquia
+
+`.padd` (o "Add to cart" da grade) era âmbar sólido. Numa fileira de
+quatro cards isso vira uma cerca laranja atravessando a vitrine: a coisa
+mais forte da tela passa a ser o botão repetido, não o produto. Virou
+tonal — lavagem de âmbar, anel de âmbar, tinta `--ink` — e preenche
+sólido no hover e no foco. O âmbar cheio fica para onde existe UMA ação:
+a ficha, o carrinho, o checkout. Efeito colateral bom: o contador `−/+`
+de um item JÁ no carrinho é agora o único âmbar cheio da grade, e marca
+sozinho o que a pessoa escolheu.
+
+A tinta é `--ink` e não `--amber-hi` porque âmbar escuro sobre lavagem
+de âmbar dá 4,45:1 — reprova por pouco, e "por pouco" numa etiqueta de
+13px é exatamente onde a vista cansada para de ler.
+
+### Números que se contradiziam na mesma tela
+
+- `/shop` dizia "**1 sections**" em Connectivity: plural errado, e
+  contava SUBCATEGORIAS enquanto o trilho ao lado contava produtos. Dois
+  números para a mesma categoria, na mesma página. Agora é um só, e é o
+  que o clique devolve.
+- `/c/[slug]` dizia "24+ items" (o tamanho da página) enquanto o trilho
+  dizia "Food & Drinks 81". Agora mostra o total da subárvore, e só troca
+  para o número do resultado quando há filtro aplicado.
+
+### O trilho de marcas era um índice de fornecedor
+
+Listava TODAS as marcas, em ordem de cadastro, sem número e sem fim: em
+1920px passava da dobra. Agora `marcasEmUso` devolve a contagem por
+marca e ordena por ela; o trilho mostra oito e guarda o resto atrás de
+"N more brands" (`<details>` nativo, sem JavaScript). A marca ATIVA
+entra sempre na lista visível, mesmo que seja a trigésima — filtro ligado
+escondido dentro de um acordeão fechado é filtro que não se desliga.
+
+### O painel "How it works" com um terço vazio
+
+A altura vem do herói ao lado; a sobra caía toda no fim, uns 250px de
+branco no bloco mais visto da loja. Encher com decoração seria pior. O
+que faltava de verdade era o CANAL: quem nunca comprou de um chandler
+não pede rancho por formulário sem falar com alguém, e o WhatsApp estava
+no rodapé, onde ninguém que ainda está decidindo chega. O pé do cartão
+agora traz "Ask on WhatsApp" e o e-mail. O número saiu do rodapé para
+`lib/env` (`whatsappLink`) — número em dois lugares um dia diverge, e
+este é o canal do socorro na véspera de atracar.
+
+### O carrinho girava para sempre
+
+Achado sem querer: o navegador do sandbox não tem internet, o que
+reproduz o wifi de bordo com fidelidade cruel. `/cart` ficava com um
+spinner no meio de uma página em branco, indefinidamente.
+
+Era o MESMO defeito que o checkout tinha e que já havia sido corrigido
+lá: `.then()` sem par, e o builder do Supabase devolve um `PromiseLike`
+que nem sequer tem `.catch`. Sem `abortSignal`, a conexão de navio não
+recusa — ela pendura, e não existe erro para capturar.
+
+Corrigidos com teto de tempo, `try/catch` e uma saída honesta:
+
+- `/cart` (12 s) — "We couldn't load your cart · Nothing was lost — your
+  N items are still saved on this device" + "Try again" e "Keep browsing";
+- `MiniCart` (8 s) — a gaveta dizia nada e girava por cima da vitrine;
+- as três leituras acessórias do carrinho (mínimo do porto, saldo de
+  crédito, escala do perfil), que eram `.then()` sem par: agora falham
+  em silêncio para o valor neutro, sem rejeição sem dono;
+- `/signup` — sem os selects, "posto" e "porto" ficavam em "Loading…"
+  para sempre, o que lê como formulário quebrado. Agora diz que falhou;
+- `/reset-password` — idem no `getUser()`.
+
+### Miúdo
+
+- `.pbadge.new`: #04231E sobre `--teal` dava 3,25:1. Branco dá 5,1:1.
+- `.share` (o botão que espalha o código do Captain): #04240F sobre o
+  verde do WhatsApp, 3,4:1. Branco dá 4,8:1.
+- `.catgrid` fechava em 3 + 1 no tablet, com um vazio do tamanho de um
+  cartão. Duas regras concorriam (560px → 3 e 620px → 2) e vencia a
+  errada; ficou a escada 1 → 2 → 3.
+- No card, o preço encosta no nome e quem ancora no rodapé é o BOTÃO.
+  Era o contrário, e alinhava os preços da fileira à custa de ~100px de
+  branco dentro dos cards de nome curto. A linha do botão é a que o olho
+  vê, porque é a peça pesada.

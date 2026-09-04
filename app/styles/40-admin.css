@@ -91,7 +91,7 @@
 /* ===== util ===== */
 .spin {
   width: 26px; height: 26px; border-radius: 50%;
-  border: 2px solid var(--line-hi); border-top-color: var(--amber);
+  border: 2px solid var(--line-hi); border-top-color: var(--amber-hi);
   animation: rot .8s linear infinite; margin: 40px auto;
 }
 @keyframes rot { to { transform: rotate(1turn); } }

@@ -93,7 +93,7 @@
 .vessel-chip:hover { border-color: var(--teal); }
 .vessel-chip .dot {
   width: 6px; height: 6px; border-radius: 50%; background: var(--teal);
-  box-shadow: 0 0 8px rgba(46,230,200,.9); animation: pulse 2.4s infinite;
+  box-shadow: 0 0 8px rgba(var(--teal-rgb),.9); animation: pulse 2.4s infinite;
 }
 @keyframes pulse { 50% { opacity: .35; } }
 
@@ -101,7 +101,7 @@
 .hero-mini { padding: 32px 22px 8px; }
 .kicker {
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .22em;
-  text-transform: uppercase; color: var(--amber); margin: 0 0 10px;
+  text-transform: uppercase; color: var(--amber-hi); margin: 0 0 10px;
 }
 .hero-mini h2 {
   font-family: var(--font-disp); font-weight: 800; font-size: 30px;
@@ -117,7 +117,7 @@
   display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
   transition: border-color .2s, transform .2s var(--ease), background .2s;
 }
-.ship:hover { border-color: rgba(255,182,72,.5); transform: translateY(-2px); background: var(--card-hi); }
+.ship:hover { border-color: rgba(var(--amber-rgb),.5); transform: translateY(-2px); background: var(--card-hi); }
 /* o foco vem do anel âmbar global — regra própria aqui só divergiria */
 .ship:disabled { opacity: .5; cursor: default; transform: none; }
 .ship .nm { grid-column: 1; grid-row: 1; font-family: var(--font-disp); font-weight: 700; font-size: 16.5px; }
@@ -129,6 +129,6 @@
   grid-column: 2; grid-row: 1 / span 2; align-self: center; text-align: right; max-width: 110px;
   font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; line-height: 1.5;
 }
-.win .ok { color: var(--teal); } .win .soon { color: var(--amber); } .win .closed { color: var(--danger); }
+.win .ok { color: var(--teal); } .win .soon { color: var(--amber-hi); } .win .closed { color: var(--danger); }
 .win .urgent { color: var(--danger); font-weight: 700; animation: pulse 1.6s infinite; }
 

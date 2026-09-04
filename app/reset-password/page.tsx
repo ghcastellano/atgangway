@@ -18,7 +18,12 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setHasSession(!!data.user));
+    // .catch obrigatório: sem ele uma rede ruim vira rejeição sem dono
+    // e a tela fica no estado "verificando" para sempre.
+    supabase.auth
+      .getUser()
+      .then(({ data }) => setHasSession(!!data.user))
+      .catch(() => setHasSession(false));
   }, []);
 
   async function submit(e: React.FormEvent) {

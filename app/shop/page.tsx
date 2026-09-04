@@ -111,8 +111,17 @@ export default async function ShopPage({
                 <CategoryIcon slug={c.slug} fallback={c.icon} size={22} />
                 <span className="tx">
                   <span className="nm">{c.name}</span>
-                  {c.children.length > 0 && (
-                    <span className="ct">{c.children.length} sections</span>
+                  {/* Era `{c.children.length} sections`, que dava
+                      "1 sections" em Connectivity — plural errado numa
+                      tela que a pessoa vê antes de qualquer produto — e
+                      contava SUBCATEGORIAS, enquanto o trilho ao lado
+                      contava produtos. Dois números diferentes para a
+                      mesma categoria, na mesma página. Agora é um só, e
+                      é o que o clique devolve. */}
+                  {(counts[c.id] ?? 0) > 0 && (
+                    <span className="ct">
+                      {counts[c.id]} item{counts[c.id] === 1 ? "" : "s"}
+                    </span>
                   )}
                 </span>
               </Link>

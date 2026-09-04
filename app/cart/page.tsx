@@ -49,6 +49,17 @@ export default function CartPage() {
   // checkout: mandar para lá com a escala morta é fazer a pessoa
   // trabalhar por um "não". Aqui o botão já vira o próximo passo.
   const [callSt, setCallSt] = useState<CallState | null>(null);
+  /**
+   * A leitura das linhas não voltou.
+   *
+   * O carrinho tinha o mesmo defeito que o checkout tinha: um `.then()`
+   * sem par. No wifi de bordo a conexão não RECUSA — ela pendura, e uma
+   * promessa que nunca resolve deixa `lines` em null para sempre. O que
+   * a pessoa via era um giro no meio de uma página em branco, sem
+   * explicação e sem saída, na tela em que ela já escolheu o que quer
+   * comprar. Ela não tem como saber se perdeu o carrinho.
+   */
+  const [falhaCarga, setFalhaCarga] = useState(false);
 
   const ids = useMemo(() => Object.keys(items), [items]);
 
@@ -60,16 +71,32 @@ export default function CartPage() {
     }
     // Busca só as variantes do carrinho. Puxar o catálogo inteiro para
     // achar 3 linhas funciona com 12 SKUs e mata a página com 2 mil.
-    const supabase = createClient();
-    supabase
-      .from("product_variants")
-      .select(
-        `id, sku, option_label, price_cents, compare_at_cents, stock_qty,
-         track_stock, image_path, active,
-         products!product_variants_product_id_fkey!inner(name, slug, primary_image_path, active)`
-      )
-      .in("id", ids)
-      .then(({ data }) => {
+    //
+    // 12 segundos de teto: o builder do Supabase devolve um PromiseLike
+    // sem `.catch`, então o try/catch é obrigatório, e `abortSignal` é o
+    // que transforma "pendurado" em "falhou" — sem ele não há erro para
+    // capturar, só espera.
+    const ctl = new AbortController();
+    const relogio = setTimeout(() => ctl.abort(), 12_000);
+    let cancelado = false;
+    setFalhaCarga(false);
+
+    (async () => {
+      try {
+        const { data, error } = await createClient()
+          .from("product_variants")
+          .select(
+            `id, sku, option_label, price_cents, compare_at_cents, stock_qty,
+             track_stock, image_path, active,
+             products!product_variants_product_id_fkey!inner(name, slug, primary_image_path, active)`
+          )
+          .in("id", ids)
+          .abortSignal(ctl.signal);
+        if (cancelado) return;
+        if (error) {
+          setFalhaCarga(true);
+          return;
+        }
         const linhas = (data ?? []) as unknown as Line[];
         setLines(linhas);
         // Mesma poda do MiniCart: id de produto desativado sai do
@@ -79,36 +106,85 @@ export default function CartPage() {
         for (const id of ids) {
           if (!vivos.has(id)) change(id, -(items[id] ?? 0));
         }
-      });
+      } catch {
+        if (!cancelado) setFalhaCarga(true);
+      } finally {
+        clearTimeout(relogio);
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+      clearTimeout(relogio);
+      ctl.abort();
+    };
   }, [ready, ids.join(",")]);
 
   useEffect(() => {
     if (!supabaseConfigured) return;
-    const supabase = createClient();
-    // [otim] Mínimo do porto e saldo de crédito são buscados uma vez na
-    // montagem, não a cada toque no stepper: nenhum dos dois depende do
+    // [otim] Mínimo do porto, saldo de crédito e escala são buscados uma
+    // vez na montagem, não a cada toque no stepper: nenhum depende do
     // que está no carrinho, e o wifi do navio não sobra.
-    supabase
-      .from("ports")
-      .select("min_order_cents")
-      .eq("slug", "santos")
-      .maybeSingle()
-      .then(({ data }) => setMinOrderCents(Number(data?.min_order_cents ?? 0)));
+    //
+    // As três são ACESSÓRIAS: falharam, a página segue com o valor
+    // neutro. O que elas não podem é ficar penduradas nem estourar
+    // rejeição sem dono — eram três `.then()` sem par. 10 s e um
+    // try/catch cada, dentro do mesmo sinal de aborto.
+    const ctl = new AbortController();
+    const relogio = setTimeout(() => ctl.abort(), 10_000);
+    let cancelado = false;
+    const supabase = createClient();
+
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("ports")
+          .select("min_order_cents")
+          .eq("slug", "santos")
+          .abortSignal(ctl.signal)
+          .maybeSingle();
+        if (!cancelado) setMinOrderCents(Number(data?.min_order_cents ?? 0));
+      } catch {
+        // segue com mínimo zero: o guard de servidor no checkout decide.
+      }
+    })();
+
     // A RPC só é concedida a authenticated: visitante recebe erro e fica
     // em zero — carrinho de quem ainda não entrou não pode quebrar. E ela
     // devolve numeric em dólares, então passa por toCents.
-    supabase.rpc("my_credit_balance").then(({ data }) => setCreditCents(toCents(data ?? 0)));
+    (async () => {
+      try {
+        const { data } = await supabase.rpc("my_credit_balance").abortSignal(ctl.signal);
+        if (!cancelado) setCreditCents(toCents(data ?? 0));
+      } catch {
+        // sem crédito na tela; o valor real é aplicado no servidor.
+      }
+    })();
 
     // Estado da escala do próprio perfil. Visitante deslogado não tem
     // escala e segue vendo o carrinho normal — o portão dele é o login.
-    supabase
-      .from("profiles")
-      .select("ships!profiles_ship_id_fkey(eta, ata, cutoff_hours)")
-      .maybeSingle()
-      .then(({ data }) => {
-        const s = (data as { ships: { eta: string; ata: string | null; cutoff_hours: number | null } | null } | null)?.ships;
-        if (s?.eta) setCallSt(callState({ eta: s.eta, ata: s.ata, cutoff_hours: s.cutoff_hours }));
-      });
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("ships!profiles_ship_id_fkey(eta, ata, cutoff_hours)")
+          .abortSignal(ctl.signal)
+          .maybeSingle();
+        const nav = (data as { ships: { eta: string; ata: string | null; cutoff_hours: number | null } | null } | null)?.ships;
+        if (!cancelado && nav?.eta) {
+          setCallSt(callState({ eta: nav.eta, ata: nav.ata, cutoff_hours: nav.cutoff_hours }));
+        }
+      } catch {
+        // escala desconhecida segue para o checkout: a UI antecipa o
+        // "não", não o inventa.
+      }
+    })();
+
+    return () => {
+      cancelado = true;
+      clearTimeout(relogio);
+      ctl.abort();
+    };
   }, []);
 
   // Só bloqueia quando SABE que a janela morreu. Estado desconhecido
@@ -161,7 +237,25 @@ export default function CartPage() {
           reservar espaço, o rodapé pulava ~200px — CLS de 0,13 no
           celular, acima do limite de 0,1 do Core Web Vitals. */}
       <div className="cartslot">
-      {lines === null || !ready ? (
+      {falhaCarga ? (
+        /* O que a pessoa precisa saber, nesta ordem: que não foi ela,
+           que o carrinho continua guardado, e o que fazer agora. */
+        <div className="empty">
+          <div className="i" aria-hidden><IconCart size={28} /></div>
+          <p className="t">We couldn&apos;t load your cart</p>
+          <p className="d">
+            The connection didn&apos;t answer. Nothing was lost — your{" "}
+            {ids.length} item{ids.length === 1 ? "" : "s"} {ids.length === 1 ? "is" : "are"} still
+            saved on this device.
+          </p>
+          <button className="btn" onClick={() => window.location.reload()}>
+            Try again
+          </button>
+          <Link className="btn ghost" href="/shop">
+            Keep browsing
+          </Link>
+        </div>
+      ) : lines === null || !ready ? (
         <div className="spin" aria-label="Loading" />
       ) : rows.length === 0 ? (
         <div className="empty">

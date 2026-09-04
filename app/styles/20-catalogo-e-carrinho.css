@@ -27,7 +27,7 @@
   padding: 8px 16px; cursor: pointer; white-space: nowrap; transition: all .2s;
 }
 /* a pílula inativa responde como o resto da família âmbar */
-.tab:hover:not(.on) { border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
+.tab:hover:not(.on) { border-color: rgba(var(--amber-rgb),.5); color: var(--amber-hi); }
 .tab.on { background: var(--amber); border-color: var(--amber); color: var(--amber-ink); }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 16px; }
 .prod {
@@ -143,7 +143,13 @@
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
   margin: 0 auto; width: 100%; max-width: var(--shell-w);
   padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, transparent, rgba(1,6,13,.9) 34%);
+  /* Era um gradiente até rgba(1,6,13,.9) — preto a 90% — desenhado
+     para a loja escura. Sobre o papel claro ele virava uma faixa preta
+     que COMIA o preço do produto logo acima dela, justamente na tela em
+     que se decide a compra. Agora é o próprio papel subindo: some no
+     conteúdo em cima e fica sólido embaixo, que é o que separa a barra
+     fixa da página sem tapar nada. */
+  background: linear-gradient(180deg, rgba(var(--ink-rgb),0), var(--night) 34%);
   pointer-events: none;
 }
 /* CTA convivendo com o menu fixo: flutua logo acima dele */
@@ -161,7 +167,7 @@
   display: flex; justify-content: space-between; align-items: center; gap: 12px;
   transition: transform .2s var(--ease), box-shadow .2s var(--ease);
 }
-.cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -10px rgba(255,182,72,.45); }
+.cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -10px rgba(var(--amber-rgb),.45); }
 .cta:active { transform: translateY(0); box-shadow: none; transition-duration: .05s; }
 .cta:disabled { opacity: .35; cursor: default; transform: none; box-shadow: none; }
 .cta .mono { font-size: 13px; }

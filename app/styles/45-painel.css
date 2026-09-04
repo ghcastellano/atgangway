@@ -41,7 +41,9 @@
   --line:    var(--dark-line);
   --line-hi: rgba(238,244,248,.22);
   --amber-hi: var(--amber-on-dark);
+  --amber-rgb: 255, 217, 160;   /* realce com opacidade, sobre escuro */
   --teal:    #2EE6C8;
+  --teal-rgb: 46, 230, 200;
   --danger:  #FF5964;
   color: var(--ink);
 }
@@ -82,7 +84,7 @@
 }
 .adm-nav a:hover { background: var(--card); color: var(--ink); }
 .adm-nav a.on { background: var(--card-hi); color: var(--amber-hi); }
-.adm-nav a.on svg { color: var(--amber); }
+.adm-nav a.on svg { color: var(--amber-hi); }
 .adm-side-foot { margin-top: auto; padding: 8px 12px; }
 .adm-side-link { color: var(--faint); font-size: 12.5px; text-decoration: none; }
 .adm-side-link:hover { color: var(--amber-hi); }
@@ -123,7 +125,7 @@
   color: var(--faint); font-size: 10.5px; font-weight: 600; letter-spacing: .02em; text-decoration: none;
 }
 .adm-tabs a.on { color: var(--amber-hi); }
-.adm-tabs a.on svg { color: var(--amber); }
+.adm-tabs a.on svg { color: var(--amber-hi); }
 
 /* ---- botões e ícones ---------------------------------------- */
 .adm-btn {
@@ -133,7 +135,7 @@
   font: inherit; font-weight: 600; font-size: 13.5px; cursor: pointer; white-space: nowrap;
   transition: background .14s, border-color .14s, color .14s, opacity .14s;
 }
-.adm-btn:hover { border-color: rgba(255,182,72,.5); }
+.adm-btn:hover { border-color: rgba(var(--amber-rgb),.5); }
 .adm-btn:disabled { opacity: .55; cursor: default; }
 .adm-btn.small { min-height: 34px; padding: 0 12px; font-size: 12.5px; border-radius: 8px; }
 .adm-btn.grande { min-height: 48px; font-size: 15px; }
@@ -205,7 +207,7 @@
 .adm-notifs li i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-hi); margin-top: 6px; }
 .adm-notifs li.warn i { background: var(--amber); }
 .adm-notifs li.danger i { background: var(--danger); }
-.adm-notifs li.nova { background: rgba(255,182,72,.05); }
+.adm-notifs li.nova { background: rgba(var(--amber-rgb),.05); }
 .adm-notifs li b { display: block; font-size: 13px; }
 .adm-notifs li p { margin: 3px 0 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
 .adm-notifs li time { display: block; margin-top: 4px; font-size: 11px; color: var(--faint); }
@@ -234,7 +236,7 @@
   font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap;
 }
 .adm-chips button small, .adm-chips a small { font-size: 11px; color: var(--faint); font-variant-numeric: tabular-nums; }
-.adm-chips .on { background: var(--card-hi); border-color: rgba(255,182,72,.5); color: var(--amber-hi); }
+.adm-chips .on { background: var(--card-hi); border-color: rgba(var(--amber-rgb),.5); color: var(--amber-hi); }
 .adm-chips .on small { color: var(--amber-hi); }
 .adm-busca {
   flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; border-radius: 10px;
@@ -253,7 +255,7 @@
 }
 .adm-table tbody tr:last-child { border-bottom: 0; }
 .adm-table tbody tr:hover { background: var(--card-hi); }
-.adm-table tbody tr.sel { background: rgba(255,182,72,.06); box-shadow: inset 3px 0 0 var(--amber); }
+.adm-table tbody tr.sel { background: rgba(var(--amber-rgb),.06); box-shadow: inset 3px 0 0 var(--amber); }
 .adm-table tbody tr.busy { opacity: .7; }
 .adm-table td { padding: 0; vertical-align: top; min-width: 0; }
 .adm-table td::before { content: attr(data-l); display: block; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin-bottom: 2px; }
@@ -265,15 +267,15 @@
 .adm-table td.acao { grid-column: 1 / -1; display: flex; justify-content: flex-end; padding-top: 4px; }
 .adm-table .mono { font-family: var(--font-mono); letter-spacing: .03em; }
 .adm-tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-style: normal; font-weight: 700; }
-.adm-tag.warn { background: rgba(255,182,72,.14); color: var(--amber-hi); }
+.adm-tag.warn { background: rgba(var(--amber-rgb),.14); color: var(--amber-hi); }
 
 .adm-pill {
   display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
   font-size: 11.5px; font-weight: 600; white-space: nowrap; border: 1px solid var(--line-hi); color: var(--muted);
 }
 .adm-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.adm-pill.amber { color: var(--amber-hi); border-color: rgba(255,182,72,.45); background: rgba(255,182,72,.08); }
-.adm-pill.teal { color: var(--teal); border-color: rgba(46,230,200,.4); background: rgba(46,230,200,.07); }
+.adm-pill.amber { color: var(--amber-hi); border-color: rgba(var(--amber-rgb),.45); background: rgba(var(--amber-rgb),.08); }
+.adm-pill.teal { color: var(--teal); border-color: rgba(var(--teal-rgb),.4); background: rgba(var(--teal-rgb),.07); }
 .adm-pill.ok { color: #7EE787; border-color: rgba(126,231,135,.4); background: rgba(126,231,135,.08); }
 .adm-pill.danger { color: var(--danger); border-color: rgba(255,89,100,.45); background: rgba(255,89,100,.07); }
 .adm-pill.faint { color: var(--faint); }
@@ -283,7 +285,7 @@
 .adm-vazio p { margin: 6px 0 0; font-size: 13px; color: var(--faint); }
 
 /* ---- detalhe (gaveta lateral / folha inferior) --------------- */
-.adm-veu { position: fixed; inset: 0; z-index: 40; background: rgba(1,6,13,.6); border: 0; cursor: default; }
+.adm-veu { position: fixed; inset: 0; z-index: 40; background: rgba(var(--ink-rgb),.6); border: 0; cursor: default; }
 .adm-drawer {
   position: fixed; z-index: 41; left: 0; right: 0; bottom: 0; max-height: 92dvh;
   display: flex; flex-direction: column;
@@ -341,7 +343,7 @@
 
 /* ---- diálogo de confirmação ---------------------------------- */
 .adm-dialog { border: 0; padding: 0; background: transparent; max-width: min(92vw, 420px); }
-.adm-dialog::backdrop { background: rgba(1,6,13,.7); backdrop-filter: blur(3px); }
+.adm-dialog::backdrop { background: rgba(var(--ink-rgb),.7); backdrop-filter: blur(3px); }
 .adm-dialog-card { background: var(--panel); border: 1px solid var(--line-hi); border-radius: 16px; padding: 22px 22px 18px; color: var(--ink); }
 .adm-dialog-card h2 { margin: 0 0 8px; font-size: 18px; font-family: var(--font-disp); }
 .adm-dialog-card p { margin: 0 0 18px; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
@@ -378,13 +380,13 @@
 .adm-card > h2 { margin: 0 0 12px; font-size: 15px; font-family: var(--font-disp); }
 .adm-alerta { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 13px; border: 1px solid var(--line-hi); background: var(--card); }
 .adm-alerta.erro { border-color: rgba(255,89,100,.5); color: #FFC2C7; background: rgba(255,89,100,.08); }
-.adm-alerta.ok { border-color: rgba(46,230,200,.4); color: var(--teal); background: rgba(46,230,200,.07); }
+.adm-alerta.ok { border-color: rgba(var(--teal-rgb),.4); color: var(--teal); background: rgba(var(--teal-rgb),.07); }
 .adm-muted { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
 .adm-senha { display: flex; align-items: center; gap: 10px; }
 .adm-senha input { flex: 1; }
 
 /* ---- login --------------------------------------------------- */
-.adm-login { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(90% 60% at 50% 0%, rgba(255,182,72,.10), transparent 60%), var(--abyss); }
+.adm-login { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(90% 60% at 50% 0%, rgba(var(--amber-rgb),.10), transparent 60%), var(--abyss); }
 .adm-login-card { width: min(100%, 400px); display: grid; gap: 16px; background: var(--night); border: 1px solid var(--line-hi); border-radius: 18px; padding: 26px 22px; }
 .adm-login-brand { display: flex; gap: 12px; align-items: center; margin-bottom: 4px; }
 .adm-login-brand .mark { color: var(--amber); flex: none; }

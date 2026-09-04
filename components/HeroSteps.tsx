@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DEPOSIT_PCT } from "@/lib/money";
+import { CONTACT_EMAIL, whatsappLink } from "@/lib/env";
 
 /**
  * Como funciona, ao lado do herói.
@@ -13,6 +14,15 @@ import { DEPOSIT_PCT } from "@/lib/money";
  * Quem chega aqui pela primeira vez não sabe que dá para pedir antes de
  * atracar, nem que são 30% de entrada, nem que a entrega é na prancha —
  * e isso não estava escrito em lugar nenhum do site.
+ *
+ * O bloco de contato no pé do cartão não é enfeite de layout, embora
+ * tenha nascido de um: a altura deste cartão vem do herói ao lado, e
+ * com três passos apenas sobrava um terço em branco. Encher com
+ * decoração seria pior que o buraco. O que faltava de verdade era o
+ * CANAL: quem nunca comprou de um chandler não pede um rancho de
+ * navio por formulário sem antes falar com alguém, e o WhatsApp estava
+ * escondido no rodapé — abaixo de tudo, onde ninguém que ainda está
+ * decidindo chega.
  *
  * Server Component: é texto, não interação.
  */
@@ -52,9 +62,25 @@ export default function HeroSteps() {
           </li>
         ))}
       </ol>
-      <Link href="/faq" className="mais" prefetch={false}>
-        Questions crews ask ›
-      </Link>
+      <div className="hs-fala">
+        <p className="hs-lb">Talk to a person first?</p>
+        <a
+          className="hs-wa"
+          href={whatsappLink(
+            "Hi! I'm on atgangway.com — my vessel calls at Santos and I'd like to ask about supplies."
+          )}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ask on WhatsApp
+        </a>
+        <p className="hs-mail">
+          or <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> ·{" "}
+          <Link href="/faq" prefetch={false}>
+            questions crews ask
+          </Link>
+        </p>
+      </div>
     </aside>
   );
 }

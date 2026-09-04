@@ -51,13 +51,13 @@
 }
 .acct-tabs form { display: contents; }
 .acct-tabs a.on { color: var(--amber-hi); }
-.acct-tabs a.on svg { color: var(--amber); }
+.acct-tabs a.on svg { color: var(--amber-hi); }
 /* o conteúdo não pode terminar debaixo da barra */
 .shell > main.pg-acct { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 .acct-rail .catgrid { grid-template-columns: 1fr; gap: 6px; padding: 0; }
 .acct-rail .catcard { border-radius: 10px; padding: 12px 13px; min-height: 44px; }
 .acct-rail .catcard .chev { margin-left: auto; }
-.acct-rail .catcard[aria-current="page"] { border-color: rgba(255,182,72,.55); background: var(--card-hi); }
+.acct-rail .catcard[aria-current="page"] { border-color: rgba(var(--amber-rgb),.55); background: var(--card-hi); }
 .acct-rail .catcard[aria-current="page"] .nm { color: var(--amber-hi); }
 .acct-rail > .stack { padding: 16px 0 0; margin-top: 14px; border-top: 1px solid var(--line); }
 .sumcur, .odate { display: none; }   /* ligados só a partir de 1024 */
@@ -230,8 +230,8 @@
   }
   .catlink:hover,
   .catlink[aria-expanded="true"],
-  .catlink.on { color: var(--ink); border-bottom-color: var(--amber); }
-  .catlink.hot { color: var(--amber); }
+  .catlink.on { color: var(--ink); border-bottom-color: var(--amber-hi); }
+  .catlink.hot { color: var(--amber-hi); }
   .catlink.hot:hover { color: var(--amber-hi); }
   /* Rótulo e seta são dois controles, e o sublinhado tem de correr
      por baixo dos dois — senão a seção parece cortada ao meio. */
@@ -248,9 +248,9 @@
   }
   .catgroup:hover > .catlink, .catgroup:hover > .cchev,
   .catgroup.open > .catlink, .catgroup.open > .cchev {
-    color: var(--ink); border-bottom-color: var(--amber);
+    color: var(--ink); border-bottom-color: var(--amber-hi);
   }
-  .catgroup.open > .cchev { color: var(--amber); }
+  .catgroup.open > .cchev { color: var(--amber-hi); }
 
   .megapanel {
     position: absolute; z-index: 5;
@@ -270,13 +270,13 @@
     color: var(--ink); font-size: 13.5px; font-weight: 700;
     text-transform: uppercase; letter-spacing: .03em;
   }
-  .megahead:hover { color: var(--amber); }
+  .megahead:hover { color: var(--amber-hi); }
   .megalink { display: flex; align-items: center; min-height: 40px; color: var(--muted); font-size: 13.5px; }
-  .megalink:hover { color: var(--amber); }
+  .megalink:hover { color: var(--amber-hi); }
   .megaall {
     display: inline-flex; align-items: center; gap: 7px;
     margin-top: 6px; padding: 11px 0 0; border-top: 1px solid var(--line);
-    color: var(--amber); font-size: 13px; font-weight: 700;
+    color: var(--amber-hi); font-size: 13px; font-weight: 700;
   }
   .megaall:hover { color: var(--amber-hi); }
 
@@ -390,7 +390,7 @@
   .pg-home .secttl .allx {
     order: 3; flex: none; display: inline-flex; align-items: center; min-height: 44px;
     font-family: var(--font-body); font-size: 13.5px; font-weight: 700;
-    color: var(--amber); letter-spacing: 0;
+    color: var(--amber-hi); letter-spacing: 0;
   }
   .pg-home .secttl .allx:hover { color: var(--amber-hi); }
 
@@ -615,8 +615,15 @@
     border: 1px solid var(--line); border-left: 0; border-bottom: 0;
     border-radius: 0 20px 20px 0;
   }
+  /* A altura vem do herói ao lado, e a sobra tinha de ir para ALGUM
+     lugar: caía toda no fim, deixando um terço do cartão em branco —
+     em 1920px eram uns 250px de nada no bloco mais visto da loja.
+     Mesma solução do .vpanel logo abaixo: uma trilha 1fr faz a folga
+     virar respiro ENTRE os passos, e o link fecha o cartão no rodapé,
+     como rodapé. Cartão cheio, sem inventar conteúdo. */
   .pg-home > .herosteps {
-    display: block; grid-row: 1; grid-column: 9 / -1; align-self: stretch;
+    grid-row: 1; grid-column: 9 / -1; align-self: stretch;
+    display: grid; grid-template-rows: auto 1fr auto;
     background: var(--card); border: 1px solid var(--line);
     border-radius: 20px; padding: 28px 26px;
   }
@@ -625,21 +632,23 @@
     text-transform: uppercase; color: var(--faint); margin: 0 0 18px;
   }
   .pg-home > .herosteps ol {
-    list-style: none; margin: 0; padding: 0; display: grid; gap: 18px;
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: 18px; align-content: start;
   }
   .pg-home > .herosteps li { display: flex; gap: 14px; align-items: flex-start; }
   .pg-home > .herosteps .n {
     flex: none; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
-    color: var(--amber); padding-top: 2px;
+    color: var(--amber-hi); padding-top: 2px;
   }
   .pg-home > .herosteps .tx { display: grid; gap: 4px; min-width: 0; }
   .pg-home > .herosteps .nm { font-size: 14.5px; font-weight: 700; line-height: 1.3; }
   .pg-home > .herosteps .ct { font-size: 13px; color: var(--muted); line-height: 1.5; }
-  .pg-home > .herosteps .mais {
-    display: inline-flex; align-items: center; min-height: 44px; margin-top: 12px;
-    font-size: 13.5px; font-weight: 700; color: var(--amber);
+  /* O canal de conversa, ancorado no pé do cartão.
+     A folga entre os passos e ele fica num lugar só e vira separação de
+     seção, em vez de três buracos entre itens de uma lista. */
+  .pg-home > .herosteps .hs-fala {
+    align-self: end; padding-top: 20px; border-top: 1px solid var(--line);
   }
-  .pg-home > .herosteps .mais:hover { color: var(--amber-hi); }
 
   /* ---- HOME: herói 8 col + painel do navio 4 col ---- */
   /* sem :has(.vpanel) o herói ocupa as 12 e não sobra buraco */
@@ -707,6 +716,20 @@
   .facet-l a .ct { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; color: var(--faint); }
   .facet-l .sub { list-style: none; margin: 2px 0 4px; padding: 0; display: grid; gap: 1px; }
   .facet-l .sub a { padding-left: 32px; font-size: 13px; color: var(--faint); min-height: 44px; }
+
+  /* "N more brands" — o resto da lista, fechado por padrão. Marcador
+     nativo fora: um triângulo do sistema no meio de uma coluna de
+     navegação da casa é a única peça que não é da casa. */
+  .facet-mais summary {
+    list-style: none; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    min-height: 44px; padding: 8px 10px; border-radius: 9px;
+    font-size: 13px; font-weight: 600; color: var(--amber-hi);
+  }
+  .facet-mais summary::-webkit-details-marker { display: none; }
+  .facet-mais summary::after { content: "▾"; font-size: 11px; transition: transform .16s; }
+  .facet-mais[open] summary::after { transform: rotate(180deg); }
+  .facet-mais summary:hover { background: var(--card); }
 
   /* a partir daqui o trilho já mostra a árvore: a grade de
      departamentos e a fita de subcategorias viram a mesma coisa dita
@@ -981,7 +1004,7 @@
 }
 .vpanel .volta .vt { margin: 0; font-size: 14px; line-height: 1.4; }
 .vpanel .volta .vd { margin: 4px 0 0; font-size: 12px; color: var(--faint); }
-.vpanel .volta .vd.erro { color: var(--amber); }
+.vpanel .volta .vd.erro { color: var(--amber-hi); }
 .vpanel .volta .btn { width: 100%; margin-top: var(--s3); }
 .vpanel .alink.outra {
   display: block;

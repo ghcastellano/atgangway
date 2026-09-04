@@ -36,6 +36,9 @@
   /* Sobre escuro quem é legível é o âmbar CLARO, não o queimado que o
      tema claro usa para texto. */
   --amber-hi: var(--amber-on-dark);
+  /* O realce com opacidade acompanha: âmbar escuro a 45% sobre
+     azul-noite é invisível. */
+  --amber-rgb: 255, 217, 160;
   color: var(--ink);
 }
 
@@ -186,7 +189,7 @@
 
 /* --- drawer de categorias, drill-down --- */
 .drawer-ovl {
-  position: fixed; inset: 0; z-index: 90; background: rgba(1,6,13,.66);
+  position: fixed; inset: 0; z-index: 90; background: rgba(var(--ink-rgb),.66);
   backdrop-filter: blur(2px); border: 0; padding: 0; cursor: pointer;
   animation: fade .18s var(--ease);
 }
@@ -229,7 +232,7 @@
 .drawer-item form { display: contents; }
 .drawer-count {
   flex: none; min-width: 22px; padding: 2px 7px; border-radius: 999px;
-  background: rgba(255,182,72,.14); color: var(--amber);
+  background: rgba(var(--amber-rgb),.14); color: var(--amber-hi);
   font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-align: center;
 }
 
@@ -301,7 +304,7 @@
 .sunfoot-body a, .sunfoot-body span {
   color: var(--muted); font-size: 13px; text-decoration: none; line-height: 1.5;
 }
-.sunfoot-body a:hover { color: var(--amber); }
+.sunfoot-body a:hover { color: var(--amber-hi); }
 /* Chips de pagamento no padrão de mercado: mesmo tamanho, contorno
    discreto, marca desenhada em um tom só. Nem as pastilhas brancas da
    primeira versão (o elemento mais claro da página inteira), nem o
@@ -340,7 +343,7 @@
 /* Cada degrau é um alvo de dedo (medido em 34×18 antes): a altura sobe
    para 36 sem mexer no tamanho da letra nem na altura da trilha. */
 .crumb a { color: var(--faint); text-decoration: none; display: inline-flex; align-items: center; min-height: 36px; }
-.crumb a:hover { color: var(--amber); }
+.crumb a:hover { color: var(--amber-hi); }
 .crumb .sep { opacity: .5; }
 /* a página atual meio tom acima dos ancestrais: o olho acha "onde
    estou" sem ler a trilha inteira */

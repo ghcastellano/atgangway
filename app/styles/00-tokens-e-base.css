@@ -41,6 +41,17 @@
   --amber:   #F0A030;   /* fundo de ação; texto sobre ele é --amber-ink */
   --amber-hi:#A85E00;   /* âmbar LEGÍVEL: 4.8:1 sobre branco, para texto e link */
   --amber-ink:#241802;
+  /* Os mesmos dois tons em componentes, para quem precisa de opacidade.
+     Existem porque o CSS estava cheio de `rgba(var(--amber-rgb),.45)` — o
+     âmbar da LOJA ESCURA, que morreu na inversão de tema e ficou vivo
+     em quarenta anéis de foco, bordas de hover e faixas de destaque.
+     Ninguém percebe cada um; percebe-se o conjunto, como um site em que
+     o realce nunca é exatamente a cor do botão. Mesma história para as
+     sombras, que eram quase pretas (#01060D) porque foram desenhadas
+     para pousar sobre preto. */
+  --amber-rgb: 240, 160, 48;
+  --teal-rgb:  14, 124, 107;   /* idem para o teal: #2EE6C8 era do escuro */
+  --ink-rgb:   11, 27, 48;
   --teal:    #0E7C6B;   /* o teal neon sumia no branco */
   --wa:      #107A38;   /* o verde do WhatsApp puro dá 3.1:1 no branco */
   --danger:  #C62B37;
@@ -139,8 +150,8 @@ body {
 @media (min-width: 500px) {
   body {
     background:
-      radial-gradient(50% 40% at 75% 0%, rgba(255,182,72,.05), transparent 60%),
-      radial-gradient(60% 50% at 20% 100%, rgba(46,230,200,.04), transparent 60%),
+      radial-gradient(50% 40% at 75% 0%, rgba(var(--amber-rgb),.05), transparent 60%),
+      radial-gradient(60% 50% at 20% 100%, rgba(var(--teal-rgb),.04), transparent 60%),
       var(--abyss);
   }
 }

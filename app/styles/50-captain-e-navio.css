@@ -5,12 +5,12 @@
   font-family: var(--font-disp); font-weight: 800; font-size: 26px;
   margin: 8px 0 6px; letter-spacing: -.01em;
 }
-.crew-hero h2 b { color: var(--amber); }
+.crew-hero h2 b { color: var(--amber-hi); }
 .crew-hero p { color: var(--muted); font-size: 13.5px; margin: 0; }
 
 .qrcard {
-  margin: 22px 16px; background: linear-gradient(160deg, rgba(255,182,72,.09), var(--card) 60%);
-  border: 1px solid rgba(255,182,72,.35); border-radius: 18px; padding: 20px;
+  margin: 22px 16px; background: linear-gradient(160deg, rgba(var(--amber-rgb),.09), var(--card) 60%);
+  border: 1px solid rgba(var(--amber-rgb),.35); border-radius: 18px; padding: 20px;
   display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center;
 }
 .qr {
@@ -24,7 +24,10 @@
 }
 .qrcard .info p { font-size: 12px; color: var(--muted); margin: 6px 0 12px; }
 .share {
-  border: 0; border-radius: 10px; background: var(--wa); color: #04240F; font-weight: 700;
+  border: 0; border-radius: 10px; background: var(--wa); color: #FFFFFF; font-weight: 700;
+  /* Era #04240F — verde quase preto sobre o verde do WhatsApp, 3,4:1.
+     Branco sobre o mesmo verde dá 4,8:1. É o botão que espalha o código
+     de indicação: se ele não se lê, o programa não anda. */
   font-size: 13px; padding: 10px 16px; cursor: pointer;
 }
 .share:hover { filter: brightness(1.06); }
@@ -43,7 +46,7 @@
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;
   padding: 12px 14px; margin-bottom: 8px;
 }
-.tier.on { border-color: rgba(255,182,72,.45); }
+.tier.on { border-color: rgba(var(--amber-rgb),.45); }
 .tier .em { font-size: 20px; text-align: center; }
 .tier h4 { margin: 0; font-size: 13.5px; }
 .tier p { margin: 0; font-size: 11.5px; color: var(--faint); }
@@ -54,7 +57,7 @@
 /* ===== atraso de navio (sync do line-up do porto) ===== */
 .delay-tag {
   display: inline-block; margin-left: 8px; padding: 2px 7px; border-radius: 999px;
-  background: rgba(255,182,72,.14); border: 1px solid rgba(255,182,72,.45);
+  background: rgba(var(--amber-rgb),.14); border: 1px solid rgba(var(--amber-rgb),.45);
   color: var(--amber-hi); font-family: var(--font-mono); font-size: 9.5px;
   letter-spacing: .1em; font-weight: 700; vertical-align: middle;
 }
@@ -79,7 +82,7 @@
   text-transform: uppercase; color: var(--faint);
 }
 .adm-edit > summary::-webkit-details-marker { display: none; }
-.adm-edit > summary::before { content: "▸"; color: var(--amber); margin-right: 7px; }
+.adm-edit > summary::before { content: "▸"; color: var(--amber-hi); margin-right: 7px; }
 .adm-edit[open] > summary::before { content: "▾"; }
 .adm-edit > summary:hover { color: var(--amber-hi); }
 
@@ -119,8 +122,12 @@
 }
 .proof-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .proof-thumb span {
-  position: absolute; inset: auto 0 0 0; background: rgba(1,6,13,.78);
-  color: var(--muted); font-size: 9px; letter-spacing: .5px;
+  position: absolute; inset: auto 0 0 0;
+  /* A tarja vive por cima de uma FOTO, então continua escura de
+     propósito — o que estava errado era a tinta: --muted virou
+     #47596F na inversão e ficou cinza-escuro sobre tarja escura. */
+  background: rgba(var(--ink-rgb),.72); color: var(--dark-ink);
+  font-size: 9px; letter-spacing: .5px;
   line-height: 13px; text-align: center;
 }
 

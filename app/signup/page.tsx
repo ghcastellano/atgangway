@@ -100,6 +100,7 @@ function SignupInner() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [halfSaved, setHalfSaved] = useState(false);
+  const [listasFalharam, setListasFalharam] = useState(false);
 
   // crew_ranks é leitura pública e muda uma vez por ano: uma consulta na
   // montagem basta — não vale um Server Component só para servir 20 linhas.
@@ -109,7 +110,8 @@ function SignupInner() {
     Promise.all([
       db.from("crew_ranks").select("slug, name, department").order("sort_order"),
       db.from("ports").select("id, name, country_code").eq("active", true).order("sort_order"),
-    ]).then(([rankRows, portRows]) => {
+    ])
+      .then(([rankRows, portRows]) => {
       if (!alive) return;
       setRanks(
         (rankRows.data ?? []).map((r) => ({
@@ -119,7 +121,13 @@ function SignupInner() {
         }))
       );
       setPorts((portRows.data ?? []) as PortRow[]);
-    });
+      })
+      // Sem par, esta promessa virava rejeição sem dono e os dois
+      // campos ficavam vazios sem explicação — numa tela de cadastro,
+      // "posto" e "porto" vazios leem como formulário quebrado.
+      .catch(() => {
+        if (alive) setListasFalharam(true);
+      });
     return () => {
       alive = false;
     };
@@ -383,7 +391,13 @@ function SignupInner() {
             <Req />
           </label>
           <select id="port" value={portId} onChange={(e) => setPortId(e.target.value)}>
-            <option value="">{ports.length ? "Select your home port" : "Loading ports…"}</option>
+            <option value="">
+              {ports.length
+                ? "Select your home port"
+                : listasFalharam
+                  ? "Couldn't load ports — reload the page"
+                  : "Loading ports…"}
+            </option>
             {ports.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} [{p.country_code.toUpperCase()}]
@@ -398,7 +412,13 @@ function SignupInner() {
           options={ranks}
           value={rank}
           onChange={setRank}
-          placeholder={ranks.length ? "Search your rank" : "Loading ranks…"}
+          placeholder={
+            ranks.length
+              ? "Search your rank"
+              : listasFalharam
+                ? "Couldn't load ranks — reload the page"
+                : "Loading ranks…"
+          }
         />
 
         <SearchSelect

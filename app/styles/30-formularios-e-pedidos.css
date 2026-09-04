@@ -45,7 +45,7 @@ input:-webkit-autofill:focus {
 }
 /* Para quando o container não é grid e o botão precisa ocupar a linha. */
 .btn.block { width: 100%; }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 10px 26px -12px rgba(255,182,72,.5); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 10px 26px -12px rgba(var(--amber-rgb),.5); }
 /* O clique devolve o botão ao chão: é o "afundou" que o dedo espera. */
 .btn:active { transform: translateY(0); box-shadow: none; transition-duration: .05s; }
 .btn:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
@@ -64,7 +64,7 @@ input:-webkit-autofill:focus {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   transition: border-color .2s;
 }
-.gbtn:hover { border-color: rgba(255,182,72,.5); background: var(--card-hi); }
+.gbtn:hover { border-color: rgba(var(--amber-rgb),.5); background: var(--card-hi); }
 
 .divider {
   display: flex; align-items: center; gap: 12px; color: var(--faint);
@@ -100,7 +100,7 @@ input:-webkit-autofill:focus {
   display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
   border-radius: 14px; padding: 15px 16px; cursor: pointer; transition: border-color .2s; font-size: 14px;
 }
-.payopt input { accent-color: #FFB648; width: 17px; height: 17px; flex: none; }
+.payopt input { accent-color: var(--amber); width: 17px; height: 17px; flex: none; }
 .payopt:hover { border-color: var(--line-hi); }
 .payopt .sub { display: block; font-size: 11.5px; color: var(--faint); }
 
@@ -109,7 +109,7 @@ input:-webkit-autofill:focus {
 .okring {
   width: 74px; height: 74px; margin: 0 auto 18px; border-radius: 50%;
   border: 2px solid var(--teal); display: flex; align-items: center; justify-content: center;
-  font-size: 30px; color: var(--teal); box-shadow: 0 0 34px rgba(46,230,200,.25);
+  font-size: 30px; color: var(--teal); box-shadow: 0 0 34px rgba(var(--teal-rgb),.25);
   animation: okIn .5s cubic-bezier(.2,.7,.3,1.4);
 }
 @keyframes okIn { from { transform: scale(.5); opacity: 0; } }
@@ -128,7 +128,7 @@ input:-webkit-autofill:focus {
   background: var(--night); z-index: 1;
 }
 .step.done .n { border-color: var(--teal); color: var(--teal); }
-.step.now .n { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 16px rgba(255,182,72,.35); }
+.step.now .n { border-color: var(--amber); color: var(--amber-hi); box-shadow: 0 0 16px rgba(var(--amber-rgb),.35); }
 .step h4 { margin: 3px 0 2px; font-size: 14.5px; }
 .step p { margin: 0; font-size: 12.5px; color: var(--faint); }
 .step.done h4 { color: var(--muted); }
@@ -148,8 +148,8 @@ input:-webkit-autofill:focus {
   text-transform: uppercase; border-radius: 999px; padding: 4px 10px; white-space: nowrap;
   border: 1px solid var(--line-hi); color: var(--muted);
 }
-.pill.amber  { border-color: rgba(255,182,72,.5);  color: var(--amber-hi); background: rgba(255,182,72,.08); }
-.pill.teal   { border-color: rgba(46,230,200,.45); color: var(--teal);     background: rgba(46,230,200,.07); }
+.pill.amber  { border-color: rgba(var(--amber-rgb),.5);  color: var(--amber-hi); background: rgba(var(--amber-rgb),.08); }
+.pill.teal   { border-color: rgba(var(--teal-rgb),.45); color: var(--teal);     background: rgba(var(--teal-rgb),.07); }
 .pill.danger { border-color: rgba(255,89,100,.5);  color: var(--danger);   background: rgba(255,89,100,.07); }
 .pill.faint  { color: var(--faint); }
 
