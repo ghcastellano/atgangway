@@ -1,7 +1,7 @@
 # At Gangway — passagem de bastão
 
 > Para quem abre um chat novo em `github.com/ghcastellano/atgangway` e precisa
-> do contexto sem esta sessão. Estado em **2026-09-03**. Tudo o que está aqui
+> do contexto sem esta sessão. Estado em **2026-09-04**. Tudo o que está aqui
 > foi verificado contra produção, não relembrado.
 
 ## O que é
@@ -22,7 +22,7 @@ brasileiro, PTAX do Banco Central por cron.
 | o quê | onde |
 |---|---|
 | código | `github.com/ghcastellano/atgangway`, branch `main` — é o único repositório que importa |
-| deploy | Vercel, projeto `atgangway`, produção em `atgangway.com`; cada push em `main` publica |
+| deploy | Vercel, projeto `atgangway`, produção em `atgangway.com`; cada push em `main` publica. Functions em **gru1** (`vercel.json`) — o banco é sa-east-1 |
 | banco | Supabase `cuaocjxofaizefzcxlyc`; migrações aplicadas via MCP e **documentadas** em `supabase/migrations/` (o repositório é registro, o banco é a verdade) |
 | tipos do banco | `lib/database.types.ts` — gerado; regenera com `supabase gen types` ou o MCP |
 | testes | `npm test` (Node test runner, 252; os 54 responsivos rodam só com `next build && next start -p 3100` no ar, senão pulam) e `supabase/tests/{dinheiro,escala}.sql` (pgTAP, 11 invariantes de dinheiro + 5 do picker de navio; rodam inteiros pelo `execute_sql` do MCP, com rollback) |
@@ -132,12 +132,39 @@ estoque físico de verdade.
   pgTAP em `supabase/tests/escala.sql` (5 invariantes). Migração
   `20260903040000_busca_de_navio_so_escala_aberta.sql`, aplicada.
 
+### Feitas em 2026-09-04
+
+- **Performance (fase 1)**: functions da Vercel em `gru1` (estavam em Washington
+  falando com banco em São Paulo — cada consulta cruzava o oceano); sessão
+  verificada localmente pelo JWT (`lib/supabase/session.ts`, `getClaims`) em
+  vez de `getUser()` em toda requisição; selo de favoritos vivo no navegador
+  (`lib/wish.tsx`) em vez de `revalidatePath("/", "layout")` a cada coração.
+- **Painel novo** (`/admin`, em português): login próprio em `/admin/login`
+  (só e-mail + senha; usuário `help@atgangway.com` criado como admin, senha
+  enviada para a própria caixa); barra lateral no desktop e abas embaixo no
+  celular (`components/admin/AdminShell.tsx`); pedidos em tabela com painel de
+  detalhe e ações otimistas com Desfazer (`components/admin/PedidosBoard.tsx`);
+  confirmação em cancelar/creditar; navios em três pilhas com edição em
+  painel; catálogo e compras no mesmo sistema; `/admin/products` (v1) removido.
+  As actions devolvem a linha nova (`lib/painel.ts` → `Resultado<T>`) em vez de
+  revalidar a página inteira.
+- **Alertas de atraso**: tabela `admin_notifications` + RPC `notify_admin`
+  (migração `20260904040000_admin_notifications.sql`); o cron do line-up
+  (`lib/alertas.ts`) avisa no sino do painel e por e-mail para
+  `help@atgangway.com` quando navio publicado escorrega ≥ 6 h ou navio com
+  pedido aberto muda ≥ 2 h. Dedupe por navio + ETA novo.
+- **Área do cliente**: barra de abas fixa embaixo no celular
+  (`components/AccountTabs.tsx`); o rail lateral só a partir de 1024px.
+- **Fotos**: 4 repostas do acervo aberto, Banana Boat SPF 50 desligado (118 ativos).
+
 ## Como verificar que está tudo vivo (5 min)
 
 ```
 curl -s -o /dev/null -w '%{http_code}\n' https://atgangway.com/shop      # 200
 curl -s https://atgangway.com/shop | grep -o 'class="count">[^<]*<'      # "119 products"
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://atgangway.com/api/cron/daily  # 401 (guarda viva)
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' https://atgangway.com/admin      # 307 → /admin/login?next=/admin
+curl -sI https://atgangway.com/shop | grep -i x-vercel-id                                # ...::gru1::... (function em SP)
 # digest diário = caminho real de e-mail; sent:true prova o SMTP
 curl -s -H "Authorization: Bearer <app_secrets.cron_secret>" https://atgangway.com/api/cron/daily
 # invariantes de dinheiro, no banco, com rollback
