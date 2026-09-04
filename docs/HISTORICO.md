@@ -849,3 +849,50 @@ Fica um item que NÃO consigo restaurar: o teste também fez
 `update profiles set ship_id = (...)` no primeiro perfil, que é o do
 Gustavo. O valor anterior não é recuperável. Confira o navio em
 /account.
+
+## 2026-09-04 — revisão geral: testes, código e o que separa do iFood
+
+### 54 dos 254 testes nunca rodavam
+
+`npm test` terminava com "pass 200 / fail 0 / skipped 54" — e os 54 são
+a suíte de responsividade INTEIRA, que se pula sozinha quando não há
+servidor em :3100. Vinte e um por cento da suíte não testava nada, e o
+resumo parecia verde. É o mesmo pecado que eu tinha acabado de corrigir
+na auditoria de interface.
+
+Rodada de verdade, com servidor: **42/42 passam** — a suíte é boa. O
+defeito era o silêncio. Agora ela imprime um aviso em bloco no `after`,
+dizendo quantos casos não rodaram e o comando para rodá-los. Vai no
+`after` porque `indisponivel` só existe depois do `before` — na primeira
+tentativa pus no topo do módulo e o aviso nunca apareceu.
+
+Não reprova de propósito: `npm test` roda sem servidor por desenho, e
+quebrar isso obrigaria a subir o Next para conferir uma função de
+formatação.
+
+### Módulos sem teste
+
+`lib/alertas.ts`, `lib/fotonormaliza.ts`, `lib/fxrate.ts`,
+`lib/metricas.ts`, `lib/taxregime.ts`. Dos cinco, **taxregime** é o que
+importa: é a regra de elegibilidade aduaneira, e errar ali é carga
+barrada no porto.
+
+### O que separa isto de um iFood, medido
+
+Não é CSS. São quatro coisas, em ordem de impacto:
+
+1. **91% do catálogo não tem foto própria** — 107 de 118 produtos ativos
+   usam imagem de acervo ou gerada. O iFood inteiro se apoia em foto
+   real, consistente e bem iluminada; é dela que vem a sensação de
+   "premium" antes de qualquer tipografia. Nenhuma correção de layout
+   compensa isso.
+2. **Não há total corrente.** O iFood mantém uma barra fixa com
+   "N itens · R$ X · Ver sacola". Aqui o carrinho é um selo numérico no
+   cabeçalho: a pessoa adiciona seis itens e não sabe quanto gastou sem
+   abrir a gaveta.
+3. **A busca não sugere.** Digitar não devolve nada até dar Enter. Numa
+   loja de 118 SKUs isso ainda passa; com mil, é a diferença entre achar
+   e desistir.
+4. **Spinner onde deveria haver esqueleto.** Sete telas mostram um disco
+   girando; app premium mostra a FORMA do que vem, e isso muda a
+   percepção de velocidade sem mudar a velocidade.

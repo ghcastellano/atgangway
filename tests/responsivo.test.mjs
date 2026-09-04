@@ -76,7 +76,37 @@ before(async () => {
   if (navegador) indisponivel = null;
 });
 
-after(async () => { if (navegador) await navegador.close(); });
+after(async () => {
+  if (navegador) await navegador.close();
+
+  /**
+   * O aviso ALTO de que os casos não rodaram.
+   *
+   * Sem ele, `npm test` termina com "# pass 200 / # fail 0 /
+   * # skipped 54" e ninguém repara no número do meio: 21% da suíte —
+   * ESTA suíte inteira — não testou nada, e o resumo parece verde. Um
+   * teste que passa quando não testou é pior que teste nenhum, porque
+   * dá confiança.
+   *
+   * Não dá para simplesmente REPROVAR: `npm test` roda sem servidor de
+   * propósito, e quebrar isso obrigaria a subir o Next para conferir
+   * uma função de formatação. Então o remédio é ser impossível de não
+   * ver. Vai no `after` porque `indisponivel` só é conhecido depois do
+   * `before` — no topo do módulo ele ainda é null, que foi como eu
+   * escrevi na primeira tentativa e o aviso nunca apareceu.
+   */
+  if (indisponivel) {
+    const linha = "=".repeat(66);
+    console.error(
+      `\n${linha}\n` +
+      `  ATENCAO: os ${TELAS.length * ROTAS.length} casos de responsividade NAO RODARAM.\n` +
+      `  Motivo: ${indisponivel}\n\n` +
+      `  Para rodar de verdade:\n` +
+      `    npx next build && npx next start -p 3100 &\n` +
+      `    npm run test:responsivo\n${linha}\n`
+    );
+  }
+});
 
 /** Mede uma rota numa largura. */
 async function medir(rota, tela) {
