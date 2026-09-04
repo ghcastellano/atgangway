@@ -193,6 +193,33 @@ estoque físico de verdade.
   pedido, 6 pedidos, US$ 818,50, 9 favoritos. Não há cliente de fora ainda;
   todo o movimento nas métricas do banco é build, teste e robô.
 
+### Métricas na Vercel (2026-09-04)
+
+`@vercel/analytics` (visitas) já estava no layout. Somou-se
+`@vercel/functions` → `metric()` para os números de OPERAÇÃO, com o
+helper `lib/metricas.ts` (`medir` e `cronometrar`). Fora do runtime da
+Vercel a função é no-op — nenhuma requisição em `npm run dev`, `npm test`
+ou build local.
+
+| métrica | tags | o que responde |
+|---|---|---|
+| `vitrine.miss_ms` | `consulta`, `tipo`, `desfecho` | quantas vezes o cache do catálogo NÃO segurou, e quanto custou a ida ao banco |
+| `vitrine.itens` | `tipo` | tamanho da página devolvida |
+| `pedido.rpc_ms` | `desfecho` | duração do `place_order` |
+| `pedido.tentativa` | `resultado` | `criado`, `duplicado`, `out_of_stock`, `no_window`, `falha_rpc`… |
+| `pedido.deposito_usd` / `pedido.saldo_usd` | — | dinheiro que entra agora e na escada |
+| `lineup.sync_ms`, `lineup.navios`, `lineup.mudancas_eta`, `lineup.alertas`, `lineup.falhas` | — | saúde do cron de hora em hora |
+| `email.envio_ms` | `resultado` | se o e-mail saiu, e em quanto tempo |
+
+**Regra das tags**: só conjunto fechado de valores. Nada de id, nome de
+navio, e-mail ou termo de busca — cardinalidade alta vira fatura e um
+gráfico de dez mil séries que ninguém lê.
+
+**Falta ativar no painel**: Web Analytics (a API confirma
+`web_analytics_not_enabled`) e, para ver as métricas customizadas,
+Observability. O código não cobra nada sozinho; a cobrança, se houver,
+vem do que for ligado no painel — confira o plano antes de ativar.
+
 ## Como verificar que está tudo vivo (5 min)
 
 ```

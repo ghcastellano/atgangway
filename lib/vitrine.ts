@@ -19,6 +19,7 @@ import { unstable_cache } from "next/cache";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "./env";
 import { listProducts, type BrandOption, type Category, type ProductCard, type ListArgs } from "./catalog";
+import { cronometrar, medir } from "./metricas";
 
 const anon = () =>
   createAnonClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -31,11 +32,14 @@ const OPTS = { revalidate: 300, tags: ["catalog"] };
 export const categoriasAtivas = unstable_cache(
   async (): Promise<Category[]> => {
     if (!supabaseConfigured) return [];
-    const { data } = await anon()
-      .from("categories")
-      .select("id, parent_id, slug, name, icon, image_path, path, depth, active, sort_order")
-      .eq("active", true)
-      .order("sort_order");
+    // Só chega aqui no MISS: o corpo do unstable_cache não roda no hit.
+    // Contar estes é contar quantas vezes o cache NÃO segurou.
+    const { data } = await cronometrar("vitrine.miss_ms", async () =>
+      anon()
+        .from("categories")
+        .select("id, parent_id, slug, name, icon, image_path, path, depth, active, sort_order")
+        .eq("active", true)
+        .order("sort_order"), { consulta: "categorias" });
     return (data ?? []) as Category[];
   },
   ["vitrine-categorias"],
@@ -46,7 +50,9 @@ export const categoriasAtivas = unstable_cache(
 export const contagensPorCategoria = unstable_cache(
   async (): Promise<Record<string, number>> => {
     if (!supabaseConfigured) return {};
-    const { data } = await anon().rpc("category_counts");
+    const { data } = await cronometrar("vitrine.miss_ms", async () => anon().rpc("category_counts"), {
+      consulta: "contagens",
+    });
     const out: Record<string, number> = {};
     for (const r of (data ?? []) as { category_id: string; product_count: number }[]) {
       out[r.category_id] = Number(r.product_count) || 0;
@@ -62,10 +68,15 @@ export const marcasEmUso = unstable_cache(
   async (): Promise<BrandOption[]> => {
     if (!supabaseConfigured) return [];
     const db = anon();
-    const [marcas, usadas] = await Promise.all([
-      db.from("brands").select("id, slug, name").eq("active", true).order("sort_order"),
-      db.from("products").select("brand_id").eq("active", true).not("brand_id", "is", null),
-    ]);
+    const [marcas, usadas] = await cronometrar(
+      "vitrine.miss_ms",
+      async () =>
+        Promise.all([
+          db.from("brands").select("id, slug, name").eq("active", true).order("sort_order"),
+          db.from("products").select("brand_id").eq("active", true).not("brand_id", "is", null),
+        ]),
+      { consulta: "marcas" }
+    );
     const emUso = new Set(((usadas.data ?? []) as { brand_id: string | null }[]).map((p) => p.brand_id));
     return ((marcas.data ?? []) as BrandOption[]).filter((b) => emUso.has(b.id));
   },
@@ -77,7 +88,15 @@ export const marcasEmUso = unstable_cache(
 export const listarProdutos = unstable_cache(
   async (args: ListArgs): Promise<{ items: ProductCard[]; nextCursor: string | null }> => {
     if (!supabaseConfigured) return { items: [], nextCursor: null };
-    return listProducts(anon(), args);
+    // A tag diz QUE TIPO de listagem custou, não qual busca: "busca" e
+    // "categoria" são dois valores; o termo digitado seria infinito.
+    const tipo = args.query ? "busca" : args.category ? "categoria" : "vitrine";
+    const r = await cronometrar("vitrine.miss_ms", async () => listProducts(anon(), args), {
+      consulta: "produtos",
+      tipo,
+    });
+    medir("vitrine.itens", r.items.length, { tipo });
+    return r;
   },
   ["vitrine-produtos"],
   OPTS

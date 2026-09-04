@@ -16,6 +16,7 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.0",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/functions": "^3.9.5",
     "next": "^16.3.4",
     "nodemailer": "^9.1.1",
     "qrcode": "^1.5.4",

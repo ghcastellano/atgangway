@@ -8,6 +8,7 @@ import {
 } from "../../../../lib/lineup.ts";
 import { sendMail, sendOrderEmail } from "../../../../lib/mailer.ts";
 import { alertarAtrasos } from "../../../../lib/alertas.ts";
+import { cronometrar, medir } from "../../../../lib/metricas.ts";
 import { buildLastCallEmail, type LastCallData } from "../../../../lib/emails.ts";
 import { SITE_URL } from "../../../../lib/env.ts";
 
@@ -116,7 +117,10 @@ export async function GET(request: Request) {
   const lote = upcoming.map((r) => ({
     name: r.name, eta: r.eta, berth: r.berth, imo: r.imo, voyage: r.voyage, source: "port_lineup",
   }));
-  const { data: loteRes, error: loteErr } = await supabase.rpc("sync_ship_etas", { p_rows: lote, p_secret: secret });
+  const { data: loteRes, error: loteErr } = await cronometrar("lineup.sync_ms", async () =>
+    supabase.rpc("sync_ship_etas", { p_rows: lote, p_secret: secret })
+  );
+  medir("lineup.navios", lote.length);
   const resultados = ((loteRes as { results?: Record<string, unknown>[] } | null)?.results ?? []);
   if (loteErr || !resultados.length) summary.failed = upcoming.length;
   for (const data of resultados) {
@@ -136,6 +140,9 @@ export async function GET(request: Request) {
      do painel (deduplicado por navio + ETA novo) e um e-mail para a
      caixa da operação. */
   const alertas = await alertarAtrasos(supabase, changes, secret);
+  medir("lineup.mudancas_eta", changes.length);
+  medir("lineup.alertas", alertas.created);
+  if (summary.failed > 0) medir("lineup.falhas", summary.failed);
 
   /* Trazer as escalas era metade do trabalho: alguém tem de decidir
      quais estão EM CENA. Sem esta chamada o campo `active` só sabia

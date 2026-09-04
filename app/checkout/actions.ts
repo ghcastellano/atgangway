@@ -7,6 +7,7 @@ import { SITE_URL } from "@/lib/env";
 import { usd } from "@/lib/format";
 import { placeOrderErrorMessage, type PlaceOrderRpcError } from "@/lib/pedido";
 import { sessionUser } from "@/lib/supabase/session";
+import { cronometrar, medir } from "@/lib/metricas";
 
 export type PlaceOrderInput = {
   /** Uma por TENTATIVA de compra, gerada no navegador: reenviar a mesma
@@ -139,7 +140,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
      dois pedidos: a mesma chave devolve o MESMO pedido, inclusive na
      corrida de duas chamadas simultâneas. Aqui fica a tradução dos
      códigos da RPC nas frases de sempre — lib/pedido.ts. */
-  const { data, error } = await supabase.rpc("place_order", {
+  const { data, error } = await cronometrar("pedido.rpc_ms", async () =>
+    supabase.rpc("place_order", {
     p_key: input.idempotencyKey,
     p_ship: input.shipId ?? undefined,
     p_apply_credit: Boolean(input.applyCredit),
@@ -147,11 +149,13 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
     p_contact_whatsapp: input.contactWhatsapp ?? undefined,
     p_note: input.note ?? undefined,
     p_items: items,
-  });
+    }));
   if (error || !data) {
     console.error(
       JSON.stringify({ at: "place_order", user: user.id, message: error?.message ?? "sem retorno" })
     );
+    // Falha de infraestrutura: o pedido não existiu. Vale um alarme.
+    medir("pedido.tentativa", 1, { resultado: "falha_rpc" });
     return { ok: false, error: "Couldn't place the order — try again." };
   }
 
@@ -168,10 +172,24 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
         vessel_name: string | null;
       }
     | PlaceOrderRpcError;
-  if (!r.ok) return { ok: false, error: placeOrderErrorMessage(r) };
+  if (!r.ok) {
+    // r.error é um conjunto FECHADO de códigos da RPC (out_of_stock,
+    // no_window, below_minimum…), então serve de tag; a mensagem em
+    // inglês que o cliente lê, não.
+    medir("pedido.tentativa", 1, { resultado: r.error });
+    return { ok: false, error: placeOrderErrorMessage(r) };
+  }
 
   const applied = Number(r.credit_applied_usd ?? 0);
   const dueNow = round2(Number(r.deposit_usd) - applied);
+
+  // Pedido de verdade. `duplicate` é o reenvio da mesma chave de
+  // idempotência — conta como tentativa, não como venda nova.
+  medir("pedido.tentativa", 1, { resultado: r.duplicate ? "duplicado" : "criado" });
+  if (!r.duplicate) {
+    medir("pedido.deposito_usd", dueNow);
+    medir("pedido.saldo_usd", Number(r.balance_usd ?? 0));
+  }
 
   if (r.status === "deposit_paid" || dueNow <= 0.009) {
     // Crédito cobriu tudo (ou o reenvio achou um pedido já pago):

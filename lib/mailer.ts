@@ -20,6 +20,7 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { SITE_URL, CONTACT_EMAIL } from "./env.ts";
 import { buildOrderEmail, type OrderEmailData } from "./emails.ts";
+import { medir } from "./metricas.ts";
 
 const conf = () => ({
   host: process.env.SMTP_HOST,
@@ -69,6 +70,7 @@ export async function sendMail(msg: {
   const smtp = transport();
   if (!smtp) return { sent: false, skipped: "smtp_not_configured" };
   if (!msg.to || !msg.to.includes("@")) return { sent: false, skipped: "no_recipient" };
+  const inicio = Date.now();
   try {
     await smtp.sendMail({
       from: conf().from,
@@ -78,8 +80,12 @@ export async function sendMail(msg: {
       html: msg.html || `<pre style="font: 14px/1.5 ui-monospace, monospace">${msg.text}</pre>`,
       text: msg.text,
     });
+    medir("email.envio_ms", Date.now() - inicio, { resultado: "enviado" });
     return { sent: true };
   } catch (e) {
+    // A mensagem do erro SMTP não vira tag: ela varia com o servidor e
+    // com o destinatário. O que importa medir é que não saiu.
+    medir("email.envio_ms", Date.now() - inicio, { resultado: "falhou" });
     return { sent: false, error: (e as Error).message };
   }
 }
