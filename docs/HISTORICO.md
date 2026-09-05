@@ -958,3 +958,28 @@ Agora cada RPC tem o `error` capturado numa lista de falhas; se ela não
 estiver vazia, o route responde `ok: false` com HTTP 500 e dispara
 `notify_admin` com severidade alta — que é como isto deveria ter
 aparecido no primeiro dia.
+
+### Confirmado em produção
+
+A execução das 06:00 UTC — a primeira depois do grant — rodou com
+**zero** erros 42501. O padrão de três por hora parou exatamente na
+hora da correção:
+
+```
+05:00  3 falhas
+06:00  0          <- grant aplicado às 06:0x
+```
+
+E a rotação, que nunca tinha rodado com sucesso, deixou o line-up
+exatamente no estado que o código pretende:
+
+| | |
+|---|---|
+| escalas que deviam ter saído (ATA/ETA + 48h) | **0** |
+| escalas dentro da carência de 48h, ativas de propósito | 29 |
+| escalas que deviam ter entrado (ETA nos próximos 14 dias) | **0** |
+
+As 29 com ETA no passado não são sobra: a regra de aposentadoria é
+`coalesce(ata, eta) < now() - interval '48 hours'`, porque navio que
+atracou há dez horas provavelmente ainda está alongside. Primeira
+execução bem-sucedida da vida da função, e ela acertou.
