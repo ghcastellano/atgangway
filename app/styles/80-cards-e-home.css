@@ -922,3 +922,54 @@ svg.ic { flex: none; color: var(--amber-hi); }
 .catcard:hover svg.ic { color: var(--amber-hi); }
 .drawer-item svg.ic { color: var(--faint); }
 .drawer-item:hover svg.ic { color: var(--amber-hi); }
+
+/* ===== esqueleto das telas de conta =============================
+   Ver components/EsqueletoConta.tsx para o porquê. Em uma linha: o
+   `loading.tsx` era um disco de 106px onde a página tem 600, o <main>
+   encolhia e o rodapé subia para o meio da tela.
+
+   As alturas aqui NÃO são estimativa — saem dos blocos reais:
+   .ocard/.acct-card ~96px, o cartão de produto ~300px, o campo de
+   formulário ~74px. O esqueleto ocupa o mesmo espaço que o conteúdo, e
+   é isso que segura o rodapé embaixo. */
+/* O PISO, que é o que de fato conserta o rodapé.
+   Os blocos abaixo dão a FORMA; este `min-height` dá a garantia. Sem
+   ele o esqueleto do desktop somava 476px (a lista vira duas colunas
+   lá) e o rodapé ainda começava em y=665 numa tela de 900 — ou seja,
+   ainda subia. Medido: as páginas reais mais curtas do site, como
+   /brochures no estado vazio, deixam o rodapé em y≈950. O esqueleto
+   passa a ocupar a mesma faixa, então o rodapé nasce fora da tela e só
+   pode descer quando o conteúdo chega. Descer ninguém vê; subir era
+   justamente a queixa.
+
+   `100svh` e não `100dvh`: no celular a barra do navegador aparece e
+   some, e o dvh mudaria a reserva no meio do carregamento — trocaria um
+   salto por outro. O svh é o viewport na sua menor altura, que é a
+   conta pessimista e certa aqui.
+
+   Só em `main.esq`: o esqueleto do resumo do checkout é um `.sumcard`
+   DENTRO de uma página que já tem outras coisas, e herdar uma altura de
+   tela cheia ali viraria um cartão vazio gigante — o oposto do que se
+   quer. Lá quem segura o rodapé é o `main.pg-checkout.esq` do
+   loading.tsx. */
+main.esq { min-height: calc(100svh - 180px); }
+@media (min-width: 1024px) { main.esq { min-height: calc(100svh - var(--head-h) - 24px); } }
+.esq-crumb, .esq-titulo, .esq-trilho span, .esq-main span {
+  display: block; border-radius: 12px;
+  background: linear-gradient(90deg, var(--card) 25%, var(--card-hi) 50%, var(--card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+.esq-crumb  { height: 14px; width: 190px; margin: 14px 16px 0; border-radius: 7px; }
+.esq-titulo { height: 30px; width: 62%; max-width: 330px; margin: 16px 16px 18px; }
+
+/* No celular o trilho não existe — quem navega são as abas de baixo. */
+.esq-trilho { display: none; }
+
+.esq-main { display: grid; gap: 10px; padding: 0 16px 40px; }
+.esq-main.lista span      { height: 96px; }
+.esq-main.formulario span { height: 74px; }
+.esq-main.grade {
+  grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+}
+.esq-main.grade span { height: 300px; }

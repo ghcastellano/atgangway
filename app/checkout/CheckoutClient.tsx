@@ -232,7 +232,15 @@ export default function CheckoutClient({
     );
   }
 
-  if (!ready || lines === null) return <div className="spin" aria-label="Loading" />;
+  // Blocos com a altura das linhas do resumo, não um disco: enquanto
+  // o carrinho não volta, o cartão precisa ocupar o espaço que vai
+  // ocupar. Sem isto o rodapé sobe e desce na tela do pagamento.
+  if (!ready || lines === null)
+    return (
+      <section className="sumcard esq" aria-busy="true" aria-label="Loading">
+        <div className="esq-main lista"><span /><span /><span /></div>
+      </section>
+    );
 
   return (
     <section className="sumcard" aria-label="Order summary">

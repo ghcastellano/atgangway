@@ -983,3 +983,78 @@ As 29 com ETA no passado não são sobra: a regra de aposentadoria é
 `coalesce(ata, eta) < now() - interval '48 hours'`, porque navio que
 atracou há dez horas provavelmente ainda está alongside. Primeira
 execução bem-sucedida da vida da função, e ela acertou.
+
+## 2026-09-05 — o rodapé subia para o meio da tela
+
+Relato do Gustavo: clicando em "My Orders", "My Wish List" e afins, o
+rodapé sobe e preenche o meio da tela até o conteúdo carregar.
+
+A causa é literal. `loading.tsx` dessas rotas era:
+
+```tsx
+export default function Loading() {
+  return <div className="spin" aria-label="Loading" />;
+}
+```
+
+Um disco de 26px com 40px de margem: **114px de altura no lugar de uma
+página de 600**. Enquanto os dados não chegavam o `<main>` encolhia, o
+rodapé subia atrás dele, e depois caía de volta. Medido antes da
+correção, com o rodapé começando em:
+
+| tela | antes | viewport |
+|---|---|---|
+| celular 390×844 | y=409 | 844 |
+| tablet 834×1112 | y=413 | 1112 |
+| desktop 1440×900 | y=303 | 900 |
+
+O painel já fazia certo (`adm-skel`); a área do cliente ficou para trás.
+E duas rotas — `/wishlist` e `/captain` — não tinham `loading.tsx`
+nenhum.
+
+### A correção, em duas camadas
+
+**A forma**: `components/EsqueletoConta.tsx` desenha a silhueta real —
+migalha, título, a coluna do trilho (só no desktop, como o
+`AccountRail`) e cartões com a altura dos cartões de verdade. Três
+variantes, porque as quatro telas não têm a mesma cara: `lista`
+(pedidos, captain), `grade` (lista de desejos) e `formulario` (conta).
+As alturas saem dos blocos reais, não de estimativa.
+
+**O piso**, que é o que de fato conserta. Só a forma não bastou: no
+desktop a lista vira duas colunas, o esqueleto somava 476px e o rodapé
+ainda começava em y=665 numa tela de 900. Então `main.esq` ganhou
+`min-height: calc(100svh - …)`. Medido: as páginas reais mais curtas do
+site (/brochures no estado vazio) deixam o rodapé em y≈950; o esqueleto
+passa a ocupar a mesma faixa. **O rodapé nasce fora da tela e só pode
+descer.** Descer ninguém vê; subir era a queixa.
+
+`100svh` e não `100dvh`: no celular a barra do navegador aparece e some,
+e o dvh mudaria a reserva NO MEIO do carregamento — trocaria um salto
+por outro.
+
+Depois:
+
+| tela | antes | depois |
+|---|---|---|
+| celular 390×844 | y=409 | **y=913** |
+| tablet 834×1112 | y=413 | **y=1119** |
+| desktop 1440×900 | y=303 | **y=953** |
+| monitor 1920×1080 | y=303 | **y=1133** |
+
+### Os dois spinners que estavam DENTRO das páginas
+
+`app/account/page.tsx` e `app/checkout/CheckoutClient.tsx` tinham o
+mesmo `<div className="spin" />` no corpo, depois da hidratação. Não
+adiantaria arrumar só o `loading.tsx`: a página trocaria de silhueta uma
+etapa adiante, e o salto voltaria. A conta usa o mesmo `EsqueletoConta`
+do seu `loading.tsx`, de propósito — a espera do servidor e a do cliente
+têm de ter a mesma forma.
+
+O esqueleto do checkout é a exceção que confirma a regra: ele vive
+dentro de um `.sumcard`, não num `<main>`, e por isso o piso é escopado
+em `main.esq` — herdar altura de tela cheia num cartão viraria um vazio
+gigante.
+
+Verificado: auditoria de interface 0 achados, 42/42 de responsividade,
+254 testes.

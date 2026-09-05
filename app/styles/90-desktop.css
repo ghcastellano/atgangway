@@ -1030,3 +1030,19 @@
 .saude li.alerta { border-color: rgba(255,89,100,.45); }
 .saude li.alerta i { background: var(--danger); }
 .saude li.alerta .quando { color: var(--danger); }
+
+/* ---- esqueleto da conta no desktop: mesma grade da página real ----
+   `.pg-acct` vira grid de 244px + 1fr a partir de 1024px, e o esqueleto
+   precisa da MESMA divisão, senão ele reserva a altura certa na coluna
+   errada e o conteúdo ainda pula ao entrar. */
+@media (min-width: 1024px) {
+  .esq > .esq-crumb  { grid-column: 1 / -1; margin: 12px 0 0; }
+  .esq > .esq-titulo { grid-column: 1 / -1; margin: 16px 0 14px; height: 34px; }
+  .esq > .esq-trilho {
+    display: grid; gap: 6px; grid-column: 1; grid-row: 3;
+  }
+  .esq-trilho span { height: 58px; }
+  .esq > .esq-main { grid-column: 2; grid-row: 3; padding: 0 0 40px; }
+  .esq-main.grade  { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .esq-main.lista  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

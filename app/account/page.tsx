@@ -11,6 +11,7 @@ import { COUNTRIES } from "@/lib/countries";
 
 import { createClient } from "@/lib/supabase/client";
 import AccountRail from "@/components/AccountRail";
+import EsqueletoConta from "@/components/EsqueletoConta";
 import AccountTabs from "@/components/AccountTabs";
 import { missingProfileFields } from "@/lib/profile";
 import { saveProfile } from "./actions";
@@ -224,12 +225,11 @@ export default function AccountPage() {
     router.refresh();
   }
 
-  if (loading)
-    return (
-      <main>
-        <div className="spin" aria-label="Loading" />
-      </main>
-    );
+  // Mesmo esqueleto do loading.tsx desta rota, e de propósito: a tela
+  // de espera do servidor e a do cliente têm de ter a MESMA forma,
+  // senão a página troca de silhueta no meio do carregamento — que é o
+  // salto que se queria eliminar, só que uma etapa adiante.
+  if (loading) return <EsqueletoConta forma="formulario" linhas={6} />;
 
   return (
     <main className="pg-acct">
