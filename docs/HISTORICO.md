@@ -896,3 +896,65 @@ Não é CSS. São quatro coisas, em ordem de impacto:
 4. **Spinner onde deveria haver esqueleto.** Sete telas mostram um disco
    girando; app premium mostra a FORMA do que vem, e isso muda a
    percepção de velocidade sem mudar a velocidade.
+
+## 2026-09-05 — o cron mentia: quatro RPCs sem permissão, desde sempre
+
+Gustavo trouxe três linhas do log das 02:00:
+
+```
+42501  permission denied for function claim_call_reminders
+42501  permission denied for function credit_skipped_calls
+42501  permission denied for function rotate_ship_calls
+```
+
+A primeira suspeita era eu: na véspera eu tinha revogado EXECUTE de uma
+função no patch de índices. **Não era.** O revoke nomeava UMA função, e
+os logs do Postgres mostram as mesmas três falhas de hora em hora
+começando às 06:00 UTC — quinze horas ANTES da minha migração, no mesmo
+ritmo, sem inflexão. Nasceu quebrado e nunca funcionou.
+
+A causa é a convenção do projeto não ter sido seguida: os crons rodam
+com a chave ANÔNIMA e se autenticam pelo segredo que passam como
+argumento (é por isso que não existe service_role no ambiente da
+Vercel). Catorze RPCs têm o `grant execute ... to anon, authenticated`
+explícito na migração que as criou. Quatro, de 27/08, não têm — e a
+quarta só apareceu quando cruzei TODAS as RPCs chamadas pelo app contra
+`has_function_privilege`:
+
+| função | o que estava parado |
+|---|---|
+| `credit_skipped_calls` | depósito de escala desviada virando crédito |
+| `claim_call_reminders` | aviso de última chamada antes do corte |
+| `release_call_reminder` | devolver a reivindicação quando o e-mail falha |
+| `rotate_ship_calls` | escala vencida saindo de cena |
+
+O pior é o primeiro, e é dinheiro. O comentário dentro do próprio cron
+diz que ele era "a promessa que o checkout já fazia por escrito e que
+ninguém cumpria" — e continuou não cumprindo.
+
+**Ninguém foi lesado, e por pouco.** Conferi os seis pedidos: todos com
+escala futura e ativa, nenhum desvio para creditar. A escala mais
+próxima é no dia seguinte a este patch.
+
+### Por que passou semanas sem ninguém ver
+
+Esta é a parte que importa mais que o grant. As três chamadas eram:
+
+```ts
+const { data: giro } = await supabase.rpc("rotate_ship_calls", {...});
+```
+
+O `error` é desestruturado para fora e **cai no chão**. A RPC devolvia
+42501, `data` vinha nulo, o `?? []` logo abaixo virava "nada a fazer", e
+o route respondia `ok: true` com HTTP 200. O pg_cron via sucesso. A
+faixa de saúde do painel via sucesso. Só o log do Postgres sabia.
+
+É a mesma família de defeito de tudo que apareceu nesta revisão: o
+`.then()` sem `.catch()` do carrinho, a auditoria que passava sem
+testar, os 54 testes que se pulavam sozinhos. **Erro engolido é pior que
+erro: ele mente.**
+
+Agora cada RPC tem o `error` capturado numa lista de falhas; se ela não
+estiver vazia, o route responde `ok: false` com HTTP 500 e dispara
+`notify_admin` com severidade alta — que é como isto deveria ter
+aparecido no primeiro dia.

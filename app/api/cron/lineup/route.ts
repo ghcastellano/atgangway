@@ -153,7 +153,16 @@ export async function GET(request: Request) {
      dia: um corte que fecha às 14h tem de sumir da cena às 14h, não na
      manhã seguinte. O sync acima já atualizou as ETAs, então a rotação
      decide sobre o dado mais fresco que existe. */
-  const { data: giro } = await supabase.rpc("rotate_ship_calls", { p_secret: secret });
+  /* O `error` de cada RPC é CAPTURADO, não descartado.
+     Estas três linhas eram `const { data } = await supabase.rpc(...)`,
+     e o erro caía no chão: a RPC devolvia 42501 (as quatro funções de
+     cron nunca tiveram EXECUTE para anon), `data` vinha nulo, o `?? []`
+     logo abaixo transformava isso em "nada a fazer" e o cron respondia
+     `ok: true`. Três falhas por hora, durante semanas, com a faixa de
+     saúde do painel verde. Erro engolido é pior que erro: ele mente. */
+  const falhas: string[] = [];
+  const { data: giro, error: erroGiro } = await supabase.rpc("rotate_ship_calls", { p_secret: secret });
+  if (erroGiro) falhas.push(`rotate_ship_calls: ${erroGiro.message}`);
 
   /* A outra consequencia de uma escala ir embora: o que fazer com quem
      ja tinha pago.
@@ -162,7 +171,8 @@ export async function GET(request: Request) {
      sao o mesmo fato — o navio esteve e foi. Deposito pago vira credito
      integral, o pedido vai para `credited`, e sai o e-mail. E a promessa
      que o checkout ja fazia por escrito e que ninguem cumpria. */
-  const { data: desvio } = await supabase.rpc("credit_skipped_calls", { p_secret: secret });
+  const { data: desvio, error: erroDesvio } = await supabase.rpc("credit_skipped_calls", { p_secret: secret });
+  if (erroDesvio) falhas.push(`credit_skipped_calls: ${erroDesvio.message}`);
   const creditados =
     (desvio as { creditados?: { id: string; code: string }[] } | null)?.creditados ?? [];
 
@@ -180,7 +190,8 @@ export async function GET(request: Request) {
      por pessoa por escala, então rodar isto de hora em hora é seguro.
      Se o SMTP falhar, a reivindicação é devolvida e a próxima passada
      tenta de novo, como no livro-razão dos e-mails de pedido. */
-  const { data: chamada } = await supabase.rpc("claim_call_reminders", { p_secret: secret });
+  const { data: chamada, error: erroChamada } = await supabase.rpc("claim_call_reminders", { p_secret: secret });
+  if (erroChamada) falhas.push(`claim_call_reminders: ${erroChamada.message}`);
   const lembretes =
     ((chamada as { reminders?: (LastCallData & { user_id: string; ship_id: string; call_date: string })[] } | null)
       ?.reminders) ?? [];
@@ -198,8 +209,24 @@ export async function GET(request: Request) {
       });
   }
 
+  /* Uma etapa que falhou não pode sair daqui como sucesso.
+     `ok: false` + HTTP 500 fazem o pg_cron e a faixa de saúde do painel
+     enxergarem o problema, e o admin recebe notificação — que é como
+     isto deveria ter aparecido no primeiro dia em vez de no log. */
+  if (falhas.length) {
+    await supabase.rpc("notify_admin", {
+      p_kind: "cron_falhou",
+      p_severity: "alta",
+      p_title: `Line-up: ${falhas.length} etapa(s) falharam`,
+      p_body: falhas.join(" · "),
+      p_dedupe: `lineup:${falhas.join("|").slice(0, 80)}`,
+      p_secret: secret,
+    });
+  }
+
   return Response.json({
-    ok: true,
+    ok: falhas.length === 0,
+    falhas,
     source: usedSource,
     seen: rows.length,
     inWindow: upcoming.length,
@@ -209,5 +236,5 @@ export async function GET(request: Request) {
     deviation: { credited: creditados.length, emailed: avisados, detail: desvio ?? null },
     lastCall: { claimed: lembretes.length, emailed: lembrados },
     alerts: alertas,
-  });
+  }, { status: falhas.length ? 500 : 200 });
 }
