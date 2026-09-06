@@ -38,13 +38,19 @@ export default function AdminShell({
   const path = usePathname();
   const [menu, setMenu] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!menu) return;
     const onDown = (e: MouseEvent) => {
       if (box.current && !box.current.contains(e.target as Node)) setMenu(false);
     };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenu(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenu(false);
+        menuButton.current?.focus();
+      }
+    };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -53,13 +59,13 @@ export default function AdminShell({
     };
   }, [menu]);
 
-  const ativa = (href: string) => (href === "/admin" ? path === "/admin" : path.startsWith(href));
+  const ativa = (href: string) => path === href || (href !== "/admin" && path.startsWith(`${href}/`));
   const atual = SECOES.find((s) => ativa(s.href));
 
   return (
     <ToastProvider>
       <div className="adm">
-        <aside className="adm-side" aria-label="Seções do painel">
+        <aside className="adm-side theme-navy" aria-label="Seções do painel">
           <Link href="/admin" className="adm-brand" aria-label="Painel At Gangway">
             <IconAnchor className="mark" size={20} />
             <span>
@@ -85,28 +91,32 @@ export default function AdminShell({
             <h1>{atual?.rotulo ?? "Painel"}</h1>
             <div className="adm-top-acoes">
               <Sino inicial={notificacoes} />
-              <div className="adm-user" ref={box}>
+              <div className="adm-user" ref={box} onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setMenu(false);
+              }}>
                 <button
+                  ref={menuButton}
                   type="button"
                   className="adm-avatar"
                   onClick={() => setMenu((m) => !m)}
                   aria-expanded={menu}
+                  aria-controls="admin-account-panel"
                   aria-label={`Conta ${email}`}
                   title={email}
                 >
                   {email.slice(0, 1).toUpperCase()}
                 </button>
                 {menu && (
-                  <div className="adm-menu" role="menu">
+                  <div className="adm-menu" id="admin-account-panel">
                     <p className="adm-menu-email">{email}</p>
-                    <Link href="/reset-password" role="menuitem" onClick={() => setMenu(false)}>
+                    <Link href="/reset-password" onClick={() => setMenu(false)}>
                       Trocar senha
                     </Link>
-                    <Link href="/" role="menuitem" onClick={() => setMenu(false)}>
+                    <Link href="/" onClick={() => setMenu(false)}>
                       Ver a loja
                     </Link>
                     <form action={signOut}>
-                      <button type="submit" role="menuitem">
+                      <button type="submit">
                         <IconLogout size={16} /> Sair
                       </button>
                     </form>
@@ -116,10 +126,10 @@ export default function AdminShell({
             </div>
           </header>
 
-          <div className="adm-content">{children}</div>
+          <main className="adm-content" id="main-content" tabIndex={-1}>{children}</main>
         </div>
 
-        <nav className="adm-tabs" aria-label="Seções do painel">
+        <nav className="adm-tabs theme-navy" aria-label="Seções do painel">
           {SECOES.map((s) => (
             <Link key={s.href} href={s.href} className={ativa(s.href) ? "on" : ""} aria-current={ativa(s.href) ? "page" : undefined}>
               <s.icone size={20} />

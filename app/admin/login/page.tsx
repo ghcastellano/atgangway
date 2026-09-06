@@ -18,50 +18,63 @@ function LoginPainel() {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"), "/admin");
-  const destino = next.startsWith("/admin") ? next : "/admin";
+  const destino = next === "/admin" || next.startsWith("/admin/") ? next : "/admin";
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [ver, setVer] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"login" | "reset" | null>(null);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true);
+    if (busy) return;
+    setBusy("login");
     setErro(null);
     setInfo(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
-    if (error) {
-      setBusy(false);
-      setErro(/invalid/i.test(error.message) ? "E-mail ou senha incorretos." : error.message);
-      return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
+      if (error) {
+        setErro(/invalid/i.test(error.message) ? "E-mail ou senha incorretos." : "Não foi possível entrar. Tente novamente em instantes.");
+        return;
+      }
+      router.push(destino);
+      router.refresh();
+    } catch {
+      setErro("Não foi possível conectar. Verifique sua conexão e tente novamente.");
+    } finally {
+      setBusy(null);
     }
-    router.push(destino);
-    router.refresh();
   }
 
   async function esqueci() {
+    if (busy) return;
     if (!email.trim()) {
       setErro("Digite o e-mail da conta para receber o link de redefinição.");
       return;
     }
-    setBusy(true);
+    setBusy("reset");
     setErro(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/confirm?next=/reset-password`,
-    });
-    setBusy(false);
-    if (error) setErro(error.message);
-    else setInfo(`Se ${email.trim()} for uma conta da equipe, o link de redefinição chega em instantes.`);
+    setInfo(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth/confirm?next=/reset-password`,
+      });
+      if (error) setErro("Não foi possível solicitar o link agora. Tente novamente em instantes.");
+      else setInfo(`Se ${email.trim()} tiver uma conta, o link de redefinição chega em instantes.`);
+    } catch {
+      setErro("Não foi possível conectar. Verifique sua conexão e tente novamente.");
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
     <main className="adm-login">
-      <form onSubmit={entrar} className="adm-login-card" aria-labelledby="titulo-login">
+      <form onSubmit={entrar} className="adm-login-card" aria-labelledby="titulo-login" aria-busy={Boolean(busy)}>
         <div className="adm-login-brand">
           <IconAnchor className="mark" size={26} />
           <div>
@@ -105,14 +118,14 @@ function LoginPainel() {
           </div>
         </label>
 
-        <button className="adm-btn primario grande" type="submit" disabled={busy} aria-busy={busy}>
-          {busy ? <span className="adm-spin" aria-hidden /> : null}
-          {busy ? "Entrando…" : "Entrar"}
+        <button className="adm-btn primario grande" type="submit" disabled={Boolean(busy)} aria-busy={busy === "login"}>
+          {busy === "login" ? <span className="adm-spin" aria-hidden /> : null}
+          {busy === "login" ? "Entrando…" : "Entrar"}
         </button>
 
         <div className="adm-login-links">
-          <button type="button" className="adm-link" onClick={esqueci} disabled={busy}>
-            Esqueci a senha
+          <button type="button" className="adm-link" onClick={esqueci} disabled={Boolean(busy)} aria-busy={busy === "reset"}>
+            {busy === "reset" ? "Enviando link…" : "Esqueci a senha"}
           </button>
           <Link href="/">Voltar à loja</Link>
         </div>

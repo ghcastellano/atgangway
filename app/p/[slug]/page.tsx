@@ -51,10 +51,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .from("products")
     .select("name, short_description")
     .eq("slug", slug)
+    .eq("active", true)
     .maybeSingle();
   return {
     title: data?.name ?? undefined,
     description: data?.short_description ?? undefined,
+    alternates: { canonical: `/p/${encodeURIComponent(slug)}` },
   };
 }
 

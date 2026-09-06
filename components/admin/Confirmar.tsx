@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 /**
  * "Tem certeza?" só para o que não volta com um clique: cancelar um
@@ -21,6 +21,8 @@ export type Pergunta = {
 };
 
 export function useConfirmar() {
+  const titleId = useId();
+  const descriptionId = useId();
   const ref = useRef<HTMLDialogElement>(null);
   const [q, setQ] = useState<Pergunta | null>(null);
   const resolver = useRef<((v: boolean) => void) | null>(null);
@@ -49,6 +51,8 @@ export function useConfirmar() {
     <dialog
       ref={ref}
       className="adm-dialog"
+      aria-labelledby={titleId}
+      aria-describedby={q?.texto ? descriptionId : undefined}
       onCancel={(e) => {
         e.preventDefault();
         fecha(false);
@@ -60,8 +64,8 @@ export function useConfirmar() {
     >
       {q && (
         <div className="adm-dialog-card">
-          <h2>{q.titulo}</h2>
-          {q.texto && <p>{q.texto}</p>}
+          <h2 id={titleId}>{q.titulo}</h2>
+          {q.texto && <p id={descriptionId}>{q.texto}</p>}
           <div className="adm-dialog-acoes">
             <button type="button" className="adm-btn ghost" onClick={() => fecha(false)} autoFocus>
               {q.cancelar ?? "Voltar"}

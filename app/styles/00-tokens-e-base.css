@@ -35,7 +35,14 @@
   --panel:   #FFFFFF;   /* painéis destacados */
   --card:    #FFFFFF;   /* card: branco puro, para a foto do produto assentar */
   --card-hi: #F2F6FA;   /* card sob o cursor */
-  --ink:     #0B1B30;   /* 16:1 sobre branco */
+  --brand:   #0B1B30;
+  --brand-hover: #163A5F;
+  --on-brand: #FFFFFF;
+  --focus: #1764AD;
+  --focus-on-dark: #B8D9FF;
+  --success: #18733C;
+  --danger-rgb: 198, 43, 55;
+  --ink:     var(--brand);
   --muted:   #47596F;   /* 7.4:1 */
   --faint:   #5A6A7D;   /* 5.1:1 no pior fundo claro (--card-hi) — AA */
   --amber:   #F0A030;   /* fundo de ação; texto sobre ele é --amber-ink */
@@ -61,12 +68,13 @@
   /* Superfícies que continuam escuras (cabeçalho, rodapé, herói) e a
      tinta que elas usam. Um componente escuro redefine --ink e amigos
      no próprio escopo, então o CSS de dentro dele não muda uma linha. */
-  --dark:      #0B1B30;
+  --dark:      var(--brand);
   --dark-deep: #061222;
   --dark-ink:  #EEF4F8;
   --dark-muted:#9FB4C8;
-  --dark-faint:#7A8FA8;
+  --dark-faint:#A4B7CB;
   --dark-card: #13273F;
+  --dark-card-hi: #1B3252;
   --dark-line: rgba(238,244,248,.12);
   --amber-on-dark: #FFD9A0;  /* o âmbar claro só é legível SOBRE escuro */
 
@@ -141,7 +149,7 @@ body {
   background: var(--abyss);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;

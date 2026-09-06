@@ -16,6 +16,13 @@ import { SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@
 import { DEPOSIT_PCT } from "@/lib/money";
 import { resolveDelivery, type PortRule } from "@/lib/delivery";
 import { sessionUser } from "@/lib/supabase/session";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Crew supplies delivered at Porto de Santos",
+  description: "Shop everyday essentials for seafarers calling at Porto de Santos. Pre-order from your vessel and collect your supplies at the gangway.",
+  alternates: { canonical: "/" },
+};
 
 /**
  * Home = vitrine, na ordem do Sunny: hero, "Categories", grade de
@@ -311,12 +318,13 @@ export default async function Home() {
   const shown = withStock.length > 0 ? withStock : store.roots;
 
   return (
-    <main className="pg-home">
-      <section className="homehero">
+    <main className="pg-home" id="main-content" tabIndex={-1}>
+      <section className="homehero theme-navy" aria-labelledby="home-title">
         <p className="kicker">At Gangway · Porto de Santos</p>
-        <h1>Delivered to your gangway at Porto de Santos</h1>
+        <h1 id="home-title">Delivered to your gangway at Porto de Santos</h1>
         <p className="lead">
-          Pre-order before you dock, pay a {DEPOSIT_PCT}% deposit, collect at the gangway.
+          Everyday supplies for seafarers, in every role. Pre-order before you dock,
+          pay a {DEPOSIT_PCT}% deposit, collect at the gangway.
         </p>
 
         {/* A janela de entrega que vale agora, para quem não tem navio

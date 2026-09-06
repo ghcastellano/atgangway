@@ -17,9 +17,16 @@ import { readFileSync } from "node:fs";
 function tokens() {
   const css = readFileSync("app/styles/00-tokens-e-base.css" /* os tokens moram aqui desde o split do globals.css em camadas */, "utf-8");
   const raiz = css.slice(css.indexOf(":root {"), css.indexOf("}", css.indexOf(":root {")));
-  const t = {};
-  for (const m of raiz.matchAll(/--([a-z-]+):\s*(#[0-9A-Fa-f]{6})\s*;/g)) t[m[1]] = m[2];
-  return t;
+  const raw = {};
+  for (const m of raiz.matchAll(/--([a-z-]+):\s*(#[0-9A-Fa-f]{6}|var\(--[a-z-]+\))\s*;/g)) raw[m[1]] = m[2];
+  const resolve = (name, seen = new Set()) => {
+    assert.ok(!seen.has(name), `referência circular em --${name}`);
+    const value = raw[name];
+    assert.ok(value, `token --${name} não encontrado`);
+    if (value.startsWith("#")) return value;
+    return resolve(value.slice(6, -1), new Set([...seen, name]));
+  };
+  return Object.fromEntries(Object.keys(raw).map((name) => [name, resolve(name)]));
 }
 
 const canal = (c) => {
@@ -76,6 +83,15 @@ const PARES = [
   ["número de KPI em turquesa", "teal", "card", 3.0],
   ["alerta sobre card", "danger", "card", 4.5],
   ["WhatsApp sobre card", "wa", "card", 4.5],
+  ["ação azul com texto branco", "on-brand", "brand", 4.5],
+  ["ação azul sob o cursor", "on-brand", "brand-hover", 4.5],
+  ["texto sobre navegação e herói azuis", "dark-ink", "dark", 4.5],
+  ["texto secundário sobre azul", "dark-muted", "dark", 4.5],
+  ["metadados sobre azul", "dark-faint", "dark", 4.5],
+  ["metadados sobre navegação selecionada", "dark-faint", "dark-card-hi", 4.5],
+  ["sucesso no admin claro", "success", "card", 4.5],
+  ["foco de teclado no branco", "focus", "card", 3],
+  ["foco de teclado no azul", "focus-on-dark", "dark", 3],
 ];
 
 test("todos os tokens de cor foram encontrados no globals.css", () => {

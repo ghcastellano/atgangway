@@ -115,7 +115,6 @@
      parar em 1180, deixando 39% de um monitor de 1920 vazio com um
      degrau visível entre os dois. Num painel de operação, largura extra
      é mais pedido na tela ao mesmo tempo. */
-  .shell:has(.admin-wide) > main { max-width: 100%; }
   /* as seis superfícies desenhadas saem do teto */
   .shell > main.pg-form,
   .shell > main.pg-home,
@@ -369,11 +368,11 @@
     max-width: 760px;
   }
   .pg-home .homehero .herofacts dt {
-    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: .16em;
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em;
     text-transform: uppercase; color: var(--faint); margin-bottom: 5px;
   }
   .pg-home .homehero .herofacts dd {
-    margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink);
+    margin: 0; font-size: 14px; line-height: 1.4; color: var(--ink);
   }
   .pg-home .homehero .lead { font-size: 16px; line-height: 1.6; margin-top: 14px; max-width: 50ch; }
   .pg-home .homehero .deadline.compact { margin: 22px 0 0; max-width: 760px; font-size: 12.5px; }
@@ -997,8 +996,8 @@
    (mesmo IMO) reaparece no line-up, o próximo passo é um botão.
    ============================================================ */
 .vpanel .volta {
-  margin-top: var(--s3);
-  padding: var(--s3);
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: color-mix(in srgb, var(--amber) 8%, transparent);
@@ -1006,10 +1005,10 @@
 .vpanel .volta .vt { margin: 0; font-size: 14px; line-height: 1.4; }
 .vpanel .volta .vd { margin: 4px 0 0; font-size: 12px; color: var(--faint); }
 .vpanel .volta .vd.erro { color: var(--amber-hi); }
-.vpanel .volta .btn { width: 100%; margin-top: var(--s3); }
+.vpanel .volta .btn { width: 100%; margin-top: var(--sp-3); }
 .vpanel .alink.outra {
   display: block;
-  margin-top: var(--s2);
+  margin-top: var(--sp-2);
   text-align: center;
   font-size: 12px;
 }
