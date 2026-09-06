@@ -1,0 +1,38 @@
+/* One inverse palette for the storefront and operations navigation.
+   White work surfaces keep the root tokens, including dialogs and toasts. */
+.theme-navy,
+.sunhead,
+.sunfoot {
+  --ink: var(--dark-ink);
+  --muted: var(--dark-muted);
+  --faint: var(--dark-faint);
+  --card: var(--dark-card);
+  --card-hi: var(--dark-card-hi);
+  --panel: var(--dark);
+  --night: var(--dark);
+  --line: var(--dark-line);
+  --line-hi: rgba(238,244,248,.22);
+  --amber-hi: var(--amber-on-dark);
+  --amber-rgb: 255, 217, 160;
+  --teal: #2EE6C8;
+  --teal-rgb: 46, 230, 200;
+  --focus: var(--focus-on-dark);
+  color: var(--ink);
+  background-color: var(--brand);
+}
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--on-brand);
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 1rem;
+  transform: translateY(calc(-100% - 16px));
+}
+.skip-link:focus { transform: translateY(0); }
+main { scroll-margin-top: 128px; }

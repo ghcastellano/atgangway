@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Aviso curto no canto: "Pedido #AG-1042 → Depósito recebido".
@@ -19,12 +20,14 @@ type Toast = {
 
 type Ctx = {
   toast: (texto: string, opts?: { tom?: Toast["tom"]; acao?: Toast["acao"]; ms?: number }) => void;
+  setToastHost: (host: HTMLDivElement | null) => void;
 };
 
 const ToastContext = createContext<Ctx | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [lista, setLista] = useState<Toast[]>([]);
+  const [toastHost, setToastHost] = useState<HTMLDivElement | null>(null);
   const seq = useRef(0);
 
   const toast = useCallback<Ctx["toast"]>((texto, opts) => {
@@ -35,12 +38,17 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setTimeout(() => setLista((l) => l.filter((x) => x.id !== id)), ms);
   }, []);
 
-  const value = useMemo(() => ({ toast }), [toast]);
+  const value = useMemo(() => ({ toast, setToastHost }), [toast]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="adm-toasts" role="status" aria-live="polite">
+      {toastHost ? createPortal(renderToasts(), toastHost) : renderToasts()}
+    </ToastContext.Provider>
+  );
+
+  function renderToasts() {
+    return <div className="adm-toasts" role="status" aria-live="polite" aria-atomic="false">
         {lista.map((t) => (
           <div key={t.id} className={`adm-toast ${t.tom}`}>
             <span>{t.texto}</span>
@@ -57,9 +65,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             )}
           </div>
         ))}
-      </div>
-    </ToastContext.Provider>
-  );
+      </div>;
+  }
 }
 
 export function useToast(): Ctx {

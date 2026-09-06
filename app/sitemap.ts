@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { SITE_URL, SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfigured } from "@/lib/env";
+import { sitemapProducts } from "@/lib/sitemap-products";
 
 export const revalidate = 3600;
 
@@ -32,7 +33,6 @@ const ESTATICAS: { path: string; priority: number; freq: MetadataRoute.Sitemap[n
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = ESTATICAS.map((p) => ({
     url: `${SITE_URL}${p.path}`,
-    lastModified: new Date(),
     changeFrequency: p.freq,
     priority: p.priority,
   }));
@@ -44,22 +44,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    const [cats, prods] = await Promise.all([
+    const [cats, products] = await Promise.all([
       db.from("categories").select("slug").eq("active", true).order("sort_order"),
-      db.from("products").select("slug, updated_at").eq("active", true).limit(5000),
+      sitemapProducts((from, to) => db.from("products").select("slug, updated_at")
+        .eq("active", true).order("id").range(from, to)),
     ]);
+    if (cats.error) throw new Error("Sitemap category query failed");
 
     return [
       ...base,
       ...(cats.data ?? []).map((c) => ({
         url: `${SITE_URL}/c/${c.slug as string}`,
-        lastModified: new Date(),
         changeFrequency: "weekly" as const,
         priority: 0.8,
       })),
-      ...(prods.data ?? []).map((p) => ({
+      ...products.map((p) => ({
         url: `${SITE_URL}/p/${p.slug as string}`,
-        lastModified: p.updated_at ? new Date(p.updated_at as string) : new Date(),
+        ...(p.updated_at ? { lastModified: new Date(p.updated_at as string) } : {}),
         changeFrequency: "weekly" as const,
         priority: 0.7,
       })),

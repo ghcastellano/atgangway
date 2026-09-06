@@ -18,6 +18,7 @@ import {
   type Pedido,
 } from "@/lib/painel";
 import { useToast } from "./Toast";
+import AdminDrawer from "./AdminDrawer";
 import { useConfirmar } from "./Confirmar";
 import EntregaFoto from "./EntregaFoto";
 
@@ -77,17 +78,24 @@ export default function PedidosBoard({ inicial }: { inicial: Pedido[] }) {
     troca({ ...p, status: to, previous_status: p.status, status_changed_at: new Date().toISOString() });
     ocupa(p.id, true);
     start(async () => {
-      const r = await mudarStatus(p.id, to);
-      ocupa(p.id, false);
-      if (!r.ok) {
+      try {
+        const r = await mudarStatus(p.id, to);
+        if (!r.ok) {
+          troca(antes);
+          toast(r.error, { tom: "erro" });
+          return;
+        }
+        troca(r.row);
+        toast(`#${p.code} → ${STATUS_PT[to]}`, {
+          acao: { rotulo: "Desfazer", onClick: () => desfazer(r.row) },
+        });
+      } catch {
         troca(antes);
-        toast(r.error, { tom: "erro" });
-        return;
+        toast("Não foi possível confirmar a alteração. Atualize a lista antes de repetir.", { tom: "erro", ms: 8000 });
+        router.refresh();
+      } finally {
+        ocupa(p.id, false);
       }
-      troca(r.row);
-      toast(`#${p.code} → ${STATUS_PT[to]}`, {
-        acao: { rotulo: "Desfazer", onClick: () => desfazer(r.row) },
-      });
     });
   }
 
@@ -97,15 +105,22 @@ export default function PedidosBoard({ inicial }: { inicial: Pedido[] }) {
     troca({ ...p, status: p.previous_status, previous_status: null });
     ocupa(p.id, true);
     start(async () => {
-      const r = await desfazerStatus(p.id);
-      ocupa(p.id, false);
-      if (!r.ok) {
+      try {
+        const r = await desfazerStatus(p.id);
+        if (!r.ok) {
+          troca(antes);
+          toast(r.error, { tom: "erro" });
+          return;
+        }
+        troca(r.row);
+        toast(`#${p.code} voltou para ${STATUS_PT[r.row.status]}`, { tom: "info" });
+      } catch {
         troca(antes);
-        toast(r.error, { tom: "erro" });
-        return;
+        toast("Não foi possível confirmar se a ação foi desfeita. Atualize a lista antes de repetir.", { tom: "erro", ms: 8000 });
+        router.refresh();
+      } finally {
+        ocupa(p.id, false);
       }
-      troca(r.row);
-      toast(`#${p.code} voltou para ${STATUS_PT[r.row.status]}`, { tom: "info" });
     });
   }
 
@@ -168,15 +183,14 @@ export default function PedidosBoard({ inicial }: { inicial: Pedido[] }) {
       </section>
 
       <div className="adm-toolbar">
-        <div className="adm-chips" role="tablist" aria-label="Filtro de status">
+        <div className="adm-chips" role="group" aria-label="Filtro de status">
           {FILTROS.map((f) => {
             const n = pedidos.filter(f.teste).length;
             return (
               <button
                 key={f.k}
                 type="button"
-                role="tab"
-                aria-selected={filtro === f.k}
+                aria-pressed={filtro === f.k}
                 className={filtro === f.k ? "on" : ""}
                 onClick={() => setFiltro(f.k)}
               >
@@ -215,7 +229,7 @@ export default function PedidosBoard({ inicial }: { inicial: Pedido[] }) {
           <p>{filtro === "abertos" && !q ? "Novos pedidos aparecem aqui assim que a tripulação fecha o carrinho." : "Troque o filtro ou limpe a busca."}</p>
         </div>
       ) : (
-        <div className="adm-tablewrap">
+        <div className="adm-tablewrap" role="region" aria-label="Lista de pedidos" tabIndex={0}>
           <table className="adm-table pedidos">
             <thead>
               <tr>
@@ -240,12 +254,9 @@ export default function PedidosBoard({ inicial }: { inicial: Pedido[] }) {
                     key={p.id}
                     className={`${aberto === p.id ? "sel" : ""} ${busy ? "busy" : ""}`}
                     onClick={() => setAberto(p.id)}
-                    tabIndex={0}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), setAberto(p.id))}
-                    aria-label={`Abrir pedido ${p.code}`}
                   >
                     <td data-l="Pedido">
-                      <b className="mono">#{p.code}</b>
+                      <button type="button" className="adm-order-link mono" onClick={() => setAberto(p.id)} aria-label={`Abrir pedido ${p.code}`}>#{p.code}</button>
                       <small>{dia(p.created_at)}</small>
                     </td>
                     <td data-l="Navio">
@@ -335,16 +346,6 @@ function Detalhe({
   onEntregue: (row: Pedido) => void;
   onErro: (m: string) => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
 
   const prox = PROXIMO[p.status];
   const sub = subtotal(p);
@@ -357,9 +358,7 @@ function Detalhe({
   const podeCreditar = ABERTOS.includes(p.status) && p.status !== "awaiting_deposit";
 
   return (
-    <>
-      <button className="adm-veu" aria-label="Fechar detalhe" onClick={onClose} />
-      <aside className="adm-drawer" role="dialog" aria-modal="true" aria-labelledby="det-titulo">
+    <AdminDrawer labelledBy="det-titulo" onClose={onClose}>
         <header className="adm-drawer-head">
           <div>
             <p className="kicker">Pedido</p>
@@ -472,7 +471,6 @@ function Detalhe({
             )}
           </div>
         </footer>
-      </aside>
-    </>
+    </AdminDrawer>
   );
 }

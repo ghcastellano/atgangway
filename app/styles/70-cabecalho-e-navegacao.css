@@ -22,25 +22,7 @@
    que resolvendo para a família escura. É o que permite inverter o site
    inteiro sem reescrever componente nenhum.
    ================================================================ */
-.sunhead,
-.sunfoot {
-  --ink:     var(--dark-ink);
-  --muted:   var(--dark-muted);
-  --faint:   var(--dark-faint);
-  --card:    var(--dark-card);
-  --card-hi: #1B3252;
-  --panel:   var(--dark);
-  --night:   var(--dark);
-  --line:    var(--dark-line);
-  --line-hi: rgba(238,244,248,.22);
-  /* Sobre escuro quem é legível é o âmbar CLARO, não o queimado que o
-     tema claro usa para texto. */
-  --amber-hi: var(--amber-on-dark);
-  /* O realce com opacidade acompanha: âmbar escuro a 45% sobre
-     azul-noite é invisível. */
-  --amber-rgb: 255, 217, 160;
-  color: var(--ink);
-}
+/* The inverse palette is shared in 05-surfaces.css. */
 
 /* --- cabeçalho fixo, duas fileiras --- */
 .sunhead {
@@ -172,7 +154,7 @@
 .sunsearch { display: flex; padding: 6px 12px 10px; gap: 0; }
 .sunsearch input {
   flex: 1; min-width: 0; border: 0; outline: none;
-  background: #FFFFFF; color: #0B1B30;
+  background: var(--on-brand); color: var(--brand);
   border-radius: 10px 0 0 10px; padding: 12px 14px;
   font-size: 16px; /* 16px trava o zoom automático do iOS */
   font-family: var(--font-body);

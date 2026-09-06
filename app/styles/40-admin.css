@@ -49,7 +49,7 @@
    o fundo escuro respirar entre o elemento e o anel — é o que mantém
    o anel legível até sobre o próprio botão âmbar. Teal segue sendo
    cor de DADO (estoque, status, KPI), nunca de interação. */
-:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
 /* Texto selecionado na cor da casa — o azul default do sistema é o
    único momento em que a página deixa de parecer nossa. */
@@ -82,4 +82,3 @@
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
-

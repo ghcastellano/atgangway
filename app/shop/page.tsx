@@ -20,6 +20,26 @@ import {
 } from "@/lib/catalog";
 import SortSelect from "@/components/SortSelect";
 import BrandSelect from "@/components/BrandSelect";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ searchParams }: {
+  searchParams: Promise<{ q?: string; sort?: string; cursor?: string; badge?: string; brand?: string }>;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+  const query = sp.q?.trim();
+  const params = new URLSearchParams();
+  for (const key of ["q", "sort", "cursor", "badge", "brand"] as const) {
+    if (sp[key]) params.set(key, sp[key]);
+  }
+  const suffix = params.toString();
+  return {
+    title: query ? `Search: ${query}` : "Shop crew supplies",
+    description: "Food, drinks, personal care and connectivity for seafarers at Porto de Santos. Order from your vessel and collect at the gangway.",
+    alternates: { canonical: `/shop${suffix ? `?${suffix}` : ""}` },
+    // Search and facet combinations are useful to shoppers, but not search landing pages.
+    ...(query || sp.sort || sp.badge || sp.brand ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 // A vitrine muda pouco e é lida muito. O catálogo vem de unstable_cache
 // (lib/vitrine, tag "catalog", 300 s); a única coisa por visitante é o

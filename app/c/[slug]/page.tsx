@@ -24,8 +24,17 @@ import {
 
 export const revalidate = 300;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params, searchParams }: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ sort?: string; cursor?: string; badge?: string; brand?: string }>;
+}) {
   const { slug } = await params;
+  const sp = await searchParams;
+  const query = new URLSearchParams();
+  for (const key of ["sort", "cursor", "badge", "brand"] as const) {
+    if (sp[key]) query.set(key, sp[key]);
+  }
+  const suffix = query.toString();
   // Da mesma árvore em cache que a página usa: zero consulta extra.
   const data = (await categoriasAtivas()).find((c) => c.slug === slug) as
     | { name: string; description?: string | null }
@@ -33,6 +42,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const nome = data?.name;
   return {
     title: nome ?? undefined,
+    alternates: { canonical: `/c/${encodeURIComponent(slug)}${suffix ? `?${suffix}` : ""}` },
+    ...(sp.sort || sp.badge || sp.brand ? { robots: { index: false, follow: true } } : {}),
     // Nenhuma das categorias tem descrição no banco ainda, e sem esta
     // linha toda página de categoria ia para o buscador sem resumo. O
     // texto diz o que a página é de verdade — não é enfeite de SEO.

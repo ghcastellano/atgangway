@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { publicarNavio, salvarNavio } from "@/app/admin/actions";
 import { callState, canOrder } from "@/lib/callstate";
 import { etaToLocalInput } from "@/lib/format";
 import { delayLabel, type Ship } from "@/lib/types";
 import { quando, relativo } from "@/lib/painel";
 import { useToast } from "./Toast";
+import AdminDrawer from "./AdminDrawer";
 
 /**
  * Navios: três pilhas com a mesma régua do checkout e da rotação no
@@ -22,6 +24,7 @@ type Pilha = "fila" | "vendendo" | "fechadas";
 const aberta = (s: Ship) => canOrder(callState({ eta: s.eta, ata: s.ata, cutoff_hours: s.cutoff_hours }));
 
 export default function NaviosBoard({ inicial }: { inicial: Ship[] }) {
+  const router = useRouter();
   const { toast } = useToast();
   const [ships, setShips] = useState<Ship[]>(inicial);
   const [pilha, setPilha] = useState<Pilha>("fila");
@@ -47,17 +50,24 @@ export default function NaviosBoard({ inicial }: { inicial: Ship[] }) {
     troca({ ...s, active });
     ocupa(s.id, true);
     start(async () => {
-      const r = await publicarNavio(s.id, active);
-      ocupa(s.id, false);
-      if (!r.ok) {
+      try {
+        const r = await publicarNavio(s.id, active);
+        if (!r.ok) {
+          troca(antes);
+          toast(r.error, { tom: "erro" });
+          return;
+        }
+        troca(r.row);
+        toast(active ? `${s.name} publicado no line-up` : `${s.name} escondido`, {
+          acao: { rotulo: "Desfazer", onClick: () => publicar(r.row, !active) },
+        });
+      } catch {
         troca(antes);
-        toast(r.error, { tom: "erro" });
-        return;
+        toast("Não foi possível confirmar a alteração. Recarregue o line-up antes de repetir.", { tom: "erro", ms: 8000 });
+        router.refresh();
+      } finally {
+        ocupa(s.id, false);
       }
-      troca(r.row);
-      toast(active ? `${s.name} publicado no line-up` : `${s.name} escondido`, {
-        acao: { rotulo: "Desfazer", onClick: () => publicar(r.row, !active) },
-      });
     });
   }
 
@@ -83,9 +93,9 @@ export default function NaviosBoard({ inicial }: { inicial: Ship[] }) {
       </section>
 
       <div className="adm-toolbar">
-        <div className="adm-chips" role="tablist" aria-label="Pilha">
+        <div className="adm-chips" role="group" aria-label="Pilha">
           {([["fila", "Fila de revisão"], ["vendendo", "Vendendo"], ["fechadas", "Corte passado"]] as [Pilha, string][]).map(([k, r]) => (
-            <button key={k} type="button" role="tab" aria-selected={pilha === k} className={pilha === k ? "on" : ""} onClick={() => setPilha(k)}>
+            <button key={k} type="button" aria-pressed={pilha === k} className={pilha === k ? "on" : ""} onClick={() => setPilha(k)}>
               {r} <small>{pilhas[k].length}</small>
             </button>
           ))}
@@ -158,27 +168,24 @@ function FormNavio({ ship, onClose, onSaved }: { ship: Ship | null; onClose: () 
   const [erro, setErro] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     setErro(null);
     start(async () => {
-      const r = await salvarNavio(fd);
-      if (!r.ok) setErro(r.error);
-      else onSaved(r.row, !ship);
+      try {
+        const r = await salvarNavio(fd);
+        if (!r.ok) setErro(r.error);
+        else onSaved(r.row, !ship);
+      } catch {
+        setErro("Não foi possível confirmar o salvamento. Confira o line-up antes de repetir para evitar uma escala duplicada.");
+      }
     });
   }
 
   return (
-    <>
-      <button className="adm-veu" aria-label="Fechar" onClick={onClose} />
-      <aside className="adm-drawer" role="dialog" aria-modal="true" aria-labelledby="nav-titulo">
+    <AdminDrawer labelledBy="nav-titulo" onClose={onClose}>
         <header className="adm-drawer-head">
           <div>
             <p className="kicker">Escala</p>
@@ -220,7 +227,6 @@ function FormNavio({ ship, onClose, onSaved }: { ship: Ship | null; onClose: () 
             <button type="button" className="adm-btn ghost" onClick={onClose}>Cancelar</button>
           </div>
         </form>
-      </aside>
-    </>
+    </AdminDrawer>
   );
 }
