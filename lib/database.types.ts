@@ -417,6 +417,8 @@ export type Database = {
           deposit_usd: number
           id: string
           idempotency_key: string | null
+          leftover_note: string | null
+          leftover_resolved_at: string | null
           note: string | null
           payment_method: string | null
           port_id: string | null
@@ -452,6 +454,8 @@ export type Database = {
           deposit_usd: number
           id?: string
           idempotency_key?: string | null
+          leftover_note?: string | null
+          leftover_resolved_at?: string | null
           note?: string | null
           payment_method?: string | null
           port_id?: string | null
@@ -487,6 +491,8 @@ export type Database = {
           deposit_usd?: number
           id?: string
           idempotency_key?: string | null
+          leftover_note?: string | null
+          leftover_resolved_at?: string | null
           note?: string | null
           payment_method?: string | null
           port_id?: string | null
@@ -1034,6 +1040,7 @@ export type Database = {
           eta: string
           eta_source: string
           flag: string | null
+          hidden_at: string | null
           id: string
           image_path: string | null
           imo: string | null
@@ -1057,6 +1064,7 @@ export type Database = {
           eta: string
           eta_source?: string
           flag?: string | null
+          hidden_at?: string | null
           id?: string
           image_path?: string | null
           imo?: string | null
@@ -1080,6 +1088,7 @@ export type Database = {
           eta?: string
           eta_source?: string
           flag?: string | null
+          hidden_at?: string | null
           id?: string
           image_path?: string | null
           imo?: string | null

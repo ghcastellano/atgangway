@@ -4,13 +4,14 @@ import type { Ship } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-/** Navios: o servidor carrega as escalas dos próximos 21 dias e as da
- *  fila; o board decide as pilhas com a régua única de lib/callstate. */
+/** Navios: o servidor carrega as escalas dos últimos 3 dias em diante
+ *  (o sync só traz 21 dias à frente); o board decide as pilhas com a
+ *  régua única de lib/painel + lib/callstate. */
 export default async function NaviosPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("ships")
-    .select("id, name, berth, eta, cutoff_hours, active, delay_hours, previous_eta, eta_source, ata")
+    .select("id, name, berth, eta, cutoff_hours, active, hidden_at, delay_hours, previous_eta, eta_source, ata")
     .gt("eta", new Date(Date.now() - 3 * 86400e3).toISOString())
     .order("eta", { ascending: true })
     .limit(400);

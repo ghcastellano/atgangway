@@ -5,6 +5,8 @@ export type Ship = {
   eta: string;
   cutoff_hours: number;
   active: boolean;
+  /** Escondida pela equipe: a rotação não republica enquanto estiver marcada. */
+  hidden_at?: string | null;
   delay_hours?: number | null;
   previous_eta?: string | null;
   eta_source?: string | null;

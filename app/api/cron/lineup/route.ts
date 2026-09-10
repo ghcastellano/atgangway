@@ -176,6 +176,26 @@ export async function GET(request: Request) {
   const creditados =
     (desvio as { creditados?: { id: string; code: string }[] } | null)?.creditados ?? [];
 
+  /* Mercadoria comprada (em separacao ou na escada) e navio que ja foi:
+     o banco NAO credita sozinho — dinheiro que volta com a compra feita
+     e decisao de gente. Ele devolve a lista, e aqui ela vira uma
+     notificacao no sino, deduplicada pelo conjunto de pedidos: some
+     quando a equipe decidir em /admin/leftovers (creditar, ou entregar
+     na proxima escala). */
+  const sobras =
+    (desvio as { sobras?: { code: string; status: string; ship: string }[] } | null)?.sobras ?? [];
+  if (sobras.length) {
+    const codes = sobras.map((s) => s.code).sort();
+    await supabase.rpc("notify_admin", {
+      p_kind: "sobra",
+      p_severity: "warn",
+      p_title: `${sobras.length} pedido(s) com mercadoria comprada e navio que já foi`,
+      p_body: `${sobras.map((s) => `#${s.code} (${s.ship})`).join(" · ")} — decida em Não entregues: creditar o depósito ou entregar na próxima escala.`,
+      p_dedupe: `sobras:${codes.join(",")}`,
+      p_secret: secret,
+    });
+  }
+
   /* Um e-mail por pedido creditado. O claim no banco garante que cada um
      sai UMA vez, entao repetir a chamada de hora em hora e inofensivo —
      se o SMTP falhar agora, a proxima passada tenta de novo. */
@@ -233,7 +253,7 @@ export async function GET(request: Request) {
     ...summary,
     changes,
     rotation: giro ?? null,
-    deviation: { credited: creditados.length, emailed: avisados, detail: desvio ?? null },
+    deviation: { credited: creditados.length, emailed: avisados, leftovers: sobras.length, detail: desvio ?? null },
     lastCall: { claimed: lembretes.length, emailed: lembrados },
     alerts: alertas,
   }, { status: falhas.length ? 500 : 200 });

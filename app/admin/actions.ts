@@ -174,7 +174,7 @@ export async function entregar(formData: FormData): Promise<Resultado<Pedido>> {
 /* Navios                                                              */
 /* ------------------------------------------------------------------ */
 
-const SHIP_SELECT = "id, name, berth, eta, cutoff_hours, active, delay_hours, previous_eta, eta_source, ata";
+const SHIP_SELECT = "id, name, berth, eta, cutoff_hours, active, hidden_at, delay_hours, previous_eta, eta_source, ata";
 
 export async function salvarNavio(formData: FormData): Promise<Resultado<Ship>> {
   const supabase = await requireAdmin();
@@ -189,7 +189,13 @@ export async function salvarNavio(formData: FormData): Promise<Resultado<Ship>> 
   if (name.length < 3) return { ok: false, error: "Nome do navio precisa de 3 letras ou mais." };
   if (!etaLocal) return { ok: false, error: "Informe o ETA." };
 
-  const row = { name, berth: berth || null, eta: localInputToIso(etaLocal), cutoff_hours: cutoff, active };
+  // Desmarcar "visível" é esconder: hidden_at é o que a rotação respeita.
+  // Sem a marca, uma escala salva como invisível voltava à loja na
+  // rodada seguinte do cron (ETA dentro dos 14 dias = publica).
+  const row = {
+    name, berth: berth || null, eta: localInputToIso(etaLocal), cutoff_hours: cutoff, active,
+    hidden_at: active ? null : new Date().toISOString(),
+  };
 
   const q = id
     ? supabase.from("ships").update(row).eq("id", id).select(SHIP_SELECT).single()
@@ -201,7 +207,13 @@ export async function salvarNavio(formData: FormData): Promise<Resultado<Ship>> 
   return { ok: true, row: data as Ship };
 }
 
-/** Publica ou esconde uma escala do line-up com um toque. */
+/**
+ * Publica ou esconde uma escala do line-up com um toque.
+ *
+ * Esconder grava hidden_at; Publicar limpa. Sem a marca, "Esconder" não
+ * segurava: rotate_ship_calls republicava em até uma hora qualquer
+ * escala inativa com ETA dentro dos 14 dias — o botão mentia.
+ */
 export async function publicarNavio(id: string, active: boolean): Promise<Resultado<Ship>> {
   const supabase = await requireAdmin();
   if (!supabase) return { ok: false, error: SEM_ACESSO };
@@ -209,7 +221,7 @@ export async function publicarNavio(id: string, active: boolean): Promise<Result
 
   const { data, error } = await supabase
     .from("ships")
-    .update({ active })
+    .update({ active, hidden_at: active ? null : new Date().toISOString() })
     .eq("id", id)
     .select(SHIP_SELECT)
     .single();
@@ -217,4 +229,37 @@ export async function publicarNavio(id: string, active: boolean): Promise<Result
 
   revalidatePath("/");
   return { ok: true, row: data as Ship };
+}
+
+/* ------------------------------------------------------------------ */
+/* Não entregues                                                       */
+/* ------------------------------------------------------------------ */
+
+export type SobraPatch = { note?: string; resolvida?: boolean };
+export type SobraRow = { id: string; leftover_note: string | null; leftover_resolved_at: string | null };
+
+/**
+ * O plano de entrega da mercadoria que ficou (para quem, onde, quando)
+ * e o "resolvido" — entregue em outro pedido, reaproveitada ou baixada.
+ * Só toca nas duas colunas da sobra: status e dinheiro têm as suas
+ * próprias actions.
+ */
+export async function salvarSobra(id: string, patch: SobraPatch): Promise<Resultado<SobraRow>> {
+  const supabase = await requireAdmin();
+  if (!supabase) return { ok: false, error: SEM_ACESSO };
+  if (!id) return { ok: false, error: "Pedido inválido." };
+
+  const upd: TablesUpdate<"orders"> = {};
+  if (patch.note !== undefined) upd.leftover_note = patch.note.trim().slice(0, 2000) || null;
+  if (patch.resolvida !== undefined) upd.leftover_resolved_at = patch.resolvida ? new Date().toISOString() : null;
+  if (Object.keys(upd).length === 0) return { ok: false, error: "Nada para salvar." };
+
+  const { data, error } = await supabase
+    .from("orders")
+    .update(upd)
+    .eq("id", id)
+    .select("id, leftover_note, leftover_resolved_at")
+    .single();
+  if (error || !data) return { ok: false, error: "O banco recusou. Tente de novo." };
+  return { ok: true, row: data };
 }

@@ -4,6 +4,7 @@
  * importado pelo servidor E pelos componentes de cliente do painel.
  */
 import type { OrderStatus } from "./types";
+import { callState, canOrder, type CallFacts } from "./callstate.ts";
 
 export const STATUS_PT: Record<OrderStatus, string> = {
   awaiting_deposit: "Aguardando depósito",
@@ -121,3 +122,126 @@ export const cents = (c: number | null | undefined, usdLegado: number | string |
   c ?? Math.round(Number(usdLegado ?? 0) * 100);
 
 export const brlUsd = (c: number) => `US$ ${(c / 100).toFixed(2)}`;
+
+/* ------------------------------------------------------------------ */
+/* Navios: as pilhas da tela, com a régua única de lib/callstate      */
+/* ------------------------------------------------------------------ */
+
+/** Horizonte da publicação automática — o mesmo 14 de rotate_ship_calls. */
+export const PUBLISH_HORIZON_DAYS = 14;
+
+export type Pilha = "espera" | "vendendo" | "fechadas" | "fora" | "escondidas";
+
+export const PILHA_PT: Record<Pilha, string> = {
+  espera: "Publica sozinho",
+  vendendo: "Vendendo",
+  fechadas: "Corte passado",
+  fora: "Fora de cena",
+  escondidas: "Escondidas",
+};
+
+export type EscalaFacts = CallFacts & { active: boolean; hidden_at?: string | null };
+
+/**
+ * Em que pilha uma escala está.
+ *
+ * Publicada: vendendo, ou corte passado (o navio ainda está na escala;
+ * a rotação a aposenta 48 h depois da ETA). Não publicada: se a janela
+ * já fechou, está FORA DE CENA — zarpou, ou entrou no line-up tarde
+ * demais para vender; ninguém "perdeu" essa escala, ela acabou. Se
+ * ainda vende, ou a equipe escondeu, ou ela só espera o horizonte de
+ * 14 dias para a rotação publicar sozinha.
+ *
+ * Havia três pilhas e as escalas aposentadas não caíam em nenhuma:
+ * sumiam da tela sem deixar rastro. Agora toda escala tem uma pilha.
+ */
+export function pilhaDaEscala(s: EscalaFacts, agora = new Date()): Pilha {
+  const aberta = canOrder(callState(s, agora));
+  if (s.active) return aberta ? "vendendo" : "fechadas";
+  if (!aberta) return "fora";
+  return s.hidden_at ? "escondidas" : "espera";
+}
+
+/** Quando a rotação publica sozinha: ETA − horizonte. */
+export const publicaEm = (eta: string | Date) =>
+  new Date(new Date(eta).getTime() - PUBLISH_HORIZON_DAYS * 86400e3);
+
+/**
+ * Deveria estar publicada e não está: ETA dentro do horizonte, ninguém
+ * escondeu, e continua inativa. A rotação roda de hora em hora, na mesma
+ * chamada do sync que cria a escala — se isto for maior que zero, o
+ * cron parou. É o único contador vermelho da tela.
+ */
+export function deveriaTerPublicado(s: EscalaFacts, agora = new Date()): boolean {
+  if (s.active || s.hidden_at) return false;
+  const eta = new Date(s.eta).getTime();
+  return eta > agora.getTime() && eta < agora.getTime() + PUBLISH_HORIZON_DAYS * 86400e3;
+}
+
+/* ------------------------------------------------------------------ */
+/* Não entregues: mercadoria comprada para navio que não veio         */
+/* ------------------------------------------------------------------ */
+
+export const SOBRA_SELECT =
+  "id, code, status, previous_status, user_id, subtotal_cents, subtotal_usd, deposit_cents, deposit_usd, contact_name, contact_rank, contact_whatsapp, created_at, status_changed_at, leftover_note, leftover_resolved_at, vessel_name, ships(name, eta, ata, cutoff_hours), credits(amount_usd, kind, created_at), order_items(name, sku, qty, unit_price_cents, unit_price_usd, image_path)";
+
+export type ProximaEscala = {
+  name: string;
+  eta: string;
+  ata: string | null;
+  berth: string | null;
+  cutoff_hours: number | null;
+  active: boolean;
+};
+
+export type SobraBruta = {
+  id: string;
+  code: string;
+  status: OrderStatus;
+  previous_status: OrderStatus | null;
+  user_id: string;
+  subtotal_cents: number | null;
+  subtotal_usd: number;
+  deposit_cents: number | null;
+  deposit_usd: number;
+  contact_name: string | null;
+  contact_rank: string | null;
+  contact_whatsapp: string | null;
+  created_at: string;
+  status_changed_at: string | null;
+  leftover_note: string | null;
+  leftover_resolved_at: string | null;
+  vessel_name: string | null;
+  ships: { name: string; eta: string; ata: string | null; cutoff_hours: number | null } | null;
+  credits: { amount_usd: number; kind: string; created_at: string }[];
+  order_items: PedidoItem[];
+};
+
+/** A sobra como a tela consome: o pedido, mais quem é o cliente hoje
+ *  (perfil e próxima escala conhecida) e quanto crédito ele tem. */
+export type Sobra = SobraBruta & {
+  cliente: {
+    full_name: string | null;
+    email: string | null;
+    whatsapp: string | null;
+    vessel_name: string | null;
+    proxima: ProximaEscala | null;
+  } | null;
+  saldo_usd: number;
+};
+
+/**
+ * Um pedido é sobra quando a mercadoria foi comprada — chegou a "em
+ * separação" ou "na escada" — e não foi entregue: creditado vindo de um
+ * desses estados, ou ainda aberto num deles com o navio já ido.
+ * Depósito pago sem separação não é sobra: nada foi comprado, o crédito
+ * resolve sozinho.
+ */
+export function ehSobra(
+  o: { status: OrderStatus; previous_status: OrderStatus | null; ships: CallFacts | null },
+  agora = new Date()
+): boolean {
+  if (o.status === "credited") return o.previous_status === "preparing" || o.previous_status === "at_gangway";
+  if (o.status === "preparing" || o.status === "at_gangway") return !!o.ships && callState(o.ships, agora) === "sailed";
+  return false;
+}

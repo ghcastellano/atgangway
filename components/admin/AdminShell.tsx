@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "@/app/account/actions";
-import { IconAnchor, IconCart, IconCompass, IconLogout, IconPackage } from "@/components/Icon";
+import { IconAnchor, IconBox, IconCart, IconCompass, IconLogout, IconPackage } from "@/components/Icon";
 import { ToastProvider } from "./Toast";
 import Sino, { type Notificacao } from "./Sino";
 
@@ -24,6 +24,7 @@ const SECOES = [
   { href: "/admin/ships", rotulo: "Navios", icone: IconAnchor },
   { href: "/admin/catalog", rotulo: "Catálogo", icone: IconCompass },
   { href: "/admin/shopping-list", rotulo: "Compras", icone: IconCart },
+  { href: "/admin/leftovers", rotulo: "Não entregues", icone: IconBox },
 ];
 
 export default function AdminShell({

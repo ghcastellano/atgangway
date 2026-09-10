@@ -115,7 +115,7 @@
 /* ---- abas inferiores (celular) ------------------------------- */
 .adm-tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   height: var(--tabs-h); padding-bottom: env(safe-area-inset-bottom);
   background: color-mix(in srgb, var(--night) 94%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
@@ -220,6 +220,7 @@
 .adm-kpi span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--faint); }
 .adm-kpi.amber b { color: var(--amber-hi); }
 .adm-kpi.teal b { color: var(--teal); }
+.adm-kpi.danger b { color: var(--danger); }
 
 /* ---- toolbar: filtros + busca -------------------------------- */
 /* A fita de filtros rola sozinha (overflow-x: auto), mas só quando o
@@ -279,6 +280,33 @@
 .adm-pill.ok { color: #7EE787; border-color: rgba(126,231,135,.4); background: rgba(126,231,135,.08); }
 .adm-pill.danger { color: var(--danger); border-color: rgba(255,89,100,.45); background: rgba(255,89,100,.07); }
 .adm-pill.faint { color: var(--faint); }
+
+/* ---- não entregues: mercadoria comprada para navio que não veio -- */
+/* Um cartão por pedido, com quatro blocos lado a lado quando cabe
+   (cliente, navio que falhou, crédito, próxima escala) e empilhados no
+   celular. O plano de entrega é um textarea no próprio cartão: a
+   decisão se escreve onde se lê. */
+.adm-sobras { display: grid; gap: 12px; }
+.adm-sobra { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.adm-sobra.ok { opacity: .72; }
+.adm-sobra-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.adm-sobra-head b { font-size: 16px; }
+.adm-sobra-head small { display: block; font-size: 12px; color: var(--faint); margin-top: 2px; }
+.adm-sobra-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.adm-sobra-grid section { min-width: 0; padding: 10px 12px; border-radius: 10px; background: var(--card-hi); border: 1px solid var(--line); }
+.adm-sobra-grid h4 { margin: 0 0 4px; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); font-weight: 600; }
+.adm-sobra-grid b { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.adm-sobra-grid small { display: block; font-size: 12px; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+.adm-sobra-grid a { color: var(--amber-hi); font-weight: 600; text-decoration: none; }
+.adm-sobra-grid a:hover { text-decoration: underline; }
+.adm-sobra-grid section.warn b { color: var(--amber-hi); }
+.adm-sobra-grid section.danger b { color: var(--danger); }
+.adm-sobra details summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--muted); min-height: 36px; display: flex; align-items: center; }
+.adm-sobra-plano { display: grid; gap: 8px; }
+.adm-sobra-plano label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.adm-sobra-plano textarea { min-height: 72px; resize: vertical; width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-hi); background: var(--card); color: var(--ink); font: inherit; font-size: 13.5px; }
+.adm-sobra-plano textarea:focus { border-color: var(--amber); outline: none; }
+.adm-sobra-plano textarea::placeholder { color: var(--faint); }
 
 .adm-vazio { padding: 48px 20px; text-align: center; background: var(--card); border: 1px dashed var(--line-hi); border-radius: 14px; }
 .adm-vazio b { display: block; font-size: 15px; }

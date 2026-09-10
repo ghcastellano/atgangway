@@ -105,6 +105,16 @@ export function IconAnchor({ size = 21, className }: Props) {
 /** Caixa de mantimento. Substitui o 📦 nos lugares onde falta foto:
  *  emoji colorido sobre o painel branco lia como conteúdo, não como
  *  ausência — e cada sistema desenhava uma caixa diferente. */
+/** Caixa fechada com etiqueta: a mercadoria que ficou sem navio. */
+export function IconBox({ size = 21, className }: Props) {
+  return (
+    <svg {...base(size)} className={className}>
+      <path d="M3.5 8.5h17v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1Z" />
+      <path d="M2.5 4.5h19v4h-19ZM10 12.5h4" />
+    </svg>
+  );
+}
+
 export function IconPackage({ size = 21, className }: Props) {
   return (
     <svg {...base(size)} className={className}>
