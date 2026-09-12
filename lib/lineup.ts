@@ -132,11 +132,17 @@ export function parseDate(raw: string, hint?: string): string | null {
  * O nome do navio vem colado ao calado ("SHAMAL 10 5" = SHAMAL, 10,5m).
  * Removemos os grupos numéricos finais sem comer nomes que terminam em
  * número legítimo (ex.: "MSC LORENA II" fica intacto).
+ *
+ * A CODESP também corta o nome em 25 caracteres na própria página:
+ * "MERCOSUL FORTALEZA (CNC L", "CMA CGM VERACRUZ (REB S/L". Parêntese
+ * aberto e nunca fechado não é nome, é corte — o fragmento sai. O
+ * parêntese fechado ("NC BRISA (REB S/L)") é anotação legítima e fica.
  */
 export function cleanShipName(raw: string): string {
   return raw
     .replace(/[,;]+/g, " ")
     .replace(/(\s+\d{1,3}(?:[.,]\d+)?)+\s*$/g, "")
+    .replace(/\s*\([^)]*$/, "")
     .replace(/\s{2,}/g, " ")
     .trim()
     .toUpperCase();

@@ -34,6 +34,13 @@ test("cleanShipName remove o calado colado ao nome", () => {
   assert.equal(cleanShipName("cma cgm melody"), "CMA CGM MELODY");
 });
 
+test("cleanShipName tira o fragmento que a CODESP cortou em 25 caracteres", () => {
+  assert.equal(cleanShipName("MERCOSUL FORTALEZA (CNC L 10 5"), "MERCOSUL FORTALEZA", "parêntese aberto e nunca fechado é corte, não nome");
+  assert.equal(cleanShipName("SHAMROCK MERCURY (BAND. 9 8"), "SHAMROCK MERCURY");
+  assert.equal(cleanShipName("NC BRISA (REB S/L) 4 5"), "NC BRISA (REB S/L)", "parêntese fechado é anotação legítima e fica");
+  assert.equal(cleanShipName("LOG-IN ENDURANCE (REB)"), "LOG-IN ENDURANCE (REB)");
+});
+
 test("tableRows lida com tabela sem </tr> (ASP clássico)", () => {
   const html =
     "<table><tr><td>#<td>SHAMAL 10 5<td>CIPRIOTA<td>8/24/2026" +
