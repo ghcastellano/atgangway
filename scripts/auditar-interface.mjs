@@ -241,7 +241,13 @@ let total = 0;
 /** Rotas que não abriram. Ver o porquê disto existir logo abaixo. */
 const inacessiveis = [];
 for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]]) {
-  const ctx = await nav.newContext({ viewport: { width: w, height: h } });
+  // AUDIT_STATE=caminho.json (storageState do Playwright) audita a área
+  // LOGADA: sem sessão, /account, /orders, /captain e /checkout redirecionam
+  // para /login e o que se mede é o login — três vezes.
+  const ctx = await nav.newContext({
+    viewport: { width: w, height: h },
+    ...(process.env.AUDIT_STATE ? { storageState: process.env.AUDIT_STATE } : {}),
+  });
   const pg = await ctx.newPage();
   for (const rota of ROTAS) {
     /**

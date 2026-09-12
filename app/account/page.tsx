@@ -237,7 +237,9 @@ export default function AccountPage() {
 
       <h1 className="secttl left">My Account Information</h1>
       <div className="acct-main">
-      <p className="finehint" style={{ padding: "0 16px" }}>
+      {/* Respira antes do primeiro rótulo: colado em FIRST NAME parecia
+          parte do formulário, e não é — é quem está logado. */}
+      <p className="finehint" style={{ padding: "0 16px", margin: "0 0 18px" }}>
         Signed in as <span className="mono">{email}</span>
       </p>
 

@@ -28,12 +28,18 @@ type Line = {
  */
 export default function CheckoutClient({
   blocked,
+  minOrderCents,
   shipId,
   contactName,
   contactWhatsapp,
   fxRate,
 }: {
   blocked: boolean;
+  /** Mínimo do porto do perfil, em centavos; 0 = sem mínimo. O carrinho
+   *  já barra abaixo disso, mas /checkout digitado na barra chegava
+   *  aqui com "Proceed to Payment" ativo para um pedido de US$ 18 — e o
+   *  "não" vinha do servidor, depois do clique. A mesma régua, aqui. */
+  minOrderCents: number;
   shipId: string | null;
   contactName: string;
   contactWhatsapp: string;
@@ -176,7 +182,8 @@ export default function CheckoutClient({
   const subtotal = rows.reduce((s, l) => s + l.price_cents * l.qty, 0);
   const split = splitOrder(subtotal, creditCents);
   const coveredByCredit = split.credit > 0 && split.dueNow === 0;
-  const canPay = ready && lines !== null && rows.length > 0 && !blocked && !pending;
+  const belowMin = minOrderCents > 0 && rows.length > 0 && subtotal < minOrderCents;
+  const canPay = ready && lines !== null && rows.length > 0 && !blocked && !belowMin && !pending;
 
   function submit() {
     setErr(null);
@@ -294,11 +301,23 @@ export default function CheckoutClient({
       {err && <p className="alert" style={{ marginTop: 12 }}>{err}</p>}
 
       <button className="btn" onClick={submit} disabled={!canPay}>
-        {pending ? "Placing order…" : "Proceed to Payment"}
+        {pending
+          ? "Placing order…"
+          : belowMin
+            ? `Add ${usd(minOrderCents - subtotal)} more to check out`
+            : "Proceed to Payment"}
       </button>
 
       <p className="finehint">
-        {blocked ? (
+        {belowMin ? (
+          <>
+            Minimum order for this port is {usd(minOrderCents)}.{" "}
+            <Link className="alink" href="/cart">
+              Back to your cart
+            </Link>{" "}
+            to add a few more items.
+          </>
+        ) : blocked ? (
           <>
             Add the missing details above to your{" "}
             <Link className="alink" href="/account">

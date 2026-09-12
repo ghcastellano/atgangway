@@ -23,7 +23,7 @@ type ProfileRow = {
   vessel_name: string | null;
   vessel_flag: string | null;
   crew_ranks: { name: string } | null;
-  ports: { name: string } | null;
+  ports: { name: string; min_order_cents: number | null } | null;
   ships: {
     name: string; flag: string | null; image_path: string | null;
     eta: string | null; ata: string | null; cutoff_hours: number | null;
@@ -54,7 +54,7 @@ export default async function CheckoutPage() {
     .select(
       `full_name, whatsapp, ship_id, vessel_name, vessel_flag,
        crew_ranks!profiles_rank_slug_fkey(name),
-       ports!profiles_port_id_fkey(name),
+       ports!profiles_port_id_fkey(name, min_order_cents),
        ships!profiles_ship_id_fkey(name, flag, image_path, eta, ata, cutoff_hours)`
     )
     .eq("id", user.id)
@@ -191,6 +191,7 @@ export default async function CheckoutPage() {
       <CheckoutClient
         fxRate={fxRate}
         blocked={blocked}
+        minOrderCents={Number(row?.ports?.min_order_cents ?? 0)}
         shipId={row?.ship_id ?? null}
         contactName={name}
         contactWhatsapp={phone}
