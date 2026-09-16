@@ -97,7 +97,7 @@ estoque físico de verdade.
 2. **Stripe live**: chave `sk_live_` em `STRIPE_SECRET_KEY` na Vercel e um
    webhook **live** apontando para `https://atgangway.com/api/stripe/webhook`
    (hoje o modo live tem zero webhooks; o de teste foi corrigido em
-   2026-09-03 — apontava para `www.marinerssupplyco.com`, que responde 404).
+   2026-09-03 — apontava para o domínio antigo da marca, que responde 404).
    O signing secret do endpoint live vai em `STRIPE_WEBHOOK_SECRET`.
 3. **Fotos**: mandar `docs/emails-fornecedores.md` (22 grupos, 43 SKUs) e/ou fotografar;
    ao receber, `scripts/normalizar-fotos.mjs` põe no molde de 1000 px. Depois
@@ -105,8 +105,8 @@ estoque físico de verdade.
 4. **Primeira necessidade** (lâmina, escova, xampu, sabão em pó, repelente,
    adaptador NBR 14136): preço a 5×, régua pronta — travado só na foto.
 5. Hostinger: há um pedido de e-mail **pago e sem domínio** (`pending_setup`,
-   criado 2026-08-23) e a caixa de `marinerssupplyco.com` ainda ativa —
-   decidir se cancela. Opcionalmente tirar `marinerssupplyco.com` dos
+   criado 2026-08-23) e a caixa de e-mail do domínio antigo da marca ainda ativa —
+   decidir se cancela. Opcionalmente tirar o domínio antigo dos
    domínios autorizados do Google OAuth.
 
 ## Concluído nesta continuação

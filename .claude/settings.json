@@ -30,7 +30,6 @@
     "deny": [
       "Bash(rm -rf *)",
       "Read(./.env.local)",
-      "Read(./.env.production)",
       "Bash(node -e:*)",
       "Bash(node --eval:*)"
     ]

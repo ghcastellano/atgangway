@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Mariners App</title>
+<title>At Gangway App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,7 +51,7 @@
       box-shadow: 0 30px 90px -30px rgba(0,0,0,.9), 0 0 0 8px #0A121E;
     }
     .stage::after {
-      content: "MARINERS APP · PROTÓTIPO FUNCIONAL · TOQUE / CLIQUE PARA NAVEGAR";
+      content: "AT GANGWAY APP · PROTÓTIPO FUNCIONAL · TOQUE / CLIQUE PARA NAVEGAR";
       position: fixed; bottom: 14px; left: 0; right: 0; text-align: center;
       font-family: ui-monospace, Menlo, monospace; font-size: 10px; letter-spacing: .22em;
       color: var(--faint);
@@ -322,11 +322,11 @@
   <!-- ========== SCREEN: SHIP SELECT ========== -->
   <div class="screen on" id="s-ship">
     <div class="top">
-      <span class="logo">Mariners <b>Supply</b></span>
+      <span class="logo">At <b>Gangway</b></span>
     </div>
     <div class="scroll">
       <div class="hero-mini">
-        <p class="k">Porto de Santos · by Mariner's Bar</p>
+        <p class="k">Porto de Santos</p>
         <h2>Which ship are you on, sailor?</h2>
         <p>Your order rides with your vessel's ETA. Pick your ship — we handle the rest.</p>
       </div>
@@ -337,7 +337,7 @@
   <!-- ========== SCREEN: SHOP ========== -->
   <div class="screen" id="s-shop">
     <div class="top">
-      <span class="logo">Mariners <b>Supply</b></span>
+      <span class="logo">At <b>Gangway</b></span>
       <button class="vessel-chip" onclick="go('s-ship')" title="Trocar navio">
         <span class="dot"></span><span id="chipTxt">—</span>
       </button>
@@ -394,7 +394,7 @@
   <!-- ========== SCREEN: TRACKING ========== -->
   <div class="screen" id="s-track">
     <div class="top">
-      <span class="logo">Mariners <b>Supply</b></span>
+      <span class="logo">At <b>Gangway</b></span>
       <button class="vessel-chip" onclick="go('s-ship')"><span class="dot"></span><span id="chipTxt3">—</span></button>
     </div>
     <div class="scroll" id="trackBody"></div>
@@ -409,7 +409,7 @@
   <!-- ========== SCREEN: CREW CAPTAIN ========== -->
   <div class="screen" id="s-crew">
     <div class="top">
-      <span class="logo">Mariners <b>Supply</b></span>
+      <span class="logo">At <b>Gangway</b></span>
       <button class="vessel-chip" onclick="go('s-ship')"><span class="dot"></span><span id="chipTxt4">—</span></button>
     </div>
     <div class="scroll">
@@ -421,7 +421,7 @@
       <div class="qrcard">
         <div class="qr" id="qrBox" aria-label="QR code de indicação"></div>
         <div class="info">
-          <div class="code" id="refCode">MS-ANDRES-39</div>
+          <div class="code" id="refCode">AG-ANDRES-39</div>
           <p>No boné, no camarote, no grupo do navio — quem escanear compra no seu nome.</p>
           <button class="share" onclick="shareCode()">Share on WhatsApp</button>
         </div>
@@ -601,7 +601,7 @@ function renderPay(){
   $('payAmt').textContent = usd(dep);
 }
 function confirmPay(){
-  state.order = { id: 'MS-' + Math.floor(1000+Math.random()*9000), items: items(), total: subtotal(), ship: state.ship, at: Date.now() };
+  state.order = { id: 'AG-' + Math.floor(1000+Math.random()*9000), items: items(), total: subtotal(), ship: state.ship, at: Date.now() };
   state.cart = {};
   syncBadge(false); renderGrid();
   go('s-track');
@@ -637,7 +637,7 @@ function renderTrack(){
 /* ================= CREW CAPTAIN ================= */
 function renderQR(){
   // stylized QR placeholder (real QR generated server-side in production)
-  const seed = 'MSANDRES39';
+  const seed = 'AGANDRES39';
   let cells = '';
   for (let i=0; i<81; i++){
     const r = Math.floor(i/9), c = i%9;
@@ -649,7 +649,7 @@ function renderQR(){
   $('qrBox').innerHTML = cells;
 }
 function shareCode(){
-  const msg = 'Order from Vessel Supplier with my code MS-ANDRES-39 — delivered at the gangway in Santos. app.marinerssupply.com/r/MS-ANDRES-39';
+  const msg = 'Order from At Gangway with my code AG-ANDRES-39 — delivered at the gangway in Santos. atgangway.com/r/AG-ANDRES-39';
   if (navigator.clipboard) navigator.clipboard.writeText(msg).catch(()=>{});
   const btn = document.querySelector('.share');
   btn.textContent = 'Copied! ✓';
