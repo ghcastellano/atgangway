@@ -310,17 +310,28 @@ export default async function Home() {
   const withStock = store.roots.filter((c) => (store.counts[c.id] ?? 0) > 0);
   const shown = withStock.length > 0 ? withStock : store.roots;
 
-  // O herói divide a fileira com um cartão ao lado (como funciona, para
-  // quem não está logado; o painel do navio, para quem tem escala). O
-  // CSS decidia isso com `.pg-home:has(> .vpanel)` — e o :has() não
-  // existe no Safari anterior ao 15.4: num iPad assim o herói ocupava as
-  // 12 colunas e o painel do navio caía POR CIMA dele, cortando a faixa
-  // de fatos ("CU… / Se…"). O servidor já sabe qual cartão vai renderizar;
-  // então a classe diz, e o CSS não precisa adivinhar pela árvore.
-  const lado = !crew || crew.kind === "vessel";
+  /* O cartão que divide a fileira de abertura com o herói: "como
+     funciona", para quem chega sem sessão; o painel da escala, para quem
+     tem navio. Logado sem navio não tem cartão, e o herói fica com as 12
+     colunas.
+
+     É UM valor, não duas decisões. O CSS decidia isso sozinho com
+     `.pg-home:has(> .vpanel)`, e o :has() não existe no Safari anterior
+     ao 15.4: nesses iPads o cartão caía POR CIMA do herói. A correção foi
+     o servidor dizer na classe — mas em duas expressões, a classe de um
+     lado (`!crew || crew.kind === "vessel"`) e dois `&&` de render do
+     outro. Concordavam, e nada as obrigava a concordar: um terceiro
+     `kind` no Crew, atualizado num lugar só, devolveria o cartão para
+     cima do herói. Aqui a classe SAI do cartão, então discordar é
+     impossível. */
+  const cartao = !crew ? (
+    <HeroSteps />
+  ) : crew.kind === "vessel" ? (
+    <VesselPanel v={crew.v} credit={crew.credit} back={crew.back} />
+  ) : null;
 
   return (
-    <main className={`pg-home${lado ? " lado" : ""}`}>
+    <main className={`pg-home${cartao ? " lado" : ""}`}>
       <section className="homehero">
         <p className="kicker">At Gangway · Porto de Santos</p>
         <h1>Delivered to your gangway at Porto de Santos</h1>
@@ -379,11 +390,7 @@ export default async function Home() {
 
           Agora a ordem do código é a ordem da página em qualquer
           largura, e o CSS não precisa mais remendar posição. */}
-      {!crew && <HeroSteps />}
-
-      {crew?.kind === "vessel" && (
-        <VesselPanel v={crew.v} credit={crew.credit} back={crew.back} />
-      )}
+      {cartao}
 
       {/* Logo abaixo do painel da escala, que é o bloco que a pessoa
           logada de fato olha ao entrar. Antes do catálogo de propósito:

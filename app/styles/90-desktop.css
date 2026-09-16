@@ -350,18 +350,18 @@
   .pg-home .dept-top { padding: var(--sp-5) var(--sp-5) var(--sp-4); }
   .pg-home .dept-top .nm { font-size: 18px; }
   .pg-home .dept-sub { padding: 0 var(--sp-3) var(--sp-3); }
-  /* Só o herói e as duas laterais recebem linha explícita: são a
-     fileira de abertura. Do Captain para baixo a grade coloca na ordem
-     do DOM, que agora é a ordem de leitura — foi o grid-row fixo do
-     .capstrip que o jogava para dentro da seção de categorias. */
+  /* Só o herói recebe linha explícita: ele abre a página. Todo o resto
+     — inclusive o cartão que o acompanha a partir de 1024px — a grade
+     coloca na ordem do DOM, que é a ordem de leitura. Foi o grid-row
+     fixo do .capstrip que o jogava para dentro da seção de categorias,
+     e foi um grid-row fixo no painel do navio que o punha por cima do
+     herói no iPad em pé. Posição fixa aqui em cima é dívida.
+
+     Nesta faixa (768–1023px) o herói fica com as 12 colunas e o painel
+     do navio cai abaixo dele, na largura toda. O "como funciona" não
+     aparece: `.herosteps` nasce display:none e só é ligado no bloco de
+     1024px — tablet em pé vê a versão curta do herói, sem cartão. */
   .pg-home > .homehero { grid-row: 1; }
-  /* O painel do navio só vai para o LADO do herói a partir de 1024px,
-     onde o herói encolhe para 8 colunas (bloco abaixo). Aqui ele
-     ganhava `grid-row: 1; grid-column: 9 / -1` desde 768px — e o herói
-     continuava com as 12: no iPad em pé (768–1023px) o painel caía por
-     cima do herói e cortava a faixa de fatos. Nesta faixa ele fica
-     abaixo, na largura toda, como o "como funciona" já ficava. */
-  .pg-home > .vpanel   { margin: 0; }
   .pg-home > .capstrip { margin: 0; padding: var(--sp-5) var(--sp-5) var(--sp-5); }
   .pg-home .capstrip h3 { font-size: clamp(18px, 1.5vw, 22px); }
 
@@ -372,10 +372,12 @@
   .pg-home .homehero .kicker { font-size: 11.5px; margin-bottom: 14px; }
   /* o clamp de 1507 satura em 32px porque 7.2vw de 1440 é 103px.
      Reescala pela largura do bloco, não pela viewport. */
-  /* 22ch e não 17ch: com o painel do navio ao lado o herói tem 8 das 12
-     colunas, e 17ch quebrava o título em TRÊS linhas curtas dentro de um
-     painel largo — o que faz o bloco parecer uma coluna solta no canto
-     em vez de o assunto da página. */
+  /* 22ch e não 17ch: com um cartão ao lado (a partir de 1024px) o herói
+     tem 8 das 12 colunas, e 17ch quebrava o título em TRÊS linhas curtas
+     dentro de um painel largo — o que faz o bloco parecer uma coluna
+     solta no canto em vez de o assunto da página. Em 768–1023px, com as
+     12 colunas, 22ch segura o título em duas linhas pelo mesmo motivo:
+     a medida é de leitura, não a largura do bloco. */
   .pg-home .homehero h1 { font-size: clamp(32px, 3.4vw, 46px); max-width: 22ch; margin-top: 8px; }
   .pg-home .homehero .herofacts {
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -645,12 +647,16 @@
      Mesma solução do .vpanel logo abaixo: uma trilha 1fr faz a folga
      virar respiro ENTRE os passos, e o link fecha o cartão no rodapé,
      como rodapé. Cartão cheio, sem inventar conteúdo. */
+  /* APARÊNCIA aqui, POSIÇÃO em `.pg-home.lado` logo abaixo. Separadas de
+     propósito: se algum dia a classe e o cartão discordarem, o cartão
+     cai na ordem do DOM — abaixo do herói, inteiro e legível — em vez de
+     pousar em cima dele. Degradar empilhando, nunca sobrepondo. */
   .pg-home > .herosteps {
-    grid-row: 1; grid-column: 9 / -1; align-self: stretch;
     display: grid; grid-template-rows: auto 1fr auto;
     background: var(--card); border: 1px solid var(--line);
     border-radius: 20px; padding: 28px 26px;
   }
+  .pg-home.lado > .herosteps { grid-row: 1; grid-column: 9 / -1; align-self: stretch; }
   .pg-home > .herosteps .lb {
     font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .2em;
     text-transform: uppercase; color: var(--faint); margin: 0 0 18px;
@@ -678,14 +684,17 @@
   /* A divisão 8/4 é a regra `.pg-home.lado` acima — a mesma para os
      dois cartões. Sem `.lado` (logado sem escala) o herói ocupa as 12
      e não sobra buraco. */
+  /* Mesma divisão entre aparência e posição do "como funciona" acima. */
   .pg-home > .vpanel {
-    grid-row: 1; grid-column: 9 / -1; align-self: stretch;
-    margin: 0; border-radius: 20px; padding: 26px 24px;
-    /* A altura vem do herói. O espaço extra vai para o meio do cartão,
-       entre os dados e o prazo, em vez de sobrar como buraco embaixo —
-       que era o defeito da versão anterior. */
+    border-radius: 20px; padding: 26px 24px;
+    /* A altura vem do herói ao lado. O espaço extra vai para o meio do
+       cartão, entre os dados e o prazo, em vez de sobrar como buraco
+       embaixo — que era o defeito da versão anterior. Empilhado, a
+       trilha 1fr resolve para zero e o cartão fica do tamanho do que
+       tem dentro. */
     grid-template-rows: auto auto auto 1fr auto auto; gap: 14px;
   }
+  .pg-home.lado > .vpanel { grid-row: 1; grid-column: 9 / -1; align-self: stretch; }
   .pg-home > .vpanel .nome { font-size: clamp(22px, 1.7vw, 28px); }
   .pg-home > .vpanel .nome .fl { font-size: 22px; }
   .pg-home > .vpanel .dados { align-self: end; }
