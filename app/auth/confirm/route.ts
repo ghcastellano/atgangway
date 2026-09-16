@@ -34,6 +34,30 @@ export async function GET(request: Request) {
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
     if (!error) return NextResponse.redirect(`${origin}${next}`);
+
+    /* Link de e-mail é de uso único e tem prazo. Quando ele não serve
+       mais, o Supabase responde a mesma coisa nos dois casos —
+       `otp_expired` / "One-time token not found" — e a tela devolvia
+       "inválido ou expirado, peça outro" para ambos.
+
+       Para quem estava CONFIRMANDO A CONTA isso é mentira por omissão:
+       o link já tinha funcionado (ou a conta já estava ativa por outro
+       caminho), e a pessoa é mandada pedir um link que não precisa,
+       para uma conta que já existe. Quem abre o e-mail duas vezes — ou
+       no celular depois de ter clicado no notebook — cai exatamente
+       aqui e conclui que o cadastro falhou.
+
+       Confirmação de conta e redefinição de senha precisam de respostas
+       diferentes: uma acabou bem e só falta entrar; a outra precisa
+       mesmo de um link novo. */
+    const confirmacaoDeConta = type === "signup" || type === "email" || type === "email_change";
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent(
+        confirmacaoDeConta
+          ? "This link was already used — which usually means your account is confirmed. Just sign in below; if your password doesn't work, use “Forgot your password”."
+          : "That password-reset link has expired or was already used. Request a new one below — links are single-use and short-lived."
+      )}`
+    );
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}${next}`);
