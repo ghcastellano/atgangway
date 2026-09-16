@@ -26,6 +26,7 @@
  * sobre papel, 2,15:1 — porque a gaveta nasce fechada e nenhuma medição
  * chegava lá. Painel que não se abre é painel que não se testa.
  */
+import { existsSync } from "node:fs";
 import { chromium } from "playwright";
 
 const BASE = process.argv[2] || "http://127.0.0.1:3000";
@@ -248,7 +249,10 @@ const MEDIDOR_LAYOUT = () => {
   return achados;
 };
 
-const nav = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
+// O Chromium do ambiente web mora fora do lugar padrão; numa máquina
+// comum o Playwright acha o dele sozinho.
+const CHROMIUM_WEB = "/opt/pw-browsers/chromium";
+const nav = await chromium.launch(existsSync(CHROMIUM_WEB) ? { executablePath: CHROMIUM_WEB } : {});
 let total = 0;
 /** Rotas que não abriram. Ver o porquê disto existir logo abaixo. */
 const inacessiveis = [];
