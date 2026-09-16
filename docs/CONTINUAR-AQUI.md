@@ -34,19 +34,35 @@ Tudo em `main`, publicado e testado em https://atgangway.com, de
   ambiente web (`89431b2`); contra produção, logado, 19 rotas em celular
   e desktop: 0 achados.
 
+Depois, na mesma sessão:
+
+- **Confirmar a conta caía em "link inválido"** (`ffcc982`). O cadastro
+  mandava `emailRedirectTo: /auth/confirm?next=…`, e com o template da
+  loja o destino virava um segundo `/auth/confirm` sem token: a conta
+  era confirmada e a pessoa via erro. `resolveNext` (lib/authmsg.ts)
+  desembrulha — vale também para os e-mails já enviados — e o cadastro
+  manda o destino final. Reproduzido e conferido em produção.
+- O link reserva dos e-mails virou "Open this link instead" (antes, três
+  linhas de token na tela).
+- **O bar saiu da sociedade** (`3f41a29`): fora dos protótipos, da TESE,
+  do HISTORICO e do banco (ponto de retirada inativo + 2 regras,
+  migração `20260916233354`). Nomes antigos só restam nas travas dos
+  testes, nas migrações antigas e no slug desse delete.
+- `.env.production` corrigido; o `Read(./.env.production)` saiu do
+  `deny` do `.claude/settings.json` (arquivo público, no git).
+- **Chaves do navegador** `ms.*` → `ag.*` com migração na carga
+  (`c9ed69f`, `lib/chaves.ts`). Conferido em produção: carrinho de 3
+  itens gravado na chave antiga reapareceu inteiro.
+- Auditoria da área logada rodada de novo, com sessão nova, depois de
+  tudo isso: 0 achados.
+
 Pendente de decisão do Gustavo:
 
-- `.env.production`, linha 1, ainda chama o projeto de "mariners-supply"
-  (ele já se chama `atgangway`); a configuração não deixa o agente ler
-  nem editar esse arquivo.
-- `prototype/`, `docs/TESE.md` e `docs/HISTORICO.md` ainda citam a marca
-  antiga e o **Mariner's Bar** (o bar parceiro, que não é nome antigo da
-  loja). O banco tem um ponto de retirada inativo "Mariner's Bar —
-  pickup". Não mexi sem saber o que fica.
-- Ligar ou não os avisos de segurança por e-mail (senha trocada etc.).
-- As chaves `ms.cart.v2`, `ms.ref.v1` e `ms.wish.pending` do
-  localStorage vêm do nome antigo. Trocar sem migração apaga o carrinho
-  de quem já tem um.
+- **Retirada no balcão.** O canal `pickup` existia por causa do bar.
+  `/terms`, `/privacy` e `/ports` ainda falam em "counter pickup in
+  Santos"; não há mais ponto de retirada. Texto jurídico — não mexi.
+- Ligar ou não os avisos de segurança por e-mail (senha trocada etc.);
+  o texto já está pronto e aplicado.
 - Porta 3000 desta máquina está ocupada por um processo Python; para
   subir a loja local use outra porta.
 
@@ -245,10 +261,10 @@ Cada um é um pedaço de trabalho fechado; nenhum é urgente.
 - **#6** "Fase 6 — relatório final": `docs/CUSTOS-E-PLANOS.md` está
   escrito (US$ 45/mês fixos, banco em 17,5 MB de 8 GB, primeiro teto é
   o compute Micro), mas a linha da tarefa segue aberta.
-- ✅ **#13** "Área logada não auditada visualmente" — fechada (ver topo). Histórico: parcialmente feita
+- ✅ **#13** "Área logada não auditada visualmente" — **fechada**: `node scripts/auditar-interface.mjs https://atgangway.com` com `AUDIT_STATE`, 19 rotas, celular e desktop, área logada inclusa, 0 achados (duas rodadas em 16/09). Histórico: tinha sido parcialmente feita
   (`636a71a` achou a barra inferior abaixo do AA e o checkout que
-  ignorava o mínimo). O auditor agora reprova quando roda sem sessão
-  (§ abaixo), então vale rodar com `AUDIT_STATE` e fechar.
+  ignorava o mínimo). O auditor reprova quando roda sem sessão
+  (§ abaixo).
 - Conta de admin do Junaid (falta o e-mail dele).
 - 107 produtos sem foto real.
 - Total do carrinho corrente e sugestões na busca.
