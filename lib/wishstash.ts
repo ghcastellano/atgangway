@@ -11,7 +11,9 @@
  * texto, e assim dá para testar a fila sem navegador.
  */
 
-export const WISH_KEY = "ms.wish.pending";
+import { CHAVE_DESEJOS } from "./chaves.ts";
+
+export const WISH_KEY = CHAVE_DESEJOS;
 
 /** Teto de segurança: fila é intenção recente, não histórico. */
 export const WISH_MAX = 50;

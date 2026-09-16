@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { CHAVE_CARRINHO } from "@/lib/chaves";
 
 /**
  * O carrinho guarda ITENS, e só.
@@ -32,7 +33,8 @@ const CartContext = createContext<CartState | null>(null);
 // tem preço e estoque. Carrinho antigo é descartado em vez de migrado:
 // os ids não se traduzem, e ressuscitar um carrinho errado é pior que
 // um carrinho vazio.
-const LS_KEY = "ms.cart.v2";
+// O nome mora em lib/chaves.ts, que também migra o do prefixo antigo.
+const LS_KEY = CHAVE_CARRINHO;
 
 type Persisted = { items: Record<string, number> };
 

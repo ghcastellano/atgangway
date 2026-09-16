@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import { CHAVE_INDICACAO } from "@/lib/chaves";
 
-export const REF_KEY = "ms.ref.v1";
+export const REF_KEY = CHAVE_INDICACAO;
 
 /** Guarda o código de indicação no aparelho até a pessoa criar conta. */
 export default function StoreReferral({ code }: { code: string }) {
