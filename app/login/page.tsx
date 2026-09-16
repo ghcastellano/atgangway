@@ -7,12 +7,14 @@ import Breadcrumb from "@/components/Breadcrumb";
 import GoogleButton from "@/components/GoogleButton";
 import { createClient } from "@/lib/supabase/client";
 import { safeNext } from "@/lib/format";
+import { authUrlMessage, signInFailure, signInMessage } from "@/lib/authmsg";
 
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
-  const urlError = params.get("error");
+  // Só códigos conhecidos viram frase; texto livre na URL nunca é exibido.
+  const urlError = authUrlMessage(params.get("error"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,14 +33,9 @@ function LoginInner() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) {
-      if (/not confirmed/i.test(error.message)) {
-        setNeedsConfirm(true);
-        setErr("Your email isn't confirmed yet — open the link we sent you, or resend it below.");
-      } else if (/invalid/i.test(error.message)) {
-        setErr("Wrong email or password. Forgot it? Reset below.");
-      } else {
-        setErr(error.message);
-      }
+      const kind = signInFailure(error);
+      setNeedsConfirm(kind === "unconfirmed");
+      setErr(signInMessage(kind) ?? error.message);
       return;
     }
     router.push(next);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/format";
 import { profileIsComplete } from "@/lib/profile";
+import { loginErrorPath } from "@/lib/authmsg";
 
 // Retorno do OAuth (Google): troca o ?code= por sessão e segue o fluxo.
 export async function GET(request: Request) {
@@ -32,10 +33,10 @@ export async function GET(request: Request) {
     }
   }
 
-  const detail = searchParams.get("error_description");
+  // O error_description do provedor ia cru para a tela. Agora só
+  // importa distinguir "a pessoa desistiu" de "deu errado".
+  const cancelou = searchParams.get("error") === "access_denied";
   return NextResponse.redirect(
-    `${origin}/login?error=${encodeURIComponent(
-      detail ?? "Google sign-in failed — try again."
-    )}`
+    `${origin}${loginErrorPath(cancelou ? "google_cancelled" : "google_failed")}`
   );
 }

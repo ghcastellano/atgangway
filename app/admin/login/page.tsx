@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { IconAnchor } from "@/components/Icon";
 import { safeNext } from "@/lib/format";
+import { signInFailure } from "@/lib/authmsg";
 
 /**
  * A porta do painel. Só e-mail e senha — sem Google, sem cadastro:
@@ -36,7 +37,7 @@ function LoginPainel() {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: senha });
     if (error) {
       setBusy(false);
-      setErro(/invalid/i.test(error.message) ? "E-mail ou senha incorretos." : error.message);
+      setErro(signInFailure(error) === "invalid" ? "E-mail ou senha incorretos." : error.message);
       return;
     }
     router.push(destino);
