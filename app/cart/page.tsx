@@ -8,7 +8,7 @@ import { useCart } from "@/lib/cart";
 import { createClient } from "@/lib/supabase/client";
 import { supabaseConfigured } from "@/lib/env";
 import { imageUrl } from "@/lib/catalog";
-import { DEPOSIT_PCT, splitOrder, toCents, usd } from "@/lib/money";
+import { DEPOSIT_PCT, faltaParaMinimo, splitOrder, toCents, usd } from "@/lib/money";
 import { IconCart, IconPackage, IconTrash } from "@/components/Icon";
 import { callState, canOrder, type CallState } from "@/lib/callstate";
 
@@ -214,8 +214,7 @@ export default function CartPage() {
     0
   );
   const split = splitOrder(subtotal);
-  // Porto sem mínimo cadastrado guarda 0: nesse caso o aviso nunca existe.
-  const belowMin = minOrderCents > 0 && subtotal < minOrderCents;
+  const { below: belowMin, label: avisoMin } = faltaParaMinimo(subtotal, minOrderCents);
 
   return (
     <main className="pg-cart">
@@ -332,7 +331,7 @@ export default function CartPage() {
                  lá é depois do checkout preenchido — o pior lugar para um
                  "não" que o carrinho já sabia dar. */
               <button className="btn" disabled>
-                Add {usd(minOrderCents - subtotal)} more to check out
+                {avisoMin}
               </button>
             ) : (
               <Link className="btn" href="/checkout">

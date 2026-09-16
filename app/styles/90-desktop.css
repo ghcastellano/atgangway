@@ -635,8 +635,8 @@
      e :has() não existe no Safari < 15.4: nesses iPads o herói ficava
      com as 12 colunas e o cartão caía por cima dele. Layout não pode
      depender de seletor que o navegador talvez não conheça. */
-  .pg-home.lado > .homehero { grid-column: 1 / span 8; }
-  .pg-home.lado .homehero {
+  .pg-home.lado > .homehero {
+    grid-column: 1 / span 8;
     margin-right: 0;
     border: 1px solid var(--line); border-left: 0; border-bottom: 0;
     border-radius: 0 20px 20px 0;

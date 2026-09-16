@@ -89,6 +89,17 @@ input:-webkit-autofill:focus {
    Escopo no irmão adjacente porque .finehint também aparece na conta,
    onde não segue botão nenhum e o espaçamento atual está certo. */
 .btn + .finehint { margin-top: var(--sp-3); }
+
+/* "Signed in as …" no topo da conta. Respira antes do primeiro rótulo:
+   colado em FIRST NAME parecia parte do formulário, e não é — é quem
+   está logado.
+
+   Mora aqui, e não num style inline no page.tsx, porque o desktop já
+   tem uma regra própria para este mesmo parágrafo (90-desktop.css,
+   `.pg-acct .acct-main > .finehint`): inline ganha de folha, então o
+   valor do desktop viraria letra morta sem avisar, e o espaçamento de
+   um parágrafo passaria a ser decidido em dois arquivos. */
+.pg-acct .acct-main > .finehint { padding: 0 var(--gut); margin: 0 0 var(--sp-4); }
 .linkline a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
 .linkline { text-align: center; font-size: 13px; color: var(--muted); padding: 4px 0; }
 .linkline a, .alink { color: var(--amber-hi); font-weight: 600; }

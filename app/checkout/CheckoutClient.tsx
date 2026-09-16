@@ -7,7 +7,7 @@ import { useCart } from "@/lib/cart";
 import { brlRef, type FxRate } from "@/lib/fx";
 import { createClient } from "@/lib/supabase/client";
 import { supabaseConfigured } from "@/lib/env";
-import { DEPOSIT_PCT, splitOrder, toCents, usd } from "@/lib/money";
+import { DEPOSIT_PCT, faltaParaMinimo, splitOrder, toCents, usd } from "@/lib/money";
 import { placeOrder } from "./actions";
 
 type Line = {
@@ -182,7 +182,8 @@ export default function CheckoutClient({
   const subtotal = rows.reduce((s, l) => s + l.price_cents * l.qty, 0);
   const split = splitOrder(subtotal, creditCents);
   const coveredByCredit = split.credit > 0 && split.dueNow === 0;
-  const belowMin = minOrderCents > 0 && rows.length > 0 && subtotal < minOrderCents;
+  const { below, label: avisoMin, minimo } = faltaParaMinimo(subtotal, minOrderCents);
+  const belowMin = below && rows.length > 0;
   const canPay = ready && lines !== null && rows.length > 0 && !blocked && !belowMin && !pending;
 
   function submit() {
@@ -304,14 +305,14 @@ export default function CheckoutClient({
         {pending
           ? "Placing order…"
           : belowMin
-            ? `Add ${usd(minOrderCents - subtotal)} more to check out`
+            ? avisoMin
             : "Proceed to Payment"}
       </button>
 
       <p className="finehint">
         {belowMin ? (
           <>
-            Minimum order for this port is {usd(minOrderCents)}.{" "}
+            Minimum order for this port is {usd(minimo)}.{" "}
             <Link className="alink" href="/cart">
               Back to your cart
             </Link>{" "}

@@ -46,6 +46,27 @@ export const usd = (cents: number) => `USD ${(fromDb(cents) / 100).toFixed(2)}`;
    cotação do PTAX como argumento em vez de ler uma constante global:
    função pura não pode depender de uma taxa que muda todo dia útil. */
 
+/**
+ * O "não" do pedido mínimo do porto, escrito uma vez.
+ *
+ * A regra vale mesmo no RPC `place_order` — é lá que ela barra. Mas
+ * dizer "não" só depois do checkout preenchido é o pior momento, então
+ * carrinho e checkout antecipam o aviso. Antecipar em dois arquivos era
+ * ter a mesma frase digitada duas vezes, livre para discordar: mudar a
+ * palavra numa tela e não na outra não quebra nada, só faz a loja falar
+ * duas línguas sobre o mesmo pedido.
+ *
+ * Porto sem mínimo cadastrado guarda 0 — aí o aviso simplesmente não
+ * existe, em nenhuma das duas telas.
+ */
+export function faltaParaMinimo(subtotalCents: number, minOrderCents: number) {
+  const subtotal = fromDb(subtotalCents);
+  const minimo = fromDb(minOrderCents);
+  const below = minimo > 0 && subtotal < minimo;
+  const missing = below ? minimo - subtotal : 0;
+  return { below, missing, minimo, label: `Add ${usd(missing)} more to check out` };
+}
+
 export const sumCents = (values: Array<number | string | null | undefined>) =>
   values.reduce<number>((acc, v) => acc + fromDb(v), 0);
 

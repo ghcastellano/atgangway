@@ -237,9 +237,9 @@ export default function AccountPage() {
 
       <h1 className="secttl left">My Account Information</h1>
       <div className="acct-main">
-      {/* Respira antes do primeiro rótulo: colado em FIRST NAME parecia
-          parte do formulário, e não é — é quem está logado. */}
-      <p className="finehint" style={{ padding: "0 16px", margin: "0 0 18px" }}>
+      {/* O espaçamento está na folha (30-formularios-e-pedidos.css),
+          junto da regra de desktop que trata este mesmo parágrafo. */}
+      <p className="finehint">
         Signed in as <span className="mono">{email}</span>
       </p>
 

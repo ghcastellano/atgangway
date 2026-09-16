@@ -24,6 +24,11 @@ function resolveNext(raw: string | null, origin: string, fallback = "/shop"): st
 //   confirma o email e redireciona com um code PKCE para trocar por sessão)
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
+  // Três saídas diferentes mandam para o mesmo lugar com a mesma
+  // montagem de URL. Nomear a montagem deixa na tela só o que muda
+  // entre elas: a frase.
+  const paraLogin = (msg: string) =>
+    NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(msg)}`);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const code = searchParams.get("code");
@@ -51,12 +56,10 @@ export async function GET(request: Request) {
        diferentes: uma acabou bem e só falta entrar; a outra precisa
        mesmo de um link novo. */
     const confirmacaoDeConta = type === "signup" || type === "email" || type === "email_change";
-    return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(
-        confirmacaoDeConta
-          ? "This link was already used — which usually means your account is confirmed. Just sign in below; if your password doesn't work, use “Forgot your password”."
-          : "That password-reset link has expired or was already used. Request a new one below — links are single-use and short-lived."
-      )}`
+    return paraLogin(
+      confirmacaoDeConta
+        ? "This link was already used — which usually means your account is confirmed. Just sign in below; if your password doesn't work, use “Forgot your password”."
+        : "That password-reset link has expired or was already used. Request a new one below — links are single-use and short-lived."
     );
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -64,16 +67,10 @@ export async function GET(request: Request) {
     // O code PKCE só troca por sessão no mesmo navegador que iniciou o fluxo.
     // O email em si já foi confirmado pelo endpoint /verify do Supabase —
     // então aqui basta orientar a entrar de novo.
-    return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(
-        "Almost there — your email link was used in a different browser. If you were confirming your account, it's confirmed: just sign in. For password resets, request a new link from this device."
-      )}`
+    return paraLogin(
+      "Almost there — your email link was used in a different browser. If you were confirming your account, it's confirmed: just sign in. For password resets, request a new link from this device."
     );
   }
 
-  return NextResponse.redirect(
-    `${origin}/login?error=${encodeURIComponent(
-      "That link is invalid or expired — request a new one."
-    )}`
-  );
+  return paraLogin("That link is invalid or expired — request a new one.");
 }

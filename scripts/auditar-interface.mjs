@@ -35,6 +35,18 @@ const ROTAS = process.argv.slice(3).length
      "/ports", "/faq", "/login", "/signup", "/account", "/orders", "/wishlist",
      "/captain", "/brochures", "/terms", "/privacy", "/attributions", "/admin/login"];
 
+/**
+ * Rotas que só existem com sessão.
+ *
+ * Sem AUDIT_STATE elas não FALHAM: redirecionam para /login e devolvem
+ * HTTP 200. A auditoria então media a tela de login quatro vezes,
+ * somava zero e imprimia um total verde — o mesmo "zero era vácuo, não
+ * aprovação" que o acumulador de `inacessiveis` foi criado para
+ * impedir, escapando por não ser erro de status. E é justamente a área
+ * logada onde a última auditoria achou a barra inferior abaixo do AA.
+ */
+const SO_LOGADO = new Set(["/account", "/orders", "/captain", "/checkout"]);
+
 const MEDIDOR = () => {
   const lin = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
   const lum = ([r, g, b]) =>
@@ -246,7 +258,7 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
   // para /login e o que se mede é o login — três vezes.
   const ctx = await nav.newContext({
     viewport: { width: w, height: h },
-    ...(process.env.AUDIT_STATE ? { storageState: process.env.AUDIT_STATE } : {}),
+    storageState: process.env.AUDIT_STATE || undefined,
   });
   const pg = await ctx.newPage();
   for (const rota of ROTAS) {
@@ -276,6 +288,15 @@ for (const [larguraNome, w, h] of [["celular", 390, 844], ["desktop", 1440, 900]
       await pg.waitForLoadState("load").catch(() => {});
       if (!r || r.status() >= 400) {
         inacessiveis.push(`${rota} (${larguraNome}) → HTTP ${r ? r.status() : "sem resposta"}`);
+        continue;
+      }
+      // Redirecionar é 200: quem decide se a rota abriu é onde se parou.
+      const parou = new URL(pg.url()).pathname;
+      if (SO_LOGADO.has(rota) && parou !== rota) {
+        inacessiveis.push(
+          `${rota} (${larguraNome}) → parou em ${parou}; rode com ` +
+            `AUDIT_STATE=<storageState.json> para auditar a área logada`
+        );
         continue;
       }
     } catch (e) {
