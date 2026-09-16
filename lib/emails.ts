@@ -117,7 +117,23 @@ function shell(opts: {
   ctaHref: string;
   siteUrl: string;
 }): string {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.bg};margin:0;padding:0">
+  /* O <head> existe por UM motivo: `color-scheme`.
+     Sem ele o Gmail no Android assume que precisa "consertar" o e-mail
+     para o tema escuro do aparelho e reescreve cores por conta própria,
+     elemento a elemento. Num e-mail que JÁ nasce escuro o conserto é o
+     estrago: a frase do depósito chegou preta sobre azul-quase-preto,
+     ilegível, enquanto o resto do cartão ficou intacto. Declarar que o
+     e-mail suporta escuro é o que faz o cliente parar de reescrever. */
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<style>:root { color-scheme: dark; supported-color-schemes: dark; }</style>
+</head>
+<body style="margin:0;padding:0;background:${C.bg}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.bg};margin:0;padding:0">
   <tr><td align="center" style="padding:26px 14px 40px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;font-family:${FONT}">
 
@@ -145,8 +161,8 @@ function shell(opts: {
       </td></tr>
 
       <tr><td style="padding:18px 6px 0;color:${C.faint};font-size:12px;line-height:1.6">
-        At Gangway — Porto de Santos.<br>
-        Questions? Just reply to this e-mail.
+        <span style="color:${C.faint}">At Gangway — Porto de Santos.</span><br>
+        <span style="color:${C.faint}">Questions? Just reply to this e-mail.</span>
         <a href="${opts.siteUrl}" style="color:${C.faint}">${esc(
           opts.siteUrl.replace(/^https?:\/\//, "")
         )}</a>
@@ -154,7 +170,9 @@ function shell(opts: {
 
     </table>
   </td></tr>
-</table>`;
+</table>
+</body>
+</html>`;
 }
 
 /**
@@ -204,9 +222,14 @@ export function buildLastCallEmail(d: LastCallData, siteUrl: string): BuiltEmail
       title: `Last call, ${who}.`,
       lead,
       accent: C.amber,
+      /* Duas frases, dois <span> com a cor escrita em cada um. O <br>
+         separava dois trechos de texto solto que herdavam a cor do <p>
+         — e herança é justamente o que o Gmail perde quando reescreve
+         cores: a primeira linha saiu legível e a segunda, preta. Cor
+         herdada em e-mail é cor que um cliente pode não ver. */
       body: `<p style="margin:0;padding:12px 14px;background:#06121F;border:1px solid ${C.line};border-radius:12px;color:${C.faint};font-size:13px;line-height:1.55">
-          ${esc(d.ship)}${d.berth ? ` · berth ${esc(d.berth)}` : ""} · alongside ${esc(chega)}.<br>
-          30% deposit now, the rest at the gangway — and if the ship skips the call, the deposit becomes full credit.
+          <span style="color:${C.faint}">${esc(d.ship)}${d.berth ? ` · berth ${esc(d.berth)}` : ""} · alongside ${esc(chega)}.</span><br>
+          <span style="color:${C.faint}">30% deposit now, the rest at the gangway — and if the ship skips the call, the deposit becomes full credit.</span>
         </p>`,
       ctaLabel: wishes > 0 ? "Turn my wish list into an order" : "Order before the cut-off",
       ctaHref: wishes > 0 ? `${site}/wishlist` : `${site}/shop`,

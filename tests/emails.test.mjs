@@ -214,3 +214,50 @@ test("última chamada: um item usa o singular", () => {
   assert.ok(mail.html.includes("1 item</b>"));
   assert.ok(!mail.html.includes("1 items"));
 });
+
+/**
+ * O e-mail nasce escuro — e o cliente de e-mail não pode "consertá-lo".
+ *
+ * O Gmail no Android, sem `color-scheme` declarado, assume que precisa
+ * adaptar a mensagem ao tema do aparelho e reescreve cor por cor. Num
+ * e-mail já escuro isso não melhora nada: a frase do depósito chegou
+ * PRETA sobre azul-quase-preto, ilegível, enquanto o resto do cartão
+ * passou intacto. Quem viu foi o dono da loja, na própria caixa.
+ *
+ * Duas defesas, e as duas precisam continuar aí:
+ *   1. declarar que a mensagem suporta escuro (o cliente para de mexer);
+ *   2. não deixar nenhum trecho de texto pendurado em cor HERDADA —
+ *      herança é a primeira coisa que se perde quando o cliente
+ *      reescreve, e foi exatamente o trecho depois do <br> que caiu.
+ */
+test("o e-mail se declara escuro para o cliente não reescrever cores", () => {
+  const mail = buildOrderEmail({ ...base, kind: "at_gangway" }, "https://atgangway.com");
+  assert.match(mail.html, /<meta name="color-scheme" content="dark">/);
+  assert.match(mail.html, /<meta name="supported-color-schemes" content="dark">/);
+});
+
+test("nenhuma frase depois de <br> fica pendurada em cor herdada", async () => {
+  const { buildLastCallEmail } = await import("../lib/emails.ts");
+  const html = buildLastCallEmail(
+    {
+      to_email: "bosun@example.com",
+      to_name: "Rajesh Kumar",
+      ship: "BOW CHEETAH",
+      eta: "2026-09-19T15:00:00.000Z",
+      closes_at: "2026-09-16T15:00:00.000Z",
+      wish_count: 0,
+    },
+    "https://atgangway.com"
+  ).html;
+
+  // Todo <br> tem de ser seguido (ignorando espaço) por um elemento que
+  // escreva a própria cor — nunca por texto solto.
+  for (const m of html.matchAll(/<br>\s*([^<]*)</g)) {
+    assert.equal(
+      m[1].trim(),
+      "",
+      `texto solto logo depois de um <br>: ${JSON.stringify(m[1].trim().slice(0, 60))}`
+    );
+  }
+  assert.match(html, /<br>\s*<span style="color:#[0-9A-Fa-f]{6}">30% deposit now/);
+});
