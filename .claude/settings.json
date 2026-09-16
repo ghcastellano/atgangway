@@ -3,9 +3,27 @@
   "permissions": {
     "allow": [
       "Bash(node scripts/*)",
+      "Bash(node --input-type=module:*)",
       "Bash(npm test)",
       "Bash(npm run test:responsivo)",
-      "Bash(npx next build)"
+      "Bash(npm run build)",
+      "Bash(npm run start:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx next build)",
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(./node_modules/.bin/next:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(curl -s:*)",
+      "Bash(rm -f AGENTS.md CLAUDE.md)"
     ],
     "deny": [
       "Bash(rm -rf *)",
