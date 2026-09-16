@@ -622,8 +622,13 @@
   /* ---- HOME: como funciona, do lado do herói ---- */
   /* Mesma divisão 8/4 do painel do navio: os dois estados da fileira
      precisam parecer a mesma página, não dois layouts diferentes. */
-  .pg-home:has(> .herosteps) > .homehero { grid-column: 1 / span 8; }
-  .pg-home:has(> .herosteps) .homehero {
+  /* `.lado` vem do servidor (app/page.tsx): há um cartão ao lado do
+     herói — este ou o painel do navio. Era `.pg-home:has(> .herosteps)`,
+     e :has() não existe no Safari < 15.4: nesses iPads o herói ficava
+     com as 12 colunas e o cartão caía por cima dele. Layout não pode
+     depender de seletor que o navegador talvez não conheça. */
+  .pg-home.lado > .homehero { grid-column: 1 / span 8; }
+  .pg-home.lado .homehero {
     margin-right: 0;
     border: 1px solid var(--line); border-left: 0; border-bottom: 0;
     border-radius: 0 20px 20px 0;
@@ -664,13 +669,9 @@
   }
 
   /* ---- HOME: herói 8 col + painel do navio 4 col ---- */
-  /* sem :has(.vpanel) o herói ocupa as 12 e não sobra buraco */
-  .pg-home:has(> .vpanel) > .homehero { grid-column: 1 / span 8; }
-  .pg-home:has(> .vpanel) .homehero {
-    margin-right: 0;
-    border: 1px solid var(--line); border-left: 0; border-bottom: 0;
-    border-radius: 0 20px 20px 0;
-  }
+  /* A divisão 8/4 é a regra `.pg-home.lado` acima — a mesma para os
+     dois cartões. Sem `.lado` (logado sem escala) o herói ocupa as 12
+     e não sobra buraco. */
   .pg-home > .vpanel {
     grid-row: 1; grid-column: 9 / -1; align-self: stretch;
     margin: 0; border-radius: 20px; padding: 26px 24px;

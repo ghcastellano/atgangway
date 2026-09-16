@@ -310,8 +310,17 @@ export default async function Home() {
   const withStock = store.roots.filter((c) => (store.counts[c.id] ?? 0) > 0);
   const shown = withStock.length > 0 ? withStock : store.roots;
 
+  // O herói divide a fileira com um cartão ao lado (como funciona, para
+  // quem não está logado; o painel do navio, para quem tem escala). O
+  // CSS decidia isso com `.pg-home:has(> .vpanel)` — e o :has() não
+  // existe no Safari anterior ao 15.4: num iPad assim o herói ocupava as
+  // 12 colunas e o painel do navio caía POR CIMA dele, cortando a faixa
+  // de fatos ("CU… / Se…"). O servidor já sabe qual cartão vai renderizar;
+  // então a classe diz, e o CSS não precisa adivinhar pela árvore.
+  const lado = !crew || crew.kind === "vessel";
+
   return (
-    <main className="pg-home">
+    <main className={`pg-home${lado ? " lado" : ""}`}>
       <section className="homehero">
         <p className="kicker">At Gangway · Porto de Santos</p>
         <h1>Delivered to your gangway at Porto de Santos</h1>
