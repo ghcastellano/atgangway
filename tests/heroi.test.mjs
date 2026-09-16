@@ -12,7 +12,9 @@
  *
  * Aqui ficam as duas invariantes que fecham essa porta:
  *
- *   1. no CSS, ninguém ocupa a coluna 9 da home sem `.lado`;
+ *   1. no CSS, o cartão não tem posição fixa — só `span 4`, e só com
+ *      `.lado`; o auto-placement o põe ao lado do herói de 8 colunas, e
+ *      abaixo dele se o herói algum dia tiver 12;
  *   2. no servidor, a classe `lado` SAI do cartão — não é um segundo
  *      juízo sobre o mesmo dado.
  *
@@ -46,37 +48,57 @@ function regras(arquivo) {
 // fora.
 const REGRAS = regras(CSS);
 
-const NA_COLUNA_9 = /grid-column:\s*9\s*\/\s*-1/;
 const ENCOLHIDO = /grid-column:\s*1\s*\/\s*span\s+8/;
+/** Linha explícita: `grid-row: N` ou `grid-column: N / …` com número. */
+const LINHA_FIXA = /grid-row:\s*\d|grid-column:\s*\d/;
 
-test("nada ocupa a coluna 9 da home sem a classe .lado", () => {
+test("os cartões da home não têm posição fixa: só largura, e só com .lado", () => {
   const achadas = [];
   for (const [sel, decls] of REGRAS) {
-    if (!NA_COLUNA_9.test(decls) || !sel.includes("pg-home")) continue;
-    achadas.push(sel);
-    assert.match(
-      sel,
-      /\.pg-home\.lado\b/,
-      `"${sel}" põe o cartão na coluna 9 sem exigir .lado. Sem a classe o ` +
-        `herói continua com as 12 colunas e o cartão pousa em cima dele — ` +
-        `foi assim duas vezes. Mova a posição para .pg-home.lado > …`
+    if (!sel.includes("pg-home") || !/\.(herosteps|vpanel)\b/.test(sel)) continue;
+    // só as regras que falam do CARTÃO, não dos filhos dele
+    if (!/> \.(herosteps|vpanel)$/.test(sel)) continue;
+    assert.doesNotMatch(
+      decls,
+      LINHA_FIXA,
+      `"${sel}" fixa linha ou coluna. Com posição absoluta, um herói que ` +
+        `volte a ter 12 colunas deixa o cartão POR CIMA dele — foi assim ` +
+        `duas vezes. Use só \`grid-column: span 4\` e deixe o auto-placement ` +
+        `achar a vaga.`
     );
+    if (/grid-column:\s*span\s+4/.test(decls)) {
+      achadas.push(sel);
+      assert.match(sel, /\.pg-home\.lado\b/, `"${sel}" estreita o cartão sem exigir .lado`);
+    }
   }
-  // Sem esta linha o teste passaria sozinho no dia em que o seletor
-  // mudasse de nome: zero regras examinadas, zero falhas, nada provado.
-  //
-  // A verificação é por ALVO, não por contagem de regras: os dois
-  // cartões têm hoje o mesmo bloco de declarações, e juntá-los numa
-  // lista de seletores é simplificação legítima — o teste não pode
-  // cimentar a duplicação que ele existe para proteger.
+  // Sem esta verificação o teste passaria sozinho no dia em que o
+  // seletor mudasse de nome: zero regras examinadas, zero falhas.
   const alvos = achadas.join(" ");
   for (const cartao of [".herosteps", ".vpanel"]) {
     assert.ok(
       alvos.includes(cartao),
-      `nenhuma regra com .lado posiciona ${cartao} na coluna 9 — ou o ` +
-        `cartão sumiu, ou mudou de nome, ou voltou a ser posicionado por fora`
+      `nenhuma regra com .lado dá span 4 a ${cartao} — ou o cartão sumiu, ` +
+        `ou mudou de nome, ou voltou a ser posicionado por fora`
     );
   }
+});
+
+test("o herói é o único filho da home com linha fixa, e o cartão vem logo depois dele", () => {
+  const fixos = REGRAS.filter(
+    ([sel, decls]) => /\.pg-home(\.lado)? > \S+$/.test(sel) && /grid-row:\s*\d/.test(decls)
+  ).map(([sel]) => sel);
+  assert.deepEqual(fixos, [".pg-home > .homehero"]);
+
+  // O auto-placement põe o cartão na primeira vaga DEPOIS do herói na
+  // ordem do DOM. Se algo de largura total entrar entre os dois, a vaga
+  // da linha 1 é pulada e o cartão desce.
+  // comentários JSX entre os dois não contam como elemento
+  const src = readFileSync(PAGE, "utf-8").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+  assert.match(
+    src,
+    /<\/section>\s*\{\s*cartao\s*\}/,
+    "o cartão tem de ser renderizado imediatamente depois do </section> do herói"
+  );
 });
 
 test("o herói só encolhe para 8 colunas com a mesma classe .lado", () => {
