@@ -61,7 +61,7 @@ function LoginPainel() {
   }
 
   return (
-    <main className="adm-login">
+    <main className="adm-login sup-escura">
       <form onSubmit={entrar} className="adm-login-card" aria-labelledby="titulo-login">
         <div className="adm-login-brand">
           <IconAnchor className="mark" size={26} />
@@ -124,7 +124,7 @@ function LoginPainel() {
 
 export default function AdminLoginPage() {
   return (
-    <Suspense fallback={<main className="adm-login" />}>
+    <Suspense fallback={<main className="adm-login sup-escura" />}>
       <LoginPainel />
     </Suspense>
   );

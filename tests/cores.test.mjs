@@ -11,7 +11,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 /** Lê os tokens de cor do :root, direto da folha de estilo. */
 function tokens() {
@@ -94,3 +94,65 @@ for (const [nome, fg, bg, min] of PARES) {
     );
   });
 }
+
+/**
+ * A família ESCURA — cabeçalho, rodapé, barra de compra, abas da conta
+ * e painel, todos pela classe `.sup-escura`. Era medida em lugar
+ * nenhum: as abas da conta chegaram a ter rótulo a 3,1:1 sem que teste
+ * algum reclamasse.
+ *
+ * `--card-hi` escuro não é token do :root (mora em `.sup-escura`), por
+ * isso entra como literal lido da própria regra.
+ */
+function cardHiEscuro() {
+  const css = readFileSync("app/styles/00-tokens-e-base.css", "utf-8");
+  const bloco = css.slice(css.indexOf(".sup-escura {"));
+  return /--card-hi:\s*(#[0-9A-Fa-f]{6})/.exec(bloco.slice(0, bloco.indexOf("}")))?.[1];
+}
+const T_ESCURO = { ...T, "dark-card-hi": cardHiEscuro() };
+
+const PARES_ESCUROS = [
+  ["texto sobre superfície escura", "dark-ink", "dark", 4.5],
+  ["texto sobre card escuro", "dark-ink", "dark-card", 4.5],
+  ["texto secundário sobre superfície escura", "dark-muted", "dark", 4.5],
+  ["texto secundário sobre card escuro", "dark-muted", "dark-card", 4.5],
+  ["texto secundário sobre card realçado escuro", "dark-muted", "dark-card-hi", 4.5],
+  ["rótulo apagado sobre superfície escura", "dark-faint", "dark", 4.5],
+  ["rótulo apagado sobre o fundo do painel", "dark-faint", "dark-deep", 4.5],
+  ["rótulo apagado sobre card escuro", "dark-faint", "dark-card", 4.5],
+  ["âmbar claro sobre superfície escura", "amber-on-dark", "dark", 4.5],
+  ["âmbar claro sobre card realçado — item ativo do painel", "amber-on-dark", "dark-card-hi", 4.5],
+];
+
+/* Falha conhecida, registrada e não escondida: `.adm-sobra-grid h4`
+   (10,5px) pinta --faint sobre --card-hi, e isso dá 3,9:1. Corrigir é
+   mexer no token ou na regra do painel — trabalho próprio. Enquanto
+   isso fica como `todo`: aparece em todo `npm test` sem derrubá-lo. */
+const PENDENTES_ESCUROS = [
+  ["rótulo apagado sobre card realçado escuro — cabeçalho das Sobras", "dark-faint", "dark-card-hi", 4.5],
+];
+
+test("a família escura foi encontrada", () => {
+  for (const [, fg, bg] of [...PARES_ESCUROS, ...PENDENTES_ESCUROS]) {
+    assert.ok(T_ESCURO[fg], `token --${fg} sumiu`);
+    assert.ok(T_ESCURO[bg], `token --${bg} sumiu (ou .sup-escura perdeu o --card-hi)`);
+  }
+});
+
+for (const [lista, opcoes] of [[PARES_ESCUROS, {}], [PENDENTES_ESCUROS, { todo: "abaixo do AA hoje — ver comentário" }]]) {
+  for (const [nome, fg, bg, min] of lista) {
+    test(`contraste AA (escuro): ${nome}`, opcoes, () => {
+      const r = contraste(T_ESCURO[fg], T_ESCURO[bg]);
+      assert.ok(r >= min, `${nome}: ${r.toFixed(2)}:1 — abaixo de ${min}:1 (--${fg} sobre --${bg})`);
+    });
+  }
+}
+
+test("a família escura mora só em .sup-escura", () => {
+  // A quinta cópia é a que diverge. Quem precisa de superfície escura
+  // põe a classe no JSX; a folha não redefine --ink com a tinta clara.
+  const donos = readdirSync("app/styles").filter((f) =>
+    /--ink:\s*var\(--dark-ink\)/.test(readFileSync(`app/styles/${f}`, "utf-8"))
+  );
+  assert.deepEqual(donos, ["00-tokens-e-base.css"]);
+});

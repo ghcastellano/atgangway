@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function PainelLayout({ children }: { children: React.ReactNode }) {
   if (!supabaseConfigured) {
     return (
-      <main className="adm-login">
+      <main className="adm-login sup-escura">
         <p className="adm-alerta erro">Backend não configurado — veja o README para provisionar o Supabase.</p>
       </main>
     );
@@ -39,7 +39,7 @@ export default async function PainelLayout({ children }: { children: React.React
 
   if (!admin) {
     return (
-      <main className="adm-login">
+      <main className="adm-login sup-escura">
         <div className="adm-login-card">
           <p className="kicker">Acesso restrito</p>
           <h1>Esta área é da equipe.</h1>

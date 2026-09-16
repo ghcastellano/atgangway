@@ -227,7 +227,7 @@ export default function ProductBuy({
       </section>
 
       {!soldOut && (
-        <div className="buydock">
+        <div className="buydock sup-escura">
           <div className="thumb">
             {src && <Image src={src} alt="" fill sizes="46px" style={{ objectFit: "contain" }} />}
           </div>

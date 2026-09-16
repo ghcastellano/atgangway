@@ -29,7 +29,7 @@ const ABAS = [
 export default function AccountTabs() {
   const path = usePathname();
   return (
-    <nav className="acct-tabs" aria-label="My account">
+    <nav className="acct-tabs sup-escura" aria-label="My account">
       {ABAS.map((a) => {
         const on = path === a.href || path.startsWith(a.href + "/");
         return (

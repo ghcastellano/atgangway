@@ -30,22 +30,13 @@
      Sem isto o painel virava claro pela metade: fundo claro herdado da
      nova paleta e barra de topo escura ainda no CSS, com texto escuro
      por cima — ilegível. */
-  --night:   var(--dark);
+  /* A família escura vem de `.sup-escura` (o JSX leva as duas
+     classes); aqui só o que o painel tem a mais que o cabeçalho. */
   --abyss:   var(--dark-deep);
   --panel:   #0E1F35;
-  --card:    var(--dark-card);
-  --card-hi: #1B3252;
-  --ink:     var(--dark-ink);
-  --muted:   var(--dark-muted);
-  --faint:   var(--dark-faint);
-  --line:    var(--dark-line);
-  --line-hi: rgba(238,244,248,.22);
-  --amber-hi: var(--amber-on-dark);
-  --amber-rgb: 255, 217, 160;   /* realce com opacidade, sobre escuro */
   --teal:    #2EE6C8;
   --teal-rgb: 46, 230, 200;
   --danger:  #FF5964;
-  color: var(--ink);
 }
 
 .adm {

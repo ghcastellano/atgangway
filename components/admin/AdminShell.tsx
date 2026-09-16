@@ -59,7 +59,7 @@ export default function AdminShell({
 
   return (
     <ToastProvider>
-      <div className="adm">
+      <div className="adm sup-escura">
         <aside className="adm-side" aria-label="Seções do painel">
           <Link href="/admin" className="adm-brand" aria-label="Painel At Gangway">
             <IconAnchor className="mark" size={20} />

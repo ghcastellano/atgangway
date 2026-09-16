@@ -78,7 +78,7 @@ export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
         View Catalog &amp; Flyers
       </Link>
 
-      <header className="sunhead">
+      <header className="sunhead sup-escura">
         <div className="sunhead-row">
           <button className="hamb" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}>
             ☰

@@ -243,14 +243,9 @@
      objeto: a barra que fecha a compra não dizia o que se estava
      comprando.
 
-     A correção é a mesma do .sunhead: redefinir os tokens no escopo,
-     em vez de recolorir cada regra de dentro. */
-  --ink: var(--dark-ink);
-  --muted: var(--dark-muted);
-  --faint: var(--dark-faint);
-  --line-hi: rgba(238,244,248,.20);
-  --amber-hi: var(--amber-on-dark);
-  color: var(--ink);
+     A correção é a mesma do .sunhead: o elemento leva `.sup-escura`,
+     que redefine os tokens no escopo, em vez de recolorir cada regra
+     de dentro. */
   background: rgba(var(--ink-rgb),.96); backdrop-filter: blur(12px);
   border-top: 1px solid var(--line-hi);
   /* Sobe uma vez na chegada — anuncia que a compra viaja junto com a

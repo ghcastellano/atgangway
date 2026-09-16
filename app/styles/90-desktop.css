@@ -42,10 +42,8 @@
      isto o rótulo inativo (--faint claro) media 3,1:1 e o ativo (âmbar
      queimado do tema claro) 3,5:1 sobre o azul-noite — abaixo do AA
      para texto de 10,5 px. O mesmo erro do logo na gaveta: componente
-     que muda de fundo tem de levar os tokens junto. */
-  --faint:    var(--dark-faint);
-  --amber-hi: var(--amber-on-dark);
-  --line:     var(--dark-line);
+     que muda de fundo tem de levar os tokens junto — por isso o
+     <nav> leva `.sup-escura`. */
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
   display: grid; grid-template-columns: repeat(5, 1fr);
   height: calc(60px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);

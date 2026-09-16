@@ -132,7 +132,7 @@ function SelosPagamento() {
 
 export default function SiteFooter() {
   return (
-    <footer className="sunfoot">
+    <footer className="sunfoot sup-escura">
       {/* Coluna de marca: só aparece no desktop, onde o rodapé vira
           colunas em vez de acordeão. No celular o CSS a esconde e o
           acordeão continua exatamente como está — ele foi validado. */}

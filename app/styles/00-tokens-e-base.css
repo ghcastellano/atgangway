@@ -119,6 +119,36 @@
   --ease: cubic-bezier(.22, .61, .36, 1);
 }
 
+/* ---- superfície escura dentro da loja clara ----------------------
+   Cabeçalho, rodapé, barra de compra, abas da conta e o painel. Um
+   componente escuro não pinta texto à mão: redefine --ink e amigos no
+   próprio escopo, e todo o CSS de dentro dele continua valendo palavra
+   por palavra, resolvendo para a família escura.
+
+   Eram quatro cópias deste bloco, e já tinham divergido: a barra de
+   compra tinha --line-hi a .20 enquanto o resto usava .22, e as abas
+   da conta trocavam só três tokens — a quarta cópia é a que esquece
+   um. Agora é UMA classe, e quem precisa de mais (o painel) acrescenta
+   por cima. tests/cores.test.mjs mede a família escura. */
+.sup-escura {
+  --ink:     var(--dark-ink);
+  --muted:   var(--dark-muted);
+  --faint:   var(--dark-faint);
+  --card:    var(--dark-card);
+  --card-hi: #1B3252;
+  --panel:   var(--dark);
+  --night:   var(--dark);
+  --line:    var(--dark-line);
+  --line-hi: rgba(238,244,248,.22);
+  /* Sobre escuro quem é legível é o âmbar CLARO, não o queimado que o
+     tema claro usa para texto. */
+  --amber-hi: var(--amber-on-dark);
+  /* O realce com opacidade acompanha: âmbar escuro a 45% sobre
+     azul-noite é invisível. */
+  --amber-rgb: 255, 217, 160;
+  color: var(--ink);
+}
+
 /* tablet: coluna um pouco mais generosa */
 @media (min-width: 768px) {
   :root { --shell-w: 500px; }
