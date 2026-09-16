@@ -77,3 +77,38 @@ test("nenhuma rota escreve frase na query string de /login", () => {
     );
   }
 });
+
+const { resolveNext } = await import("../lib/authmsg.ts");
+const O = "https://atgangway.com";
+
+test("destino do link: caminho interno e URL do próprio site", () => {
+  assert.equal(resolveNext("/orders", O), "/orders");
+  assert.equal(resolveNext("https://atgangway.com/shop?x=1", O), "/shop?x=1");
+  assert.equal(resolveNext(null, O), "/shop");
+});
+
+test("destino do link: nunca sai do site", () => {
+  assert.equal(resolveNext("https://evil.example/x", O), "/shop");
+  assert.equal(resolveNext("//evil.example", O), "/shop");
+});
+
+test("destino do link: /auth/confirm aninhado é desembrulhado", () => {
+  // Exatamente o que os e-mails de cadastro carregavam: a conta era
+  // confirmada e a pessoa caía em "link inválido".
+  assert.equal(resolveNext("https://atgangway.com/auth/confirm?next=/shop", O), "/shop");
+  assert.equal(resolveNext("https://atgangway.com/auth/confirm?next=%2Forders", O), "/orders");
+  assert.equal(resolveNext("/auth/confirm?next=/checkout", O), "/checkout");
+  assert.equal(resolveNext("/auth/confirm", O), "/shop");
+  assert.equal(resolveNext("/auth/confirm?next=https://evil.example", O), "/shop");
+  assert.equal(
+    resolveNext("/auth/confirm?next=%2Fauth%2Fconfirm%3Fnext%3D%252Fauth%252Fconfirm", O),
+    "/shop"
+  );
+});
+
+test("o cadastro e o reenvio mandam o destino final, não /auth/confirm", () => {
+  for (const f of ["app/signup/page.tsx", "app/login/page.tsx"]) {
+    const src = readFileSync(f, "utf-8");
+    assert.doesNotMatch(src, /emailRedirectTo:[^\n]*\/auth\/confirm/, `${f} voltou a aninhar /auth/confirm`);
+  }
+});

@@ -1,21 +1,7 @@
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { loginErrorPath, type AuthUrlError } from "@/lib/authmsg";
-
-// Aceita ?next= como caminho interno ou como URL absoluta do próprio site
-// (o template de email do Supabase repassa o redirect_to completo).
-function resolveNext(raw: string | null, origin: string, fallback = "/shop"): string {
-  if (!raw) return fallback;
-  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
-  try {
-    const u = new URL(raw);
-    if (u.origin === origin) return u.pathname + u.search;
-  } catch {
-    // não era URL — cai no fallback
-  }
-  return fallback;
-}
+import { loginErrorPath, resolveNext, type AuthUrlError } from "@/lib/authmsg";
 
 // Destino dos links de email do Supabase (confirmação de cadastro,
 // recuperação de senha, troca de email). Suporta os dois formatos:

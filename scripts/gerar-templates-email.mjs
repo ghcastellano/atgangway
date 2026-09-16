@@ -53,9 +53,11 @@ const rota = (tipo, next) =>
  * pergunta que a pessoa ainda não fez.
  */
 function alternativa(href) {
+  /* O endereço inteiro na tela eram três linhas de token e parâmetros —
+     parecia defeito, não ajuda. O link continua lá, atrás de um texto;
+     quem precisa copiar segura o dedo sobre ele. */
   return `<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #16304F;color:#8CA3BC;font-size:12px;line-height:1.6">
-          <span style="color:#8CA3BC">Button not working? Copy this link into your browser:</span><br>
-          <a href="${href}" style="color:#FFB648;word-break:break-all;text-decoration:none">${href}</a>
+          <span style="color:#8CA3BC">Button not working? </span><a href="${href}" style="color:#FFB648;text-decoration:underline">Open this link instead</a><span style="color:#8CA3BC">.</span>
         </p>`;
 }
 

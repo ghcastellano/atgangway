@@ -78,3 +78,31 @@ export function signInMessage(kind: SignInFailure): string | null {
       return null;
   }
 }
+
+// Aceita ?next= como caminho interno ou como URL absoluta do próprio site
+// (o template de email do Supabase repassa o redirect_to completo).
+export function resolveNext(raw: string | null, origin: string, fallback = "/shop"): string {
+  let destino = fallback;
+  if (!raw) return fallback;
+  if (raw.startsWith("/") && !raw.startsWith("//")) destino = raw;
+  else {
+    try {
+      const u = new URL(raw);
+      if (u.origin === origin) destino = u.pathname + u.search;
+    } catch {
+      // não era URL — cai no fallback
+    }
+  }
+  /* O destino nunca pode ser o próprio /auth/confirm. O cadastro mandava
+     `emailRedirectTo: /auth/confirm?next=/shop` — certo para o template
+     padrão do Supabase, que devolvia a pessoa ali com um ?code=. Com o
+     template da loja o link JÁ passa por aqui, e o destino virava um
+     segundo /auth/confirm, sem token: a conta era confirmada e a pessoa
+     via "link inválido". Desembrulha — inclusive para os e-mails que já
+     estão nas caixas de entrada. */
+  for (let i = 0; i < 3 && destino.startsWith("/auth/confirm"); i++) {
+    const dentro = new URL(destino, origin).searchParams.get("next");
+    destino = dentro && dentro.startsWith("/") && !dentro.startsWith("//") ? dentro : fallback;
+  }
+  return destino.startsWith("/auth/confirm") ? fallback : destino;
+}

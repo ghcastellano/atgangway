@@ -194,7 +194,8 @@ function SignupInner() {
           vessel_imo: vessel.imo,
           port_id: portId,
         },
-        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`,
+        // O destino FINAL: o link do e-mail já passa por /auth/confirm.
+        emailRedirectTo: `${window.location.origin}${next}`,
       },
     });
 

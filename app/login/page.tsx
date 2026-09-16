@@ -49,7 +49,8 @@ function LoginInner() {
       type: "signup",
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`,
+        // O destino FINAL: o link do e-mail já passa por /auth/confirm.
+        emailRedirectTo: `${window.location.origin}${next}`,
       },
     });
     setBusy(false);
