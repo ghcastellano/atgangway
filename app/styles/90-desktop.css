@@ -763,11 +763,13 @@
   /* a partir daqui o trilho já mostra a árvore: a grade de
      departamentos e a fita de subcategorias viram a mesma coisa dita
      duas vezes e roubam a primeira tela dos produtos.
-     :has(.facets) para que, se a árvore falhar e o <aside> não for
-     renderizado, a fita continue aparecendo. */
-  .pg-list:has(.facets) .catgrid,
-  .pg-list:has(.facets) .subhead,
-  .pg-list:has(.facets) .cats-tabs { display: none; }
+     Só esconde se o <aside> foi renderizado (a árvore pode falhar e
+     o FacetRail devolver null) — e isso se diz com o irmão `~`, não
+     com :has(.facets): o Safari < 15.4 ignora :has() e mostrava a
+     navegação duas vezes, o mesmo defeito que derrubou a home no iPad. */
+  .shop-body > .facets ~ .listcol .catgrid,
+  .shop-body > .facets ~ .listcol .subhead,
+  .shop-body > .facets ~ .listcol .cats-tabs { display: none; }
 
   /* ---- FICHA: coluna esquerda passa a ter largura fixa ----
      Acima daqui a galeria não cresce mais: um .pdp-hero de 900px de
