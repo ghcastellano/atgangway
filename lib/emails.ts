@@ -106,8 +106,21 @@ function money(label: string, value: string, strong = false, color = C.ink): str
   </tr>`;
 }
 
-/** Casca comum: cabeçalho, cartão, botão, rodapé. */
-function shell(opts: {
+/**
+ * Casca comum: cabeçalho, cartão, botão, rodapé.
+ *
+ * Exportada porque os e-mails de CONTA (confirmar cadastro, redefinir
+ * senha) não saem daqui — saem do Supabase, que guarda o HTML no
+ * próprio projeto. Eles eram HTML cru, sem identidade nenhuma, e um
+ * deles ainda assinava o nome antigo da loja meses depois da troca:
+ * ninguém percebe que um template fora do repositório envelheceu.
+ *
+ * `scripts/gerar-templates-email.mjs` monta os dois com esta função e
+ * grava em supabase/templates/. Uma casca só para tudo que a loja
+ * manda — inclusive a declaração de tema escuro, que o e-mail de conta
+ * precisa pelo mesmo motivo que os outros.
+ */
+export function shell(opts: {
   kicker: string;
   title: string;
   lead: string;
