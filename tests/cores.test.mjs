@@ -124,28 +124,22 @@ const PARES_ESCUROS = [
   ["âmbar claro sobre card realçado — item ativo do painel", "amber-on-dark", "dark-card-hi", 4.5],
 ];
 
-/* Falha conhecida, registrada e não escondida: `.adm-sobra-grid h4`
-   (10,5px) pinta --faint sobre --card-hi, e isso dá 3,9:1. Corrigir é
-   mexer no token ou na regra do painel — trabalho próprio. Enquanto
-   isso fica como `todo`: aparece em todo `npm test` sem derrubá-lo. */
-const PENDENTES_ESCUROS = [
-  ["rótulo apagado sobre card realçado escuro — cabeçalho das Sobras", "dark-faint", "dark-card-hi", 4.5],
-];
+/* --faint sobre --card-hi escuro dá 3,9:1 e por isso NÃO é par da
+   tela: toda superfície do painel que pinta --card-hi com texto dentro
+   redefine --faint para --muted (último teste deste arquivo). */
 
 test("a família escura foi encontrada", () => {
-  for (const [, fg, bg] of [...PARES_ESCUROS, ...PENDENTES_ESCUROS]) {
+  for (const [, fg, bg] of PARES_ESCUROS) {
     assert.ok(T_ESCURO[fg], `token --${fg} sumiu`);
     assert.ok(T_ESCURO[bg], `token --${bg} sumiu (ou .sup-escura perdeu o --card-hi)`);
   }
 });
 
-for (const [lista, opcoes] of [[PARES_ESCUROS, {}], [PENDENTES_ESCUROS, { todo: "abaixo do AA hoje — ver comentário" }]]) {
-  for (const [nome, fg, bg, min] of lista) {
-    test(`contraste AA (escuro): ${nome}`, opcoes, () => {
-      const r = contraste(T_ESCURO[fg], T_ESCURO[bg]);
-      assert.ok(r >= min, `${nome}: ${r.toFixed(2)}:1 — abaixo de ${min}:1 (--${fg} sobre --${bg})`);
-    });
-  }
+for (const [nome, fg, bg, min] of PARES_ESCUROS) {
+  test(`contraste AA (escuro): ${nome}`, () => {
+    const r = contraste(T_ESCURO[fg], T_ESCURO[bg]);
+    assert.ok(r >= min, `${nome}: ${r.toFixed(2)}:1 — abaixo de ${min}:1 (--${fg} sobre --${bg})`);
+  });
 }
 
 test("a família escura mora só em .sup-escura", () => {
@@ -155,4 +149,19 @@ test("a família escura mora só em .sup-escura", () => {
     /--ink:\s*var\(--dark-ink\)/.test(readFileSync(`app/styles/${f}`, "utf-8"))
   );
   assert.deepEqual(donos, ["00-tokens-e-base.css"]);
+});
+
+test("superfície --card-hi do painel com texto apagado dentro leva --faint acima", () => {
+  // .adm-sobra-grid h4 e os rótulos da tabela ficavam a 3,9:1.
+  const css = readFileSync("app/styles/45-painel.css", "utf-8").replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const sel of [".adm-sobra-grid section", ".adm-table tbody tr:hover"]) {
+    const regra = new RegExp(`${sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{([^}]*)\\}`).exec(css);
+    assert.ok(regra, `regra ${sel} sumiu`);
+    assert.match(regra[1], /background:\s*var\(--card-hi\)/, `${sel} não é mais --card-hi`);
+    assert.match(regra[1], /--faint:\s*var\(--muted\)/, `${sel} voltou a deixar --faint a 3,9:1`);
+  }
+  assert.ok(
+    contraste(T_ESCURO["dark-muted"], T_ESCURO["dark-card-hi"]) >= 4.5,
+    "o tom que substitui --faint também tem de passar sobre --card-hi"
+  );
 });
