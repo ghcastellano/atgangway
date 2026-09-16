@@ -281,7 +281,7 @@ await db.auth.signOut();
 
 async function subirFoto(produtoId, url, alt) {
   try {
-    const r = await fetch(url, { headers: { "User-Agent": "VesselSupplier/1.0 (ahoy@marinerssupplyco.com)" } });
+    const r = await fetch(url, { headers: { "User-Agent": "AtGangway/1.0 (help@atgangway.com)" } });
     if (!r.ok) { console.error(`    foto HTTP ${r.status}`); return false; }
     const bruto = new Uint8Array(await r.arrayBuffer());
     if (bruto.byteLength < 5000 || bruto.byteLength > 8 * 1024 * 1024) {

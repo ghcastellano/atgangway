@@ -46,7 +46,7 @@ test("fora da Vercel, sem env: NÃO configurado — nada de cair em produção",
   assert.equal(m.u, "");
 });
 
-/* A retaguarda deixou de ser o domínio customizado (auth.marinerssupplyco.com):
+/* A retaguarda deixou de ser o domínio customizado do Auth:
    ele caiu no instante em que outro domínio customizado entrou em verificação
    no mesmo projeto, e levou junto as fotos e a API do navegador. O endereço
    nativo do projeto não depende de domínio customizado nenhum. */

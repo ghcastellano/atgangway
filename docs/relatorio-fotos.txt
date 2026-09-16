@@ -1,6 +1,6 @@
-(node:2370) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/user/vesselsupplier/lib/fotonormaliza.ts is not specified and it doesn't parse as CommonJS.
+(node:2370) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/user/atgangway/lib/fotonormaliza.ts is not specified and it doesn't parse as CommonJS.
 Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
-To eliminate this warning, add "type": "module" to /home/user/vesselsupplier/package.json.
+To eliminate this warning, add "type": "module" to /home/user/atgangway/package.json.
 (Use `node --trace-warnings ...` to show where the warning was created)
 trocadas 1 | já boas 34 | sem foto de estúdio 42 | sem fonte 0
 

@@ -33,7 +33,7 @@ test("escape cobre os cinco caracteres perigosos", () => {
 test("nome de contato hostil não vira HTML", () => {
   const mail = buildOrderEmail(
     { ...base, kind: "deposit_paid", to_name: "<script>alert(1)</script>" },
-    "https://marinerssupplyco.com"
+    "https://atgangway.com"
   );
   assert.ok(!mail.html.includes("<script>"));
   assert.ok(mail.html.includes("&lt;script&gt;"));
@@ -42,7 +42,7 @@ test("nome de contato hostil não vira HTML", () => {
 test("nome de navio hostil não vira HTML", () => {
   const mail = buildOrderEmail(
     { ...base, kind: "at_gangway", ship_name: 'X" onerror="boom' },
-    "https://marinerssupplyco.com"
+    "https://atgangway.com"
   );
   assert.ok(!mail.html.includes('onerror="boom'));
   assert.ok(mail.html.includes("&quot; onerror=&quot;boom"));
@@ -68,11 +68,11 @@ test("numeric como string soma igual a número", () => {
 
 test("os três tipos têm assunto, html e texto com o código do pedido", () => {
   for (const kind of ["deposit_paid", "at_gangway", "delivered"]) {
-    const mail = buildOrderEmail({ ...base, kind }, "https://marinerssupplyco.com/");
+    const mail = buildOrderEmail({ ...base, kind }, "https://atgangway.com/");
     assert.ok(mail.subject.includes("MS7K2Q"), `assunto de ${kind}`);
     assert.ok(mail.text.includes("MS7K2Q"), `texto de ${kind}`);
     assert.ok(
-      mail.html.includes("https://marinerssupplyco.com/orders/MS7K2Q"),
+      mail.html.includes("https://atgangway.com/orders/MS7K2Q"),
       `link de ${kind}`
     );
     // barra final duplicada é erro clássico de concatenação
@@ -129,7 +129,7 @@ test("desvio: credita o depósito INTEIRO, não só o dinheiro que entrou", () =
   // Devolver 24.55 seria confiscar o crédito gasto por tecnicalidade.
   const mail = buildOrderEmail(
     { ...base, kind: "credited", credit_applied_usd: "20.00" },
-    "https://marinerssupplyco.com"
+    "https://atgangway.com"
   );
   assert.ok(mail.subject.includes("44.55"), "o valor no assunto é o depósito inteiro");
   assert.ok(mail.text.includes("44.55"));
@@ -137,7 +137,7 @@ test("desvio: credita o depósito INTEIRO, não só o dinheiro que entrou", () =
 });
 
 test("desvio: nomeia o navio e o pedido, que é o que a pessoa procura", () => {
-  const mail = buildOrderEmail({ ...base, kind: "credited" }, "https://marinerssupplyco.com");
+  const mail = buildOrderEmail({ ...base, kind: "credited" }, "https://atgangway.com");
   assert.ok(mail.subject.includes("MSC LORENA"));
   assert.ok(mail.html.includes("MS7K2Q"));
   assert.ok(mail.text.includes("MS7K2Q"));
@@ -146,7 +146,7 @@ test("desvio: nomeia o navio e o pedido, que é o que a pessoa procura", () => {
 test("desvio: navio hostil não vira HTML nem no assunto nem no corpo", () => {
   const mail = buildOrderEmail(
     { ...base, kind: "credited", ship_name: 'X" onerror="boom' },
-    "https://marinerssupplyco.com"
+    "https://atgangway.com"
   );
   assert.ok(!mail.html.includes('onerror="boom'));
   assert.ok(mail.html.includes("&quot; onerror=&quot;boom"));
@@ -155,7 +155,7 @@ test("desvio: navio hostil não vira HTML nem no assunto nem no corpo", () => {
 test("desvio: sem navio no cadastro, o texto ainda fecha", () => {
   const mail = buildOrderEmail(
     { ...base, kind: "credited", ship_name: null },
-    "https://marinerssupplyco.com"
+    "https://atgangway.com"
   );
   assert.ok(mail.subject.startsWith("Your vessel"));
   assert.ok(mail.text.includes("Your vessel"));
@@ -163,8 +163,8 @@ test("desvio: sem navio no cadastro, o texto ainda fecha", () => {
 });
 
 test("desvio: manda para a loja, não para a página do pedido morto", () => {
-  const mail = buildOrderEmail({ ...base, kind: "credited" }, "https://marinerssupplyco.com");
-  assert.ok(mail.html.includes("https://marinerssupplyco.com/shop"));
+  const mail = buildOrderEmail({ ...base, kind: "credited" }, "https://atgangway.com");
+  assert.ok(mail.html.includes("https://atgangway.com/shop"));
   assert.ok(mail.html.includes("Order for your next call"));
 });
 
@@ -184,27 +184,27 @@ const chamada = {
 const { buildLastCallEmail } = await import("../lib/emails.ts");
 
 test("última chamada: assunto carrega navio e hora do corte", () => {
-  const mail = buildLastCallEmail(chamada, "https://marinerssupplyco.com");
+  const mail = buildLastCallEmail(chamada, "https://atgangway.com");
   assert.ok(mail.subject.includes("MAERSK LANCO"));
   assert.ok(/closes/i.test(mail.subject));
 });
 
 test("última chamada: com wishlist, o botão leva para ELA", () => {
-  const mail = buildLastCallEmail(chamada, "https://marinerssupplyco.com");
-  assert.ok(mail.html.includes("https://marinerssupplyco.com/wishlist"));
+  const mail = buildLastCallEmail(chamada, "https://atgangway.com");
+  assert.ok(mail.html.includes("https://atgangway.com/wishlist"));
   assert.ok(mail.html.includes("4 item"));
 });
 
 test("última chamada: sem wishlist, o botão leva para a loja", () => {
-  const mail = buildLastCallEmail({ ...chamada, wish_count: 0 }, "https://marinerssupplyco.com");
-  assert.ok(mail.html.includes("https://marinerssupplyco.com/shop"));
+  const mail = buildLastCallEmail({ ...chamada, wish_count: 0 }, "https://atgangway.com");
+  assert.ok(mail.html.includes("https://atgangway.com/shop"));
   assert.ok(!mail.html.includes("/wishlist"));
 });
 
 test("última chamada: nome de navio hostil não vira HTML", () => {
   const mail = buildLastCallEmail(
     { ...chamada, ship: 'X" onerror="boom' },
-    "https://marinerssupplyco.com"
+    "https://atgangway.com"
   );
   assert.ok(!mail.html.includes('onerror="boom'));
 });
@@ -260,4 +260,22 @@ test("nenhuma frase depois de <br> fica pendurada em cor herdada", async () => {
     );
   }
   assert.match(html, /<br>\s*<span style="color:#[0-9A-Fa-f]{6}">30% deposit now/);
+});
+
+test("nenhum e-mail da loja leva um nome antigo da marca", () => {
+  // A casca abria com o nome de código do projeto, na frente do cliente,
+  // depois da troca para At Gangway. Vale para todo tipo, não só um.
+  const antigos = /mariner|vessel ?supplier/i;
+  const todos = [
+    ...["deposit_paid", "at_gangway", "delivered", "credited"].map(
+      (kind) => buildOrderEmail({ ...base, kind }, "https://atgangway.com")
+    ),
+    buildLastCallEmail(chamada, "https://atgangway.com"),
+  ];
+  for (const m of todos) {
+    for (const parte of [m.subject, m.html, m.text]) {
+      assert.doesNotMatch(parte, antigos, `nome antigo em "${m.subject}"`);
+    }
+    assert.match(m.html, /⚓ AT GANGWAY/, `"${m.subject}" sem a marca no cabeçalho`);
+  }
 });

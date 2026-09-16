@@ -50,7 +50,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 const CURADORIA = "docs/curadoria.csv";
 const LIVRO = "docs/cosmos-cache.json";
 const API = "https://cosmos.bluesoft.com.br/api/gtins";
-const UA = "VesselSupplier/1.0 (ahoy@marinerssupplyco.com; catalog product images)";
+const UA = "AtGangway/1.0 (help@atgangway.com; catalog product images)";
 
 const SECO = process.argv.includes("--seco");
 const REFOTO = process.argv.includes("--refoto");

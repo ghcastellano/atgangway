@@ -24,7 +24,7 @@
  *   node scripts/colher-fotos.mjs > candidatos.csv
  */
 
-const UA = "VesselSupplier/1.0 (ahoy@marinerssupplyco.com) - catalogo de bordo";
+const UA = "AtGangway/1.0 (help@atgangway.com) - catalogo de bordo";
 const BUSCA = "https://search.openfoodfacts.org/search";
 
 /**

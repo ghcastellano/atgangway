@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
  *
  * Era um só, com o ref do projeto colado à mão. Isso quebraria no dia
  * em que o endereço da Supabase mudasse — e mudou: o Auth passou a
- * atender em auth.marinerssupplyco.com, então uma URL de Storage
+ * atender num domínio customizado, então uma URL de Storage
  * montada a partir de NEXT_PUBLIC_SUPABASE_URL aponta para lá. Host
  * fora desta lista faz o next/image responder 400 e a foto simplesmente
  * não aparecer. Não há erro de build, não há aviso: a página monta com

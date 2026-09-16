@@ -157,7 +157,7 @@ export function shell(opts: {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;font-family:${FONT}">
 
       <tr><td style="padding:0 4px 16px">
-        <span style="color:${C.amber};font-size:11px;letter-spacing:2.4px;font-weight:700">⚓ VESSEL SUPPLIER</span>
+        <span style="color:${C.amber};font-size:11px;letter-spacing:2.4px;font-weight:700">⚓ AT GANGWAY</span>
         <span style="color:${C.faint};font-size:11px;letter-spacing:1.4px"> · SANTOS</span>
       </td></tr>
 

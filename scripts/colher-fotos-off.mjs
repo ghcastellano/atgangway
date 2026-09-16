@@ -24,7 +24,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 const CURADORIA = "docs/curadoria.csv";
-const UA = "VesselSupplier/1.0 (ahoy@marinerssupplyco.com; catalog product images)";
+const UA = "AtGangway/1.0 (help@atgangway.com; catalog product images)";
 const FOOD = "world.openfoodfacts.org";
 const BEAUTY = "world.openbeautyfacts.org";
 

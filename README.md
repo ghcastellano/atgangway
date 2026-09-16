@@ -63,7 +63,7 @@ Sem as variáveis o app builda e abre normalmente, mostrando um aviso de
 
 ## Infra provisionada (estado atual)
 
-- **Supabase:** projeto `mariners-supply` (`cuaocjxofaizefzcxlyc`, região `sa-east-1`),
+- **Supabase:** projeto `atgangway` (`cuaocjxofaizefzcxlyc`, região `sa-east-1`),
   com as 3 migrações de `supabase/migrations/` aplicadas (schema+RLS, seed, hardening).
   As chaves públicas estão commitadas em `.env.production` (a publishable key roda no
   navegador por design; a segurança vem da RLS).

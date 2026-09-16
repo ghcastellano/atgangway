@@ -19,6 +19,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const CAMINHO = "supabase/templates/email-templates.json";
+/** Os nomes que a loja já teve. Nenhum pode chegar ao cliente. */
+const NOMES_ANTIGOS = /mariner|vessel ?supplier/i;
 const tpl = JSON.parse(readFileSync(CAMINHO, "utf-8"));
 
 /* Todo e-mail que o Supabase sabe mandar. Se ele ganhar um tipo novo,
@@ -45,8 +47,8 @@ test("o JSON commitado é o que o gerador produz — sem desvio à mão", async 
 test("a marca certa, e a antiga em lugar nenhum", () => {
   const tudo = JSON.stringify(tpl);
   assert.ok(
-    !/mariners/i.test(tudo),
-    "o nome antigo da marca voltou ao template de e-mail de conta"
+    !NOMES_ANTIGOS.test(tudo),
+    "um nome antigo da marca voltou ao template de e-mail de conta"
   );
   assert.equal(tpl.smtp_sender_name, "At Gangway");
   for (const t of TIPOS) {
@@ -64,7 +66,7 @@ test("todo e-mail de conta tem assunto e corpo gerados — nenhum fica com o tex
 test("todos usam a mesma casca da loja", () => {
   for (const k of CORPOS) {
     const html = tpl[k];
-    assert.match(html, /VESSEL SUPPLIER/, `${k} sem o cabeçalho da casca`);
+    assert.match(html, /⚓ AT GANGWAY/, `${k} sem o cabeçalho da casca`);
     assert.match(html, /At Gangway — Porto de Santos\./, `${k} sem o rodapé da casca`);
     assert.match(html, /At Gangway/, `${k} não nomeia a loja no corpo`);
   }

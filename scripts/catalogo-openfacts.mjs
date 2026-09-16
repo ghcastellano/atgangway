@@ -27,7 +27,7 @@
  *   node scripts/catalogo-openfacts.mjs marcas > catalogo.csv
  */
 
-const UA = "VesselSupplier/1.0 (ahoy@marinerssupplyco.com) - catalogo de bordo";
+const UA = "AtGangway/1.0 (help@atgangway.com) - catalogo de bordo";
 
 /** Os três acervos, em ordem de tentativa. Mesma API, acervos diferentes. */
 const ACERVOS = [

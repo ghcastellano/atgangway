@@ -48,7 +48,7 @@ function carregarEnv(arquivo = ".env.local") {
 carregarEnv();
 
 const ARQUIVO = "/tmp/conta-servico.json";
-const EMAIL = "carga-catalogo@marinerssupply.test";
+const EMAIL = "carga-catalogo@atgangway.test";
 
 const URL_SB = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

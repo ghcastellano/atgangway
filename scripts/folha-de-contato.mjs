@@ -76,7 +76,7 @@ for (const [loja, itens] of porLoja) {
       let bruto;
       if (existsSync(cache)) bruto = readFileSync(cache);
       else {
-        const r = await fetch(it.foto, { headers: { "User-Agent": "VesselSupplier/1.0" } });
+        const r = await fetch(it.foto, { headers: { "User-Agent": "AtGangway/1.0" } });
         if (!r.ok) continue;
         bruto = Buffer.from(await r.arrayBuffer());
         writeFileSync(cache, bruto);

@@ -1,6 +1,6 @@
-# Separar o AHSD do banco da Vessel Supplier
+# Separar o AHSD do banco da At Gangway
 
-O projeto Supabase `cuaocjxofaizefzcxlyc` ("mariners-supply") hospeda hoje
+O projeto Supabase `cuaocjxofaizefzcxlyc` ("atgangway") hospeda hoje
 **duas aplicações diferentes**. Além das tabelas da loja, existem:
 
 | Tabela / função | Dono | Conteúdo |

@@ -96,7 +96,7 @@
 
    A conta do espaço em 390px: 40 do hambúrguer + 120 dos três ícones +
    32 de padding + 16 de folga = 208 usados, sobram 182 para a marca. Em
-   15px com esta entreletra, "VESSEL SUPPLIER" mede cerca de 150 com a
+   15px com esta entreletra, "AT GANGWAY" mede cerca de 120 com a
    âncora — cabe com sobra, numa linha só. */
 .sunlogo .word {
   display: flex; flex-direction: row; align-items: baseline; gap: .34em;
