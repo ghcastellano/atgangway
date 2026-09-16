@@ -45,12 +45,27 @@ const rota = (tipo, next) =>
   `{{ .SiteURL }}auth/confirm?token_hash={{ .TokenHash }}&type=${tipo}` +
   (next ? `&next=${next}` : "");
 
-/** O plano B do botão: cliente de e-mail que não renderiza <a> como botão. */
-function alternativa(href, texto) {
-  return `<p style="margin:0;padding:12px 14px;background:#06121F;border:1px solid #16304F;border-radius:12px;color:#8CA3BC;font-size:12.5px;line-height:1.55">
-          <span style="color:#8CA3BC">${texto}</span><br>
-          <a href="${href}" style="color:#FFB648;word-break:break-all">${href}</a>
+/**
+ * O plano B do botão, para o cliente de e-mail que não renderiza <a>
+ * como botão — ou para quem abre o e-mail num aparelho e quer terminar
+ * noutro. Vai no `nota`, depois do botão: antes dele responderia uma
+ * pergunta que a pessoa ainda não fez.
+ */
+function alternativa(href) {
+  return `<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #16304F;color:#8CA3BC;font-size:12px;line-height:1.6">
+          <span style="color:#8CA3BC">Button not working? Copy this link into your browser:</span><br>
+          <a href="${href}" style="color:#FFB648;word-break:break-all;text-decoration:none">${href}</a>
         </p>`;
+}
+
+/** Caixa de destaque do miolo: um título curto e uma frase. */
+function destaque(titulo, texto) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0">
+          <tr><td style="padding:14px 16px;background:#06121F;border:1px solid #16304F;border-radius:12px">
+            <p style="margin:0 0 4px;color:#EAF2FB;font-size:13.5px;font-weight:700">${titulo}</p>
+            <p style="margin:0;color:#8CA3BC;font-size:13px;line-height:1.55">${texto}</p>
+          </td></tr>
+        </table>`;
 }
 
 const confirmacao = shell({
@@ -60,12 +75,14 @@ const confirmacao = shell({
     `Confirm your e-mail to activate your <b style="color:#EAF2FB">At Gangway</b> account — ` +
     `after that, every kit you order rides with your ship's ETA into Santos.`,
   accent: "#FFB648",
-  body: alternativa(
-    rota("email", "{{ .RedirectTo }}"),
-    "Button not working? Copy this link into your browser:"
+  body: destaque(
+    "One tap and you're aboard.",
+    "Pre-order before you dock, pay a 30% deposit, collect at the gangway. " +
+      "If your ship skips Santos, the deposit becomes full credit."
   ),
   ctaLabel: "Confirm my email",
   ctaHref: rota("email", "{{ .RedirectTo }}"),
+  nota: alternativa(rota("email", "{{ .RedirectTo }}")),
   siteUrl: SITE,
 });
 
@@ -76,12 +93,13 @@ const recuperacao = shell({
     `Happens at sea. Tap below to set a new password for your ` +
     `<b style="color:#EAF2FB">At Gangway</b> account. The link works once and expires soon.`,
   accent: "#FFB648",
-  body: alternativa(
-    rota("recovery", "/reset-password"),
-    "Button not working? Copy this link into your browser:"
+  body: destaque(
+    "Didn't ask for this?",
+    "Then ignore this e-mail — your password stays exactly as it is, and the link below dies on its own."
   ),
   ctaLabel: "Reset my password",
   ctaHref: rota("recovery", "/reset-password"),
+  nota: alternativa(rota("recovery", "/reset-password")),
   siteUrl: SITE,
 });
 

@@ -129,6 +129,10 @@ export function shell(opts: {
   ctaLabel: string;
   ctaHref: string;
   siteUrl: string;
+  /** Rodapé do cartão, DEPOIS do botão: o plano B de quem o botão
+      não serviu. Antes do botão ele responderia uma pergunta que a
+      pessoa ainda não fez, e empurraria o botão para baixo da dobra. */
+  nota?: string;
 }): string {
   /* O <head> existe por UM motivo: `color-scheme`.
      Sem ele o Gmail no Android assume que precisa "consertar" o e-mail
@@ -171,6 +175,7 @@ export function shell(opts: {
             )}</a>
           </td></tr>
         </table>
+        ${opts.nota ?? ""}
       </td></tr>
 
       <tr><td style="padding:18px 6px 0;color:${C.faint};font-size:12px;line-height:1.6">
