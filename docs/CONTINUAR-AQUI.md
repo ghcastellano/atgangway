@@ -9,6 +9,49 @@ Tudo que está descrito abaixo como "feito" está commitado e no ar em
 
 ---
 
+## Atualização — segunda sessão de 16/09/2026 (VSCode, máquina do Gustavo)
+
+Tudo em `main`, publicado e testado em https://atgangway.com, de
+`87b7d65` a `89431b2`.
+
+- **P1 fechada.** Os templates de confirmar/redefinir já estavam no
+  projeto. Depois, os **treze** e-mails de conta do Supabase passaram a
+  sair da mesma casca (`c7cc7ab`): trocar e-mail, link de acesso,
+  convite, código e os sete avisos de segurança eram o HTML cru do
+  Supabase. Os avisos continuam DESLIGADOS no projeto — só o texto está
+  pronto.
+- **Nomes antigos fora** (`4970991`): todo e-mail abria com
+  "⚓ VESSEL SUPPLIER"; agora "⚓ AT GANGWAY". Testes reprovam
+  "mariner" e "vessel supplier" em qualquer e-mail.
+- **P3 inteira feita:** vitrine sem `:has()` (`87b7d65`); erros de auth
+  por código em `lib/authmsg.ts`, que também fechou `/login?error=<texto
+  livre>` (`bab3080`); `bloqueioDoCheckout()` (`c300bea`); cartão da home
+  só com `span 4`, medido em 7 larguras (`e696a46`); `.sup-escura`
+  (`c0df654`).
+- **Contraste do painel** (`75daa5f`): rótulos das Sobras e da tabela
+  sob o mouse estavam a 3,9:1; agora 6,05:1, medido na folha publicada.
+- **P4 #13 fechada:** `scripts/auditar-interface.mjs` roda fora do
+  ambiente web (`89431b2`); contra produção, logado, 19 rotas em celular
+  e desktop: 0 achados.
+
+Pendente de decisão do Gustavo:
+
+- `.env.production`, linha 1, ainda chama o projeto de "mariners-supply"
+  (ele já se chama `atgangway`); a configuração não deixa o agente ler
+  nem editar esse arquivo.
+- `prototype/`, `docs/TESE.md` e `docs/HISTORICO.md` ainda citam a marca
+  antiga e o **Mariner's Bar** (o bar parceiro, que não é nome antigo da
+  loja). O banco tem um ponto de retirada inativo "Mariner's Bar —
+  pickup". Não mexi sem saber o que fica.
+- Ligar ou não os avisos de segurança por e-mail (senha trocada etc.).
+- As chaves `ms.cart.v2`, `ms.ref.v1` e `ms.wish.pending` do
+  localStorage vêm do nome antigo. Trocar sem migração apaga o carrinho
+  de quem já tem um.
+- Porta 3000 desta máquina está ocupada por um processo Python; para
+  subir a loja local use outra porta.
+
+---
+
 ## O que foi feito nesta sessão
 
 ### 1. iPad: o cartão pousava em cima do herói (`26d2250`, `c1e4c85`, `0ff33ac`)
@@ -135,7 +178,7 @@ Três peças novas:
 
 ## O que está pendente, em ordem de urgência
 
-### P1 — Aplicar os templates no projeto do Supabase  ← A TAREFA DE AGORA
+### P1 — Aplicar os templates no projeto do Supabase  ✅ FEITO (ver atualização no topo)
 
 O código está pronto e commitado; falta rodar contra o projeto. Exige
 um token pessoal, que o ambiente da web não tem e não deve ter.
@@ -167,7 +210,7 @@ repita os valores; eles não estão escritos aqui de propósito.**
 Também: na tela de Access Tokens do Supabase havia quatro tokens
 `LEGACY` **nunca usados e sem expiração**. Apagar.
 
-### P3 — Achados de revisão pulados de propósito
+### P3 — Achados de revisão pulados de propósito  ✅ FEITO (ver atualização no topo)
 
 Cada um é um pedaço de trabalho fechado; nenhum é urgente.
 
@@ -202,7 +245,7 @@ Cada um é um pedaço de trabalho fechado; nenhum é urgente.
 - **#6** "Fase 6 — relatório final": `docs/CUSTOS-E-PLANOS.md` está
   escrito (US$ 45/mês fixos, banco em 17,5 MB de 8 GB, primeiro teto é
   o compute Micro), mas a linha da tarefa segue aberta.
-- **#13** "Área logada não auditada visualmente": parcialmente feita
+- ✅ **#13** "Área logada não auditada visualmente" — fechada (ver topo). Histórico: parcialmente feita
   (`636a71a` achou a barra inferior abaixo do AA e o checkout que
   ignorava o mínimo). O auditor agora reprova quando roda sem sessão
   (§ abaixo), então vale rodar com `AUDIT_STATE` e fechar.
