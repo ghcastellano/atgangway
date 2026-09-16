@@ -22,13 +22,17 @@
       "Bash(git push:*)",
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
-      "Bash(curl -s:*)",
+      "Bash(curl -s http://localhost:3000*)",
+      "Bash(curl -s http://127.0.0.1:3000*)",
+      "Bash(curl -s https://atgangway.com*)",
       "Bash(rm -f AGENTS.md CLAUDE.md)"
     ],
     "deny": [
       "Bash(rm -rf *)",
       "Read(./.env.local)",
-      "Read(./.env.production)"
+      "Read(./.env.production)",
+      "Bash(node -e:*)",
+      "Bash(node --eval:*)"
     ]
   }
 }
