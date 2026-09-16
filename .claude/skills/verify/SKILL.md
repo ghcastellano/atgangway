@@ -36,13 +36,38 @@ node --input-type=module < /caminho/do/script.mjs        # heredoc não resolve 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
 ```
 
-**O navegador do sandbox não tem internet.** Não dá para dirigir
-`https://atgangway.com` — o `goto` estoura o timeout. Duas saídas:
+### Dirigir o site PUBLICADO
 
-- conferir o artefato publicado por `curl` (HTML servido, CSS dos
-  chunks em `/_next/static/immutable/chunks/*.css`);
-- para páginas de cliente que falam com o Supabase pelo navegador,
-  repassar as chamadas pelo Node, que TEM rede:
+Dá sim — o navegador sai pelo proxy do ambiente, desde que ele confie
+na CA. Duas peças (a segunda **não** vem pronta, apesar do que o
+`/root/.ccr/README.md` afirma: o NSS nasce vazio):
+
+```bash
+apt-get install -y libnss3-tools     # o certutil não vem instalado
+for f in /usr/local/share/ca-certificates/*.crt; do
+  certutil -d sql:/root/.pki/nssdb -A -t "C,," -n "$(basename "$f" .crt)" -i "$f"
+done
+```
+
+```js
+const b = await chromium.launch({
+  executablePath: "/opt/pw-browsers/chromium",
+  proxy: { server: "http://127.0.0.1:37997" },   // = $HTTPS_PROXY
+});
+```
+
+Sem isso o erro é `net::ERR_CERT_AUTHORITY_INVALID`. **Nunca** resolva
+com `ignoreHTTPSErrors` nem `--ignore-certificate-errors`.
+
+Ressalva medida: sob carga (uma página com muitos chunks) o proxy
+devolve **502 intermitente** em `/_next/static/...`. O sintoma é a
+página renderizar **sem CSS e sem JavaScript** — e aí nenhum botão
+responde, o que parece defeito da aplicação e não é. Confira por
+`curl` (os mesmos arquivos dão 200) e, para testar **interação**,
+prefira o servidor local: só o Supabase precisa de rede.
+
+Para páginas de cliente que falam com o Supabase pelo navegador,
+repasse as chamadas pelo Node:
 
 ```js
 await ctx.route("https://cuaocjxofaizefzcxlyc.supabase.co/**", async (route) => {
@@ -79,8 +104,15 @@ returning token_hash;
 ```
 
 ```js
+const BASE = "http://localhost:3000";   // NÃO use 127.0.0.1 — veja abaixo
 await page.goto(`${BASE}/auth/confirm?token_hash=${HASH}&type=recovery&next=/`);
 ```
+
+**Use `localhost`, nunca `127.0.0.1`.** O app redireciona para
+`localhost` depois do `/auth/confirm`; começando em `127.0.0.1` o
+cookie de sessão fica no host errado e a navegação cai em
+`/admin/login` — com o Supabase registrando o login com sucesso, o que
+manda você caçar um bug de permissão que não existe. Custou meia hora.
 
 **O token é de uso único**: emita um novo a cada rodada, senão a
 segunda cai em `/login` e você mede a tela errada. Guarde o
