@@ -7,7 +7,7 @@ import { useCart } from "@/lib/cart";
 import { brlRef, type FxRate } from "@/lib/fx";
 import { createClient } from "@/lib/supabase/client";
 import { supabaseConfigured } from "@/lib/env";
-import { DEPOSIT_PCT, faltaParaMinimo, splitOrder, toCents, usd } from "@/lib/money";
+import { bloqueioDoCheckout, DEPOSIT_PCT, splitOrder, toCents, usd } from "@/lib/money";
 import { placeOrder } from "./actions";
 
 type Line = {
@@ -182,9 +182,14 @@ export default function CheckoutClient({
   const subtotal = rows.reduce((s, l) => s + l.price_cents * l.qty, 0);
   const split = splitOrder(subtotal, creditCents);
   const coveredByCredit = split.credit > 0 && split.dueNow === 0;
-  const { below, label: avisoMin, minimo } = faltaParaMinimo(subtotal, minOrderCents);
-  const belowMin = below && rows.length > 0;
-  const canPay = ready && lines !== null && rows.length > 0 && !blocked && !belowMin && !pending;
+  // Um valor decide o botão, o rótulo e a letra miúda (lib/money.ts).
+  const bloqueio = bloqueioDoCheckout({
+    subtotalCents: subtotal,
+    minOrderCents,
+    temItens: rows.length > 0,
+    perfilIncompleto: blocked,
+  });
+  const canPay = ready && lines !== null && rows.length > 0 && !bloqueio && !pending;
 
   function submit() {
     setErr(null);
@@ -302,23 +307,19 @@ export default function CheckoutClient({
       {err && <p className="alert" style={{ marginTop: 12 }}>{err}</p>}
 
       <button className="btn" onClick={submit} disabled={!canPay}>
-        {pending
-          ? "Placing order…"
-          : belowMin
-            ? avisoMin
-            : "Proceed to Payment"}
+        {pending ? "Placing order…" : (bloqueio?.botao ?? "Proceed to Payment")}
       </button>
 
       <p className="finehint">
-        {belowMin ? (
+        {bloqueio?.motivo === "minimo" ? (
           <>
-            Minimum order for this port is {usd(minimo)}.{" "}
+            Minimum order for this port is {usd(bloqueio.minimo)}.{" "}
             <Link className="alink" href="/cart">
               Back to your cart
             </Link>{" "}
             to add a few more items.
           </>
-        ) : blocked ? (
+        ) : bloqueio?.motivo === "perfil" ? (
           <>
             Add the missing details above to your{" "}
             <Link className="alink" href="/account">

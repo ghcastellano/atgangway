@@ -67,7 +67,37 @@ export function faltaParaMinimo(subtotalCents: number, minOrderCents: number) {
   return { below, missing, minimo, label: `Add ${usd(missing)} more to check out` };
 }
 
-export const sumCents = (values: Array<number | string | null | undefined>) =>
+/**
+ * Por que o checkout não deixa pagar — UM valor, ou null.
+ *
+ * Eram booleanos paralelos (`canPay = !blocked && !belowMin && …`) e
+ * dois ternários, um no botão e outro na letra miúda, cuja ORDEM
+ * decidia qual "não" vencia. Concordavam por disciplina: um terceiro
+ * motivo acrescentado num só deles e o botão diria uma coisa enquanto a
+ * frase embaixo dizia outra. Aqui a precedência é escrita uma vez.
+ *
+ * O mínimo vence o perfil: ele se resolve no carrinho, sem sair do
+ * fluxo de compra, e o botão já diz quanto falta.
+ */
+export type BloqueioCheckout =
+  | { motivo: "minimo"; botao: string; minimo: number }
+  | { motivo: "perfil"; botao: null }
+  | null;
+
+export function bloqueioDoCheckout(o: {
+  subtotalCents: number;
+  minOrderCents: number;
+  temItens: boolean;
+  perfilIncompleto: boolean;
+}): BloqueioCheckout {
+  const min = faltaParaMinimo(o.subtotalCents, o.minOrderCents);
+  // carrinho vazio não está "abaixo do mínimo": a página já o manda embora
+  if (min.below && o.temItens) return { motivo: "minimo", botao: min.label, minimo: min.minimo };
+  if (o.perfilIncompleto) return { motivo: "perfil", botao: null };
+  return null;
+}
+
+export const sumCents =(values: Array<number | string | null | undefined>) =>
   values.reduce<number>((acc, v) => acc + fromDb(v), 0);
 
 /**

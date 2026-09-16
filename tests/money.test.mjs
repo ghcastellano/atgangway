@@ -63,3 +63,46 @@ test("crédito parcial abate só o que deve", () => {
   assert.equal(s.dueNow, 2000);
   assert.equal(s.balance, 7000);
 });
+
+// ---- bloqueioDoCheckout: a precedência escrita uma vez ----
+const { bloqueioDoCheckout } = await import("../lib/money.ts");
+
+test("checkout livre: nenhum bloqueio", () => {
+  assert.equal(
+    bloqueioDoCheckout({ subtotalCents: 5000, minOrderCents: 3000, temItens: true, perfilIncompleto: false }),
+    null
+  );
+});
+
+test("abaixo do mínimo: o botão diz quanto falta e a frase diz o mínimo", () => {
+  const b = bloqueioDoCheckout({ subtotalCents: 1800, minOrderCents: 3000, temItens: true, perfilIncompleto: false });
+  assert.equal(b?.motivo, "minimo");
+  assert.equal(b.botao, "Add USD 12.00 more to check out");
+  assert.equal(b.minimo, 3000); // centavos, como o resto da folha
+});
+
+test("perfil incompleto: bloqueia sem trocar o rótulo do botão", () => {
+  assert.deepEqual(
+    bloqueioDoCheckout({ subtotalCents: 5000, minOrderCents: 3000, temItens: true, perfilIncompleto: true }),
+    { motivo: "perfil", botao: null }
+  );
+});
+
+test("os dois ao mesmo tempo: o mínimo vence", () => {
+  const b = bloqueioDoCheckout({ subtotalCents: 1000, minOrderCents: 3000, temItens: true, perfilIncompleto: true });
+  assert.equal(b?.motivo, "minimo");
+});
+
+test("carrinho vazio não é 'abaixo do mínimo'", () => {
+  assert.equal(
+    bloqueioDoCheckout({ subtotalCents: 0, minOrderCents: 3000, temItens: false, perfilIncompleto: false }),
+    null
+  );
+});
+
+test("porto sem mínimo nunca bloqueia pelo mínimo", () => {
+  assert.equal(
+    bloqueioDoCheckout({ subtotalCents: 100, minOrderCents: 0, temItens: true, perfilIncompleto: false }),
+    null
+  );
+});
