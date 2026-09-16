@@ -16,3 +16,6 @@ next-env.d.ts
 # misc
 *.tsbuildinfo
 .DS_Store
+
+# resto do CLI do Supabase (npx supabase deixa isto para trás)
+supabase/.temp/
