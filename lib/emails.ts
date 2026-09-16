@@ -126,8 +126,10 @@ export function shell(opts: {
   lead: string;
   accent: string;
   body: string;
-  ctaLabel: string;
-  ctaHref: string;
+  /** Sem botão só o e-mail que entrega um CÓDIGO: um botão que não usa
+      o código levaria a pessoa para longe dele. */
+  ctaLabel?: string;
+  ctaHref?: string;
   siteUrl: string;
   /** Rodapé do cartão, DEPOIS do botão: o plano B de quem o botão
       não serviu. Antes do botão ele responderia uma pergunta que a
@@ -168,13 +170,17 @@ export function shell(opts: {
         )}</h1>
         <p style="margin:0 0 18px;color:${C.faint};font-size:14px;line-height:1.55">${opts.lead}</p>
         ${opts.body}
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 2px">
+        ${
+          opts.ctaLabel && opts.ctaHref
+            ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 2px">
           <tr><td style="border-radius:12px;background:${C.amber}">
             <a href="${opts.ctaHref}" style="display:inline-block;padding:13px 22px;color:#06121F;font-size:15px;font-weight:800;text-decoration:none;font-family:${FONT}">${esc(
               opts.ctaLabel
             )}</a>
           </td></tr>
-        </table>
+        </table>`
+            : ""
+        }
         ${opts.nota ?? ""}
       </td></tr>
 

@@ -1,5 +1,5 @@
 /**
- * Os e-mails de CONTA — confirmar cadastro e redefinir senha.
+ * Os e-mails de CONTA — todos os que o Auth do Supabase pode mandar.
  *
  * Eles são o ponto cego da loja: quem manda é o Auth do Supabase, a
  * partir de um HTML guardado na configuração do projeto. Deploy não
@@ -21,6 +21,16 @@ import { readFileSync } from "node:fs";
 const CAMINHO = "supabase/templates/email-templates.json";
 const tpl = JSON.parse(readFileSync(CAMINHO, "utf-8"));
 
+/* Todo e-mail que o Supabase sabe mandar. Se ele ganhar um tipo novo,
+   entra aqui — e o teste abaixo exige que o gerador o cubra. */
+const TIPOS = [
+  "confirmation", "recovery", "email_change", "magic_link", "invite", "reauthentication",
+  "password_changed_notification", "email_changed_notification", "phone_changed_notification",
+  "identity_linked_notification", "identity_unlinked_notification",
+  "mfa_factor_enrolled_notification", "mfa_factor_unenrolled_notification",
+];
+const CORPOS = TIPOS.map((t) => `mailer_templates_${t}_content`);
+
 test("o JSON commitado é o que o gerador produz — sem desvio à mão", async () => {
   const { execFileSync } = await import("node:child_process");
   // O gerador tem modo de conferência justamente para isto: ele compara
@@ -39,8 +49,24 @@ test("a marca certa, e a antiga em lugar nenhum", () => {
     "o nome antigo da marca voltou ao template de e-mail de conta"
   );
   assert.equal(tpl.smtp_sender_name, "At Gangway");
-  for (const k of ["mailer_subjects_confirmation", "mailer_subjects_recovery"]) {
-    assert.match(tpl[k], /At Gangway/, `${k} deve nomear a loja`);
+  for (const t of TIPOS) {
+    assert.match(tpl[`mailer_subjects_${t}`] ?? "", /At Gangway/, `assunto de ${t} deve nomear a loja`);
+  }
+});
+
+test("todo e-mail de conta tem assunto e corpo gerados — nenhum fica com o texto cru do Supabase", () => {
+  for (const t of TIPOS) {
+    assert.ok(tpl[`mailer_subjects_${t}`], `falta o assunto de ${t}`);
+    assert.ok(tpl[`mailer_templates_${t}_content`], `falta o corpo de ${t}`);
+  }
+});
+
+test("todos usam a mesma casca da loja", () => {
+  for (const k of CORPOS) {
+    const html = tpl[k];
+    assert.match(html, /VESSEL SUPPLIER/, `${k} sem o cabeçalho da casca`);
+    assert.match(html, /At Gangway — Porto de Santos\./, `${k} sem o rodapé da casca`);
+    assert.match(html, /At Gangway/, `${k} não nomeia a loja no corpo`);
   }
 });
 
@@ -58,18 +84,31 @@ test("cada e-mail leva o link que ele existe para entregar", () => {
     /auth\/confirm\?token_hash=\{\{ \.TokenHash \}\}&type=recovery&next=\/reset-password/,
     "o e-mail de senha perdeu o token, o tipo ou o destino"
   );
+  const links = {
+    email_change: /auth\/confirm\?token_hash=\{\{ \.TokenHash \}\}&type=email_change&next=\{\{ \.RedirectTo \}\}/,
+    magic_link: /auth\/confirm\?token_hash=\{\{ \.TokenHash \}\}&type=email&next=\{\{ \.RedirectTo \}\}/,
+    invite: /auth\/confirm\?token_hash=\{\{ \.TokenHash \}\}&type=invite&next=\/reset-password/,
+  };
+  for (const [t, re] of Object.entries(links)) {
+    assert.match(tpl[`mailer_templates_${t}_content`], re, `${t} perdeu o token, o tipo ou o destino`);
+  }
+  // o código É o conteúdo do e-mail de verificação, no corpo e no assunto
+  assert.match(tpl.mailer_templates_reauthentication_content, /\{\{ \.Token \}\}/);
+  assert.match(tpl.mailer_subjects_reauthentication, /\{\{ \.Token \}\}/);
+  // nenhum usa o ConfirmationURL cru, que pula o /auth/confirm da loja
+  for (const k of CORPOS) assert.doesNotMatch(tpl[k], /ConfirmationURL/, `${k} usa ConfirmationURL`);
 });
 
-test("os dois se declaram escuros, como o resto dos e-mails", () => {
+test("todos se declaram escuros, como o resto dos e-mails", () => {
   // Mesmo motivo de tests/emails.test.mjs: sem isto o Gmail reescreve
   // as cores por conta própria e some com frases inteiras.
-  for (const k of ["mailer_templates_confirmation_content", "mailer_templates_recovery_content"]) {
+  for (const k of CORPOS) {
     assert.match(tpl[k], /<meta name="color-scheme" content="dark">/, `${k} sem color-scheme`);
   }
 });
 
 test("nenhuma frase depois de <br> fica pendurada em cor herdada", () => {
-  for (const k of ["mailer_templates_confirmation_content", "mailer_templates_recovery_content"]) {
+  for (const k of CORPOS) {
     for (const m of tpl[k].matchAll(/<br>\s*([^<]*)</g)) {
       assert.equal(m[1].trim(), "", `${k}: texto solto depois de <br> — ${m[1].trim().slice(0, 50)}`);
     }

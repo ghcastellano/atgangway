@@ -55,7 +55,10 @@ export async function GET(request: Request) {
        diferentes: uma acabou bem e só falta entrar; a outra precisa
        mesmo de um link novo. */
     const confirmacaoDeConta = type === "signup" || type === "email" || type === "email_change";
-    return paraLogin(confirmacaoDeConta ? "link_used" : "reset_expired");
+    // Convite e link de acesso não são nem um nem outro: link novo, e só.
+    return paraLogin(
+      confirmacaoDeConta ? "link_used" : type === "recovery" ? "reset_expired" : "bad_link"
+    );
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}${next}`);

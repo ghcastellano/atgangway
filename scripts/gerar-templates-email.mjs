@@ -6,10 +6,11 @@
  *
  * Por que existe
  * -------------
- * Confirmar cadastro e redefinir senha são os únicos e-mails da loja
- * que NÃO saem do nosso servidor: quem manda é o Auth do Supabase, a
- * partir de um HTML guardado no projeto — fora do repositório, fora do
- * build, fora de qualquer teste.
+ * Os e-mails de conta (confirmar cadastro, redefinir senha, trocar
+ * e-mail, convite, link de acesso, código de verificação e os avisos de
+ * segurança) são os únicos da loja que NÃO saem do nosso servidor: quem
+ * manda é o Auth do Supabase, a partir de um HTML guardado no projeto —
+ * fora do repositório, fora do build, fora de qualquer teste.
  *
  * O preço disso já foi cobrado. O HTML no ar ainda assinava o nome
  * antigo da loja meses depois da troca de marca, em todo cadastro novo,
@@ -103,10 +104,138 @@ const recuperacao = shell({
   siteUrl: SITE,
 });
 
+/* ---- os outros e-mails de conta ------------------------------------
+   Confirmar e redefinir eram os únicos com a casca da loja. Os outros
+   onze eram o HTML cru do Supabase — um <h2> e um link, sem marca —
+   e ninguém percebia porque quase não saem: a loja não usa link mágico
+   nem convite, e os avisos de segurança estão desligados. Mas "quase
+   não sai" é exatamente como o nome antigo da marca sobreviveu meses
+   no e-mail de confirmação. Todo e-mail que o projeto PODE mandar ao
+   cliente sai daqui, com a mesma cara. */
+
+const acoes = {
+  email_change: {
+    kicker: "NEW EMAIL",
+    title: "Confirm your new email",
+    lead:
+      `Tap below to make <b style="color:#EAF2FB">{{ .NewEmail }}</b> the e-mail of your ` +
+      `<b style="color:#EAF2FB">At Gangway</b> account.`,
+    body: destaque(
+      "Didn't ask for this?",
+      "Then ignore this e-mail — your account keeps the address it has now."
+    ),
+    cta: "Confirm new email",
+    href: rota("email_change", "{{ .RedirectTo }}"),
+    assunto: "Confirm your new email — At Gangway",
+  },
+  magic_link: {
+    kicker: "SIGN IN",
+    title: "Your sign-in link",
+    lead:
+      `Tap below to sign in to <b style="color:#EAF2FB">At Gangway</b>. ` +
+      `The link works once and expires soon.`,
+    body: destaque(
+      "Didn't ask for this?",
+      "Then ignore this e-mail — nobody gets in without this link."
+    ),
+    cta: "Sign me in",
+    href: rota("email", "{{ .RedirectTo }}"),
+    assunto: "Your sign-in link — At Gangway",
+  },
+  invite: {
+    kicker: "YOU'RE INVITED",
+    title: "Welcome aboard ⚓",
+    lead:
+      `An <b style="color:#EAF2FB">At Gangway</b> account was created for you. ` +
+      `Tap below and choose your password to finish.`,
+    body: destaque(
+      "Pre-order before you dock.",
+      "Pay a 30% deposit, collect at the gangway. If your ship skips Santos, the deposit becomes full credit."
+    ),
+    cta: "Accept and set my password",
+    // direto para criar a senha: a conta existe, a senha não
+    href: rota("invite", "/reset-password"),
+    assunto: "You're invited — At Gangway",
+  },
+};
+
+/** O código de verificação: sem botão, o código É o conteúdo. */
+const reautenticacao = shell({
+  kicker: "VERIFICATION CODE",
+  title: "Your verification code",
+  lead: `Use this code to confirm it's you on <b style="color:#EAF2FB">At Gangway</b>. It expires soon.`,
+  accent: "#FFB648",
+  body: `<p style="margin:0;padding:16px;background:#06121F;border:1px solid #16304F;border-radius:12px;text-align:center;color:#EAF2FB;font-size:28px;font-weight:800;letter-spacing:6px;font-family:ui-monospace,Menlo,Consolas,monospace">{{ .Token }}</p>`,
+  nota: `<p style="margin:18px 0 0;color:#8CA3BC;font-size:12px;line-height:1.6">Didn't ask for this? Someone may have your password — reset it from the sign-in page.</p>`,
+  siteUrl: SITE,
+});
+
+/* Avisos de segurança: todos com o mesmo fecho, porque a pergunta de
+   quem recebe é sempre a mesma — "fui eu?". O botão responde o "não". */
+const aviso = (titulo, frase, assunto) => ({
+  html: shell({
+    kicker: "ACCOUNT SECURITY",
+    title: titulo,
+    lead: frase,
+    accent: "#FFB648",
+    body: destaque(
+      "Wasn't you?",
+      "Reset your password right away and reply to this e-mail — we'll help you lock the account."
+    ),
+    ctaLabel: "Reset my password",
+    ctaHref: "{{ .SiteURL }}forgot-password",
+    siteUrl: SITE,
+  }),
+  assunto,
+});
+
+const b = (t) => `<b style="color:#EAF2FB">${t}</b>`;
+const avisos = {
+  password_changed_notification: aviso(
+    "Your password was changed",
+    `The password of your At Gangway account ${b("{{ .Email }}")} was just changed.`,
+    "Your password was changed — At Gangway"
+  ),
+  email_changed_notification: aviso(
+    "Your email was changed",
+    `Your At Gangway account moved from ${b("{{ .OldEmail }}")} to ${b("{{ .Email }}")}.`,
+    "Your email was changed — At Gangway"
+  ),
+  phone_changed_notification: aviso(
+    "Your phone number was changed",
+    `The phone on your At Gangway account changed from ${b("{{ .OldPhone }}")} to ${b("{{ .Phone }}")}.`,
+    "Your phone number was changed — At Gangway"
+  ),
+  identity_linked_notification: aviso(
+    "New sign-in method linked",
+    `${b("{{ .Provider }}")} can now be used to sign in to ${b("{{ .Email }}")}.`,
+    "New sign-in method linked — At Gangway"
+  ),
+  identity_unlinked_notification: aviso(
+    "Sign-in method removed",
+    `${b("{{ .Provider }}")} can no longer be used to sign in to ${b("{{ .Email }}")}.`,
+    "Sign-in method removed — At Gangway"
+  ),
+  mfa_factor_enrolled_notification: aviso(
+    "Verification method added",
+    `A ${b("{{ .FactorType }}")} verification method was added to your At Gangway account.`,
+    "Verification method added — At Gangway"
+  ),
+  mfa_factor_unenrolled_notification: aviso(
+    "Verification method removed",
+    `A ${b("{{ .FactorType }}")} verification method was removed from your At Gangway account.`,
+    "Verification method removed — At Gangway"
+  ),
+};
+
 /* `smtp_sender_name` entra junto porque o defeito era dos DOIS lados:
    o corpo dizia o nome antigo e o remetente também. Corrigir só um
    deixa a caixa de entrada ainda mostrando a marca errada na lista,
-   que é o que se lê antes de abrir. */
+   que é o que se lê antes de abrir.
+
+   Só os TEXTOS dos avisos de segurança vêm daqui; ligá-los ou não
+   (`mailer_notifications_*_enabled`) é decisão de produto e fica no
+   painel do Supabase. */
 const config = {
   smtp_sender_name: "At Gangway",
   mailer_subjects_confirmation: "Confirm your email — At Gangway",
@@ -114,6 +243,26 @@ const config = {
   mailer_subjects_recovery: "Reset your password — At Gangway",
   mailer_templates_recovery_content: recuperacao,
 };
+for (const [nome, a] of Object.entries(acoes)) {
+  config[`mailer_subjects_${nome}`] = a.assunto;
+  config[`mailer_templates_${nome}_content`] = shell({
+    kicker: a.kicker,
+    title: a.title,
+    lead: a.lead,
+    accent: "#FFB648",
+    body: a.body,
+    ctaLabel: a.cta,
+    ctaHref: a.href,
+    nota: alternativa(a.href),
+    siteUrl: SITE,
+  });
+}
+config.mailer_subjects_reauthentication = "{{ .Token }} is your At Gangway code";
+config.mailer_templates_reauthentication_content = reautenticacao;
+for (const [nome, a] of Object.entries(avisos)) {
+  config[`mailer_subjects_${nome}`] = a.assunto;
+  config[`mailer_templates_${nome}_content`] = a.html;
+}
 
 const texto = JSON.stringify(config, null, 2) + "\n";
 
