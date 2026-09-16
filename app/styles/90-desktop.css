@@ -355,7 +355,13 @@
      do DOM, que agora é a ordem de leitura — foi o grid-row fixo do
      .capstrip que o jogava para dentro da seção de categorias. */
   .pg-home > .homehero { grid-row: 1; }
-  .pg-home > .vpanel   { grid-row: 1; grid-column: 9 / -1; align-self: stretch; margin: 0; }
+  /* O painel do navio só vai para o LADO do herói a partir de 1024px,
+     onde o herói encolhe para 8 colunas (bloco abaixo). Aqui ele
+     ganhava `grid-row: 1; grid-column: 9 / -1` desde 768px — e o herói
+     continuava com as 12: no iPad em pé (768–1023px) o painel caía por
+     cima do herói e cortava a faixa de fatos. Nesta faixa ele fica
+     abaixo, na largura toda, como o "como funciona" já ficava. */
+  .pg-home > .vpanel   { margin: 0; }
   .pg-home > .capstrip { margin: 0; padding: var(--sp-5) var(--sp-5) var(--sp-5); }
   .pg-home .capstrip h3 { font-size: clamp(18px, 1.5vw, 22px); }
 
