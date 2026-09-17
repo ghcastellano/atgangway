@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { signOut } from "@/app/account/actions";
+import SairDaConta from "@/components/SairDaConta";
 import { IconAnchor, IconBox, IconCart, IconCompass, IconLogout, IconPackage } from "@/components/Icon";
 import { ToastProvider } from "./Toast";
 import Sino, { type Notificacao } from "./Sino";
@@ -106,11 +106,9 @@ export default function AdminShell({
                     <Link href="/" role="menuitem" onClick={() => setMenu(false)}>
                       Ver a loja
                     </Link>
-                    <form action={signOut}>
-                      <button type="submit" role="menuitem">
-                        <IconLogout size={16} /> Sair
-                      </button>
-                    </form>
+                    <SairDaConta role="menuitem">
+                      <IconLogout size={16} /> Sair
+                    </SairDaConta>
                   </div>
                 )}
               </div>

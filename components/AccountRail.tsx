@@ -2,7 +2,7 @@ import Link from "next/link";
 import { IconCap, IconHeart, IconPackage, IconUser } from "./Icon";
 import CategoryIcon from "./CategoryIcon";
 import { CONTACT_EMAIL } from "@/lib/env";
-import { signOut } from "@/app/account/actions";
+import SairDaConta from "./SairDaConta";
 
 /**
  * Navegação das telas de conta. UMA lista, nas quatro telas e em todas
@@ -102,11 +102,7 @@ export default function AccountRail({
           sem saída de sessão. Como position:sticky não gruda dois
           irmãos, o bloco segue sendo filho do <nav>. */}
       <div className="stack">
-        <form action={signOut}>
-          <button className="btn danger" type="submit">
-            Sign Out
-          </button>
-        </form>
+        <SairDaConta className="btn danger">Sign Out</SairDaConta>
         <p className="finehint">
           Questions about an order? Write{" "}
           <a className="alink" href={`mailto:${CONTACT_EMAIL}`}>

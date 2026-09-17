@@ -3,26 +3,29 @@
 import { revalidatePath } from "next/cache";
 import { callState, canOrder } from "@/lib/callstate";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { missingProfileFields } from "@/lib/profile";
 import { sessionUser } from "@/lib/supabase/session";
 
 /**
- * Sair — de verdade, inclusive na tela.
+ * Apaga o cookie da sessão. NÃO redireciona, e isso é de propósito.
  *
- * O cookie sempre foi apagado direito; quem não sabia era a interface.
- * O cabeçalho é montado pelo SiteChrome, que pergunta ao servidor quem
- * está logado e mora no LAYOUT RAIZ — e layout não re-renderiza numa
- * navegação de cliente, que é o que o redirect() faz. A sessão morria e
- * o menu seguia oferecendo "Sign out" até alguém recarregar na mão.
- * revalidatePath com escopo "layout" é o que derruba essa memória.
- *
- * E o signOut do Supabase é chamada de REDE (revoga o refresh token no
+ * O signOut do Supabase é chamada de REDE (revoga o refresh token no
  * servidor). Se ela falhar — wifi de navio existe — a biblioteca pode
  * deixar o cookie para trás, e aí a pessoa clicou em sair e continuou
  * dentro. Nesse caso o cookie sai na marra: a vontade de sair não
  * depende da rede.
+ *
+ * Por que o `redirect("/")` saiu daqui: metade do "sair" acontece no
+ * NAVEGADOR. Quem decide entre "Sign in" e "Sign out" no cabeçalho é o
+ * estado de lib/wish, semeado uma vez quando o layout raiz monta — e o
+ * redirect de uma Server Action é navegação de cliente, que não
+ * remonta layout. A sessão morria e a tela continuava dizendo que
+ * havia sessão até alguém recarregar na mão; `revalidatePath` não
+ * alcança isso, porque invalida o que o SERVIDOR guardou.
+ *
+ * Então esta função volta, e quem chama termina o serviço. O único
+ * chamador é <SairDaConta/>, que documenta o resto.
  */
 export async function signOut() {
   const supabase = await createClient();
@@ -39,7 +42,6 @@ export async function signOut() {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
 }
 
 export type ProfileInput = {

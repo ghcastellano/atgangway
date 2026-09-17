@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { signOut } from "@/app/account/actions";
+import SairDaConta from "./SairDaConta";
 import type { CategoryNode } from "@/lib/catalog";
 import { whatsappLink } from "@/lib/env";
 import { IconAnchor, IconCap, IconCart, IconClose, IconHeart, IconLogin, IconLogout, IconPackage, IconUser } from "./Icon";
@@ -158,14 +158,16 @@ export default function CategoryDrawer({
                 <IconUser className="ic" size={19} />
                 <span className="nm">My Account</span>
               </Link>
-              {/* Sair é AÇÃO, não link: apaga o cookie no servidor. */}
+              {/* Sair é AÇÃO, não link: apaga o cookie no servidor.
+                  E, ao contrário dos links vizinhos, NÃO fecha a gaveta
+                  no clique: fechar desmonta o <form> e a Server Action
+                  morre com ele — a pessoa apertava sair e continuava
+                  dentro. A gaveta fecha na navegação. */}
               {signedIn ? (
-                <form action={signOut}>
-                  <button type="submit" className="drawer-item" onClick={onClose}>
-                    <IconLogout className="ic" size={19} />
-                    <span className="nm">Sign out</span>
-                  </button>
-                </form>
+                <SairDaConta className="drawer-item">
+                  <IconLogout className="ic" size={19} />
+                  <span className="nm">Sign out</span>
+                </SairDaConta>
               ) : (
                 <Link className="drawer-item" href="/login" onClick={onClose}>
                   <IconLogin className="ic" size={19} />

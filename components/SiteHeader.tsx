@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "@/app/account/actions";
+import SairDaConta from "./SairDaConta";
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -71,6 +71,14 @@ export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
 
   // Navegou: fecha. Sem isto o painel fica aberto por cima da página nova.
   useEffect(() => setMega(null), [path]);
+  // O mesmo para o menu da conta. Antes cada item fechava no próprio
+  // clique — e o botão de sair, fazendo isso, desmontava o <form> no
+  // meio do envio e cancelava a saída. Fechar na navegação serve aos
+  // dois casos e não depende de ninguém lembrar.
+  useEffect(() => setMenu(false), [path]);
+  // E a gaveta do hambúrguer, pelo mesmo motivo: o botão de sair dela
+  // também se fechava no clique.
+  useEffect(() => setDrawer(false), [path]);
 
   return (
     <>
@@ -128,11 +136,10 @@ export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
                       &nbsp;
                     </span>
                   ) : logado ? (
-                    <form action={signOut}>
-                      <button type="submit" role="menuitem" onClick={() => setMenu(false)}>
-                        Sign out
-                      </button>
-                    </form>
+                    /* Sem onClick fechando o menu: fechar desmonta o
+                       <form> e a Server Action morre junto. Quem fecha
+                       aqui é a navegação, no efeito ligado a `path`. */
+                    <SairDaConta role="menuitem">Sign out</SairDaConta>
                   ) : (
                     <Link href="/login" role="menuitem" onClick={() => setMenu(false)}>
                       Sign in

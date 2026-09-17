@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sessionUser } from "@/lib/supabase/session";
 import { ehAdmin } from "@/lib/admin";
 import { supabaseConfigured } from "@/lib/env";
-import { signOut } from "@/app/account/actions";
+import SairDaConta from "@/components/SairDaConta";
 
 export const dynamic = "force-dynamic";
 
@@ -49,9 +49,7 @@ export default async function PainelLayout({ children }: { children: React.React
           </p>
           <div className="adm-login-links">
             <Link href="/">← Voltar à loja</Link>
-            <form action={signOut}>
-              <button type="submit" className="adm-link">Sair desta conta</button>
-            </form>
+            <SairDaConta className="adm-link">Sair desta conta</SairDaConta>
           </div>
         </div>
       </main>

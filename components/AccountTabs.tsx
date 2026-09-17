@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "@/app/account/actions";
+import SairDaConta from "./SairDaConta";
 import { IconCap, IconHeart, IconLogout, IconPackage, IconUser } from "./Icon";
 
 /**
@@ -39,12 +39,10 @@ export default function AccountTabs() {
           </Link>
         );
       })}
-      <form action={signOut}>
-        <button type="submit" aria-label="Sign out">
-          <IconLogout size={20} />
-          <span>Sign out</span>
-        </button>
-      </form>
+      <SairDaConta ariaLabel="Sign out">
+        <IconLogout size={20} />
+        <span>Sign out</span>
+      </SairDaConta>
     </nav>
   );
 }
