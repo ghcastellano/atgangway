@@ -1,5 +1,58 @@
 # Custos e planos — At Gangway
 
+> **Revisado em 23/09/2026.** O levantamento original é de 12/09 e continua
+> abaixo. O que mudou desde então está nesta seção — inclusive duas coisas que
+> o texto antigo dizia errado.
+
+## O que mudou em 23/09/2026
+
+**O add-on de domínio próprio do Supabase existia e ninguém tinha contado.**
+US$ 10/mês desde 26/08, servindo `auth.atgangway.com`. Não era dinheiro parado:
+o Supabase manda esse endereço ao Google em **todo** login com OAuth, mesmo
+quando o app chama pelo endereço padrão. Medido, não suposto.
+
+**O custo fixo real era US$ 55/mês, não US$ 45.** Vercel Pro (20) + Supabase
+Pro (25) + domínio próprio (10).
+
+**O repasse pelo próprio domínio substitui o add-on, de graça.** Os rewrites em
+`next.config.ts` fazem o navegador chamar `atgangway.com/auth/v1/…`,
+`/rest/v1/…` e `/storage/v1/…`. Ligado por `NEXT_PUBLIC_SUPABASE_PROXY=1`.
+O servidor continua indo direto ao Supabase — de propósito, ver o comentário no
+`next.config.ts`.
+
+O que o repasse **não** resolve: o endereço de retorno do login com Google. Ele
+vem da configuração interna do Auth, não do host que chamou — o `redirect_uri`
+é idêntico com e sem repasse. Os dois endereços (`auth.atgangway.com` e
+`cuaocjxofaizefzcxlyc.supabase.co`) já estão registrados no Google Cloud,
+verificado com controle negativo, então desligar o add-on não derruba o login.
+
+**O token da Vercel enxerga o time.** O texto antigo, mais abaixo, diz que não —
+está errado. O problema era passar `teamId` nas chamadas; sem ele, o
+faturamento abre normalmente. Uso real medido: **US$ 0,09/dia**, contra um
+crédito de US$ 20/mês.
+
+### Para onde o Supabase pode ir
+
+| Item | Uso hoje | Cabe no Free? |
+| --- | --- | --- |
+| Banco | 18 MB | 500 MB — 3,6 % |
+| Storage | 16 MB, 47 arquivos | 1 GB — 1,6 % |
+| Usuários ativos/mês | 9 | 50.000 — 0,02 % |
+
+O Free pausa após 7 dias **sem escrita no banco**, e os três crons escrevem
+(`vessel-lineup-hourly` roda 168 vezes por semana, 0 falhas). O que se perde de
+verdade é o backup diário — por isso existe `scripts/backup-supabase.mjs`.
+
+### O que ficou decidido
+
+- Repasse pelo domínio próprio: **ligado** (economiza US$ 10/mês do add-on).
+- Vercel Pro: **mantida**. O Hobby proíbe uso comercial e a loja tem Stripe
+  ativo, com compra real processada. Não é sobre caber no limite.
+- Supabase Free: **avaliado e viável**, condicionado ao backup automático estar
+  rodando antes.
+
+---
+
 Medido em 12/09/2026, no projeto de produção (Supabase `cuaocjxofaizefzcxlyc`,
 Vercel `atgangway`). Preços em dólar, sem impostos, conforme a documentação
 oficial dos dois na mesma data.
