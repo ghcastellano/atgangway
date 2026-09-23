@@ -1,0 +1,54 @@
+# Backup diário do banco e dos arquivos.
+#
+# Existe porque o plano Free do Supabase não faz backup automático — e o
+# schema versionado em supabase/migrations/ não cobre as LINHAS nem os
+# arquivos do storage. Sem isto, perder o projeto é perder os pedidos.
+#
+# Guarda como artifact do próprio GitHub (grátis, 90 dias de retenção),
+# em vez de commitar: dado de cliente não entra em repositório.
+#
+# Precisa do segredo SUPABASE_SERVICE_ROLE_KEY. Sem ele o roteiro ainda
+# roda, mas salva só o que é público — e falha de propósito no fim, para
+# o backup parcial não passar por completo no log verde.
+name: backup
+
+on:
+  schedule:
+    # 06:10 UTC = 03:10 em Santos, depois do cron das escalas e antes do
+    # expediente. O GitHub atrasa jobs agendados em horário cheio.
+    - cron: "10 6 * * *"
+  workflow_dispatch: {}
+
+# Um backup por vez. Dois rodando juntos brigariam pelo mesmo nome de
+# artifact e o segundo perderia.
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  salvar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Rodar o backup
+        env:
+          SUPABASE_URL: https://cuaocjxofaizefzcxlyc.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/backup-supabase.mjs --dir backup
+
+      - name: Guardar
+        # Roda mesmo se o passo acima falhou: um backup parcial guardado
+        # vale mais que nenhum, desde que o job fique vermelho avisando.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ github.run_id }}
+          path: backup/
+          retention-days: 90
+          if-no-files-found: error
