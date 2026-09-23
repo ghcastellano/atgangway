@@ -31,7 +31,14 @@ export const config = {
      *
      * O caminho quente (home → listagem → produto) NÃO sai daqui de
      * propósito: carrinho e lista de desejos dependem da sessão, e
-     * economizar o proxy ali custaria correção. */
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|faq|terms|privacy|attributions|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+     * economizar o proxy ali custaria correção.
+     *
+     * auth/v1, rest/v1 e storage/v1 também ficam de fora, e por um
+     * motivo mais duro: são o repasse para o Supabase (os rewrites do
+     * next.config). Passar por aqui faria cada consulta ao banco disparar
+     * um getUser() — ou seja, uma ida EXTRA ao Supabase para autenticar a
+     * própria ida ao Supabase. Dobraria a conta e a latência de tudo que
+     * o navegador pede. */
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|faq|terms|privacy|attributions|auth/v1|rest/v1|storage/v1|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

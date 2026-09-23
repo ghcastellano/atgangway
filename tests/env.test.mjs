@@ -118,3 +118,26 @@ test("proxy ligado sem backend configurado não inventa endereço", () => {
   assert.equal(m.c, false);
   assert.equal(m.n, "");
 });
+
+/* O repasse para o Supabase não pode passar pelo middleware.
+ *
+ * O matcher do proxy.ts captura quase tudo. Se os caminhos do rewrite
+ * entrassem nele, cada consulta ao banco dispararia um getUser() — uma
+ * ida EXTRA ao Supabase para autenticar a própria ida ao Supabase.
+ * Dobraria a conta da Vercel e a latência de tudo que o navegador pede,
+ * e nada no teste de integração denunciaria isso. */
+test("o matcher do middleware não pega os caminhos repassados ao Supabase", async () => {
+  const { readFileSync } = await import("node:fs");
+  const origem = readFileSync(
+    fileURLToPath(new URL("../proxy.ts", import.meta.url)),
+    "utf-8"
+  );
+  const m = origem.match(/"\/\(\(\?!([^"]+)\)\.\*\)"/);
+  assert.ok(m, "matcher do proxy.ts não encontrado");
+  for (const caminho of ["auth/v1", "rest/v1", "storage/v1"]) {
+    assert.ok(
+      m[1].includes(caminho),
+      `${caminho} precisa estar fora do middleware — senão cada consulta vira dois getUser()`
+    );
+  }
+});
