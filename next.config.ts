@@ -34,6 +34,35 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_ON_VERCEL: process.env.VERCEL ? "1" : "",
   },
+
+  /* O Supabase atendendo pelo domínio da loja.
+   *
+   * O add-on de domínio próprio do Supabase custa US$ 10/mês para que o
+   * cliente nunca veja "cuaocjxofaizefzcxlyc.supabase.co". Estes rewrites
+   * fazem o mesmo de graça: o navegador chama atgangway.com/auth/v1/... e
+   * a borda da Vercel repassa. Ligado por NEXT_PUBLIC_SUPABASE_PROXY=1,
+   * que é o que faz lib/env apontar o cliente do navegador para cá.
+   *
+   * O que isto NÃO resolve: o endereço de retorno do login com Google.
+   * Esse vem da configuração interna do Auth do Supabase, não do host que
+   * chamou — testado, o resultado é idêntico com e sem proxy. Para trocar
+   * aquilo só existe o add-on pago.
+   *
+   * Os caminhos são os três que o navegador usa. /realtime fica de fora:
+   * o app não abre websocket, e proxy de websocket na Vercel cobra por
+   * conexão aberta.
+   */
+  async rewrites() {
+    const alvo = (
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      "https://cuaocjxofaizefzcxlyc.supabase.co"
+    ).replace(/\/+$/, "");
+    return [
+      { source: "/auth/v1/:path*", destination: `${alvo}/auth/v1/:path*` },
+      { source: "/rest/v1/:path*", destination: `${alvo}/rest/v1/:path*` },
+      { source: "/storage/v1/:path*", destination: `${alvo}/storage/v1/:path*` },
+    ];
+  },
   images: {
     // Foto de produto vem do Storage público do Supabase. next/image
     // faz o resize e serve AVIF/WebP: numa grade de 24 cards isso é a

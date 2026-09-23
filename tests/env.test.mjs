@@ -25,7 +25,7 @@ function carrega(env) {
       "--input-type=module",
       "-e",
       `const m = await import(${JSON.stringify("file://" + lib)});` +
-        `console.log(JSON.stringify({ c: m.supabaseConfigured, u: m.SUPABASE_URL, s: m.SITE_URL }));`,
+        `console.log(JSON.stringify({ c: m.supabaseConfigured, u: m.SUPABASE_URL, s: m.SITE_URL, n: m.SUPABASE_URL_NAVEGADOR }));`,
     ],
     // PATH e afins continuam; só as chaves do contrato são controladas.
     { env: { ...process.env, ...env }, encoding: "utf-8" }
@@ -68,4 +68,53 @@ test("SITE_URL tem retaguarda incondicional: o metadataBase precisa de URL váli
   const m = carrega(LIMPO);
   assert.equal(m.s, "https://atgangway.com");
   assert.doesNotThrow(() => new URL(m.s));
+});
+
+/* O proxy do Supabase pelo domínio da loja.
+ *
+ * Existe para o cliente não ver "supabase.co" em requisição nenhuma, no
+ * lugar do add-on de US$ 10/mês. O contrato tem dois lados, e os dois
+ * importam: desligado, navegador e servidor falam o mesmo endereço (é o
+ * comportamento de sempre); ligado, SÓ o navegador muda — se o servidor
+ * migrasse junto, cada consulta viraria uma função da Vercel chamando o
+ * próprio site para chegar ao banco. */
+test("sem o proxy, navegador e servidor usam o mesmo endereço", () => {
+  const m = carrega({
+    ...LIMPO,
+    NEXT_PUBLIC_SUPABASE_URL: "https://exemplo.supabase.co",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "k",
+  });
+  assert.equal(m.n, m.u);
+  assert.equal(m.n, "https://exemplo.supabase.co");
+});
+
+test("com o proxy, o navegador usa o domínio da loja e o servidor não", () => {
+  const m = carrega({
+    ...LIMPO,
+    NEXT_PUBLIC_SUPABASE_URL: "https://exemplo.supabase.co",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "k",
+    NEXT_PUBLIC_SITE_URL: "https://atgangway.com",
+    NEXT_PUBLIC_SUPABASE_PROXY: "1",
+  });
+  assert.equal(m.n, "https://atgangway.com");
+  assert.equal(m.u, "https://exemplo.supabase.co");
+});
+
+test("o proxy só liga com o valor exato 1 — nada de string qualquer virar true", () => {
+  for (const valor of ["", "0", "true", "sim"]) {
+    const m = carrega({
+      ...LIMPO,
+      NEXT_PUBLIC_SUPABASE_URL: "https://exemplo.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "k",
+      NEXT_PUBLIC_SITE_URL: "https://atgangway.com",
+      NEXT_PUBLIC_SUPABASE_PROXY: valor,
+    });
+    assert.equal(m.n, "https://exemplo.supabase.co", `valor ${JSON.stringify(valor)} não devia ligar o proxy`);
+  }
+});
+
+test("proxy ligado sem backend configurado não inventa endereço", () => {
+  const m = carrega({ ...LIMPO, NEXT_PUBLIC_SUPABASE_PROXY: "1" });
+  assert.equal(m.c, false);
+  assert.equal(m.n, "");
 });

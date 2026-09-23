@@ -25,6 +25,24 @@ export const SUPABASE_ANON_KEY = retaguarda(
   "sb_publishable_ia1xhkkK8Pb_gD0Wc8jmXA_71wecTI0"
 );
 
+/**
+ * O endereço que o NAVEGADOR usa para falar com o Supabase.
+ *
+ * Por padrão é o mesmo de cima. Ligando NEXT_PUBLIC_SUPABASE_PROXY=1, o
+ * navegador passa a chamar o próprio domínio da loja e o next.config
+ * repassa para o Supabase. O cliente deixa de ver "supabase.co" em
+ * qualquer requisição — é o que o add-on de domínio próprio faria, sem
+ * os US$ 10/mês.
+ *
+ * Vale SÓ para o navegador. O servidor continua indo direto ao Supabase:
+ * fazer uma função da Vercel chamar o próprio site para chegar ao banco
+ * custaria uma invocação a mais e uma volta de rede em cada consulta.
+ */
+export const SUPABASE_URL_NAVEGADOR =
+  process.env.NEXT_PUBLIC_SUPABASE_PROXY === "1" && SUPABASE_URL
+    ? process.env.NEXT_PUBLIC_SITE_URL || "https://atgangway.com"
+    : SUPABASE_URL;
+
 // Volta a significar algo: na Vercel é sempre true (retaguarda), no dev
 // local sem .env.local é FALSE — e as telas mostram o aviso em vez de
 // falar com o banco errado.
