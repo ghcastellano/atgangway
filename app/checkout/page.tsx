@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
+import CallStrip from "@/components/CallStrip";
 import { createClient } from "@/lib/supabase/server";
 import { imageUrl } from "@/lib/catalog";
 import CheckoutClient from "./CheckoutClient";
@@ -134,6 +135,7 @@ export default async function CheckoutPage() {
       <Breadcrumb trail={[{ label: "Shopping Cart", href: "/cart" }, { label: "Checkout" }]} />
 
       <h1 className="secttl left">Checkout</h1>
+      <CallStrip />
 
       <section className="sumcard framed" aria-labelledby="pd">
         <h3 id="pd">Personal details</h3>

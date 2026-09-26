@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
+import CallStrip from "@/components/CallStrip";
 import { useCart } from "@/lib/cart";
 import { createClient } from "@/lib/supabase/client";
 import { supabaseConfigured } from "@/lib/env";
@@ -230,6 +231,7 @@ export default function CartPage() {
       )}
 
       <h1 className="secttl left">Shopping Cart</h1>
+      <CallStrip />
 
       {/* O carrinho mora no aparelho, então o servidor não sabe o que
           tem dentro e o bloco só ganha altura depois da hidratação. Sem

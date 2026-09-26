@@ -1005,3 +1005,16 @@ main.esq { min-height: calc(100svh - 180px); }
   grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
 }
 .esq-main.grade span { height: 300px; }
+
+/* A escala numa linha, nas telas de compra (catálogo, carrinho, checkout). */
+.callstrip {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 8px 0 14px; padding: 9px 12px; border-radius: 10px;
+  background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--amber);
+  color: var(--ink); text-decoration: none; font-size: 13px;
+}
+.callstrip strong { font-family: var(--font-disp); font-size: 13.5px; }
+.callstrip span { color: var(--muted); }
+.callstrip b { color: var(--amber-hi); font-family: var(--font-mono); }
+.callstrip.fechada { border-left-color: var(--faint); }
+.callstrip:hover { background: var(--card-hi); }

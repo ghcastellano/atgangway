@@ -70,3 +70,12 @@ export function diaCurto(d: string): string {
 export function diaLocal(iso: string): string {
   return new Date(new Date(iso).getTime() - 3 * 3600e3).toISOString().slice(0, 10);
 }
+
+/** Tempo até o corte: "14h", "3d 6h", "closed". Sem casa decimal: ninguém pede por meia hora. */
+export function restante(ms: number): string {
+  if (ms <= 0) return "closed";
+  const horas = Math.floor(ms / 3600e3);
+  if (horas < 1) return `${Math.max(1, Math.round(ms / 60e3))}min`;
+  if (horas < 48) return `${horas}h`;
+  return `${Math.floor(horas / 24)}d ${horas % 24}h`;
+}

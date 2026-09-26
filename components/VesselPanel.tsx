@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { diaCurto, orderCloseAt, santosTime, usd } from "@/lib/format";
+import { diaCurto, orderCloseAt, restante, santosTime, usd } from "@/lib/format";
 import { callState, canOrder } from "@/lib/callstate";
 import { STATUS_LABEL, type OrderStatus } from "@/lib/types";
 import SheIsBack from "./SheIsBack";
@@ -40,15 +40,6 @@ function bandeira(iso: string | null): string | null {
   return String.fromCodePoint(
     ...iso.toUpperCase().split("").map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)
   );
-}
-
-/** "14h", "3d 6h", "agora". Sem casa decimal: ninguém pede por meia hora. */
-function restante(ms: number): string {
-  if (ms <= 0) return "closed";
-  const horas = Math.floor(ms / 3600e3);
-  if (horas < 1) return `${Math.max(1, Math.round(ms / 60e3))}min`;
-  if (horas < 48) return `${horas}h`;
-  return `${Math.floor(horas / 24)}d ${horas % 24}h`;
 }
 
 export default function VesselPanel({

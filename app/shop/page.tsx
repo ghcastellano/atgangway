@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Breadcrumb from "@/components/Breadcrumb";
+import CallStrip from "@/components/CallStrip";
 import ProductCardView from "@/components/ProductCard";
 import FacetRail from "@/components/FacetRail";
 import CategoryIcon from "@/components/CategoryIcon";
@@ -86,6 +87,7 @@ export default async function ShopPage({
         }
       />
       <h1 className="secttl left">{query ? `“${query}”` : "Shop"}</h1>
+      <CallStrip />
 
       {/* Duas colunas a partir de 1024px: trilho de categorias à
           esquerda, lista à direita. Abaixo disso o CSS achata tudo de
