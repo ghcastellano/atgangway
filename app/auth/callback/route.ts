@@ -26,7 +26,9 @@ export async function GET(request: Request) {
           .eq("id", user.id)
           .maybeSingle();
         if (!profileIsComplete(profile)) {
-          return NextResponse.redirect(`${origin}/account`);
+          // /account devolve a pessoa ao ?next= depois de salvar; sem
+          // ele o carrinho ficava para trás e ela caía na conta.
+          return NextResponse.redirect(`${origin}/account?next=${encodeURIComponent(next)}`);
         }
       }
       return NextResponse.redirect(`${origin}${next}`);

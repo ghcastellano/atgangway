@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useWish } from "@/lib/wish";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Busca quem está olhando, DEPOIS que a tela já pintou.
@@ -27,6 +28,19 @@ import { useWish } from "@/lib/wish";
  */
 export default function SessaoSeed() {
   const { seed } = useWish();
+
+  // Busca de novo quando a sessão muda NESTA aba: quem entrava com senha
+  // via o cabeçalho continuar em "Sign in" até recarregar — o layout não
+  // remonta numa navegação de cliente, e a semente só corria na
+  // montagem. (Sair não passa por aqui: o cookie morre no servidor, e
+  // <SairDaConta/> semeia na mão.)
+  const [versao, setVersao] = useState(0);
+  useEffect(() => {
+    const { data: sub } = createClient().auth.onAuthStateChange((evento) => {
+      if (evento === "SIGNED_IN") setVersao((v) => v + 1);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const ctl = new AbortController();
@@ -60,7 +74,7 @@ export default function SessaoSeed() {
       clearTimeout(relogio);
       ctl.abort();
     };
-  }, [seed]);
+  }, [seed, versao]);
 
   return null;
 }

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useWish } from "@/lib/wish";
+import { useCart } from "@/lib/cart";
 import { signOut } from "@/app/account/actions";
 
 /**
@@ -53,6 +54,7 @@ export default function SairDaConta({
   role?: string;
 }) {
   const { seed } = useWish();
+  const { esquecerDono } = useCart();
   const router = useRouter();
 
   return (
@@ -62,6 +64,9 @@ export default function SairDaConta({
         // O provedor vive acima deste form (layout raiz), então continua
         // montado mesmo depois de o menu sumir — a atualização chega.
         seed(0, [], false);
+        // O carrinho é da conta, não do navegador: quem entrar depois
+        // (outra pessoa no mesmo computador de bordo) não pode vê-lo.
+        esquecerDono();
         router.replace("/");
         router.refresh();
       }}

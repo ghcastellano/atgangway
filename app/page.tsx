@@ -481,7 +481,7 @@ export default async function Home() {
       </section>
 
       {crew?.kind === "invite" && (
-        <Link href="/account" className="vstrip">
+        <Link href="/account?next=/" className="vstrip">
           <span className="ic" aria-hidden>
             ⚓
           </span>

@@ -10,7 +10,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-const { placeOrderErrorMessage } = await import("../lib/pedido.ts");
+const { placeOrderErrorMessage, orderReturn } = await import("../lib/pedido.ts");
 const { depositIdempotencyKey, webhookOutcomeStatus } = await import("../lib/stripe.ts");
 const { depositCents } = await import("../lib/money.ts");
 
@@ -110,4 +110,27 @@ test("paridade do depósito com o SQL: meio centavo arredonda para cima", () => 
   assert.equal(depositCents(15), 5); // 4.5 → 5
   assert.equal(depositCents(105), 32); // 31.5 → 32
   assert.equal(depositCents(6000), 1800);
+});
+
+test("volta do Stripe: pagou, desistiu ou só pediu — cada porta tem seu título", () => {
+  // success_url: confirmação independe do webhook já ter chegado…
+  const pago = orderReturn({ paid: "1" }, "awaiting_deposit");
+  assert.equal(pago.kind, "paid");
+  assert.equal(pago.title, "Deposit received — see you at the gangway");
+  // …mas só fica "confirming" (auto-refresh) enquanto o status não virou
+  assert.equal(pago.confirming, true);
+  assert.equal(orderReturn({ paid: "1" }, "deposit_paid").confirming, false);
+
+  // cancel_url: fechou o Stripe sem pagar — reservado, NÃO confirmado
+  const desistiu = orderReturn({ placed: "1", cancelled: "1" }, "awaiting_deposit");
+  assert.equal(desistiu.kind, "cancelled");
+  assert.equal(desistiu.title, "Your order is reserved — pay the deposit to confirm it");
+  // cancelou mas o depósito já entrou (webhook de tentativa anterior):
+  // volta a ser "confirmed", sem pedir pagamento de novo
+  assert.equal(orderReturn({ placed: "1", cancelled: "1" }, "deposit_paid").kind, "placed");
+
+  // pedido recém-feito sem Stripe (crédito cobriu): a frase de sempre
+  assert.equal(orderReturn({ placed: "1" }, "deposit_paid").title, "Order confirmed, sailor.");
+  // chegou pelo link do e-mail: tela comum
+  assert.equal(orderReturn({}, "preparing").kind, "plain");
 });

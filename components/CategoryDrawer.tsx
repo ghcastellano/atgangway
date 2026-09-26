@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import SairDaConta from "./SairDaConta";
 import type { CategoryNode } from "@/lib/catalog";
 import { whatsappLink } from "@/lib/env";
@@ -37,6 +38,8 @@ export default function CategoryDrawer({
   wishCount?: number;
   signedIn?: boolean;
 }) {
+  // Para o "Sign in" devolver a pessoa à página em que estava.
+  const path = usePathname();
   const [stack, setStack] = useState<CategoryNode[]>([]);
   const panel = useRef<HTMLDivElement>(null);
   const current = stack[stack.length - 1] ?? null;
@@ -169,7 +172,7 @@ export default function CategoryDrawer({
                   <span className="nm">Sign out</span>
                 </SairDaConta>
               ) : (
-                <Link className="drawer-item" href="/login" onClick={onClose}>
+                <Link className="drawer-item" href={`/login?next=${encodeURIComponent(path)}`} onClick={onClose}>
                   <IconLogin className="ic" size={19} />
                   <span className="nm">Sign in</span>
                 </Link>

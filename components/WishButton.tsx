@@ -91,7 +91,7 @@ export default function WishButton({
             } catch {
               // aparelho sem armazenamento: vai para o login mesmo assim
             }
-            router.push(`/login?next=${encodeURIComponent(window.location.pathname)}`);
+            router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
             return;
           }
           if (!res.ok) {

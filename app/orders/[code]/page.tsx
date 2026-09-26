@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
+import ConfirmandoPagamento from "@/components/ConfirmandoPagamento";
 import PayNowButton from "@/components/PayNowButton";
 import { createClient } from "@/lib/supabase/server";
 import { hoursUntil, santosTime } from "@/lib/format";
 import { toCents, usd } from "@/lib/money";
+import { orderReturn } from "@/lib/pedido";
 import {
   DELIVERY_BUCKET,
   ORDER_FLOW,
@@ -50,10 +53,10 @@ export default async function OrderDetailPage({
   searchParams,
 }: {
   params: Promise<{ code: string }>;
-  searchParams: Promise<{ placed?: string; paid?: string }>;
+  searchParams: Promise<{ placed?: string; paid?: string; cancelled?: string }>;
 }) {
   const { code } = await params;
-  const { placed, paid } = await searchParams;
+  const { placed, paid, cancelled } = await searchParams;
 
   const supabase = await createClient();
   const user = await sessionUser(supabase);
@@ -104,15 +107,17 @@ export default async function OrderDetailPage({
     delivered: `Balance ${usd(balance)} by card at delivery`,
   };
   const steps = ORDER_FLOW.map((s) => ({ t: STATUS_LABEL[s], p: DETALHE[s] ?? "" }));
+  // De onde a pessoa chegou (pediu / pagou / desistiu de pagar) — lib/pedido.
+  const volta = orderReturn({ placed, paid, cancelled }, o.status);
 
   return (
     <main>
       <Breadcrumb trail={[{ label: "My Orders", href: "/orders" }, { label: `#${o.code}` }]} />
 
-      {placed ? (
+      {volta.kind !== "plain" ? (
         <div className="okwrap">
-          <div className="okring">✓</div>
-          <h2>Order confirmed, sailor.</h2>
+          <div className="okring">{volta.kind === "cancelled" ? "⏳" : "✓"}</div>
+          <h2>{volta.title}</h2>
           <p>
             Order <span className="mono">#{o.code}</span> · {itemCount} items ·{" "}
             {usd(subtotal)}
@@ -121,6 +126,16 @@ export default async function OrderDetailPage({
             <p style={{ marginTop: 4 }}>
               {o.ships.name} · BERTH {o.ships.berth ?? "—"} · gangway delivery on docking
             </p>
+          )}
+          {volta.kind === "paid" && (
+            <div className="stack" style={{ marginTop: 18 }}>
+              <Link className="btn" href="/shop">
+                Continue shopping
+              </Link>
+              <Link className="btn ghost" href="/orders">
+                All my orders
+              </Link>
+            </div>
           )}
         </div>
       ) : (
@@ -142,11 +157,9 @@ export default async function OrderDetailPage({
         </div>
       )}
 
-      {o.status === "awaiting_deposit" && paid ? (
+      {volta.confirming ? (
         <div className="stack" style={{ marginTop: 10 }}>
-          <p className="note">
-            💳 Payment approved — your order updates in a few seconds. Pull down to refresh.
-          </p>
+          <ConfirmandoPagamento />
         </div>
       ) : o.status === "awaiting_deposit" ? (
         <div className="stack" style={{ marginTop: 10 }}>

@@ -266,6 +266,11 @@ function SignupInner() {
             Already confirmed?{" "}
             <Link href={`/login?next=${encodeURIComponent(next)}`}>Login here</Link>
           </p>
+          {/* O carrinho é local: dá para montar o kit enquanto o e-mail
+              não chega pelo wifi do navio. */}
+          <Link className="btn ghost" href="/shop">
+            Browse the catalog while you wait
+          </Link>
         </div>
       </main>
     );

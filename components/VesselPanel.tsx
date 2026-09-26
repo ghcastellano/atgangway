@@ -156,12 +156,12 @@ export default function VesselPanel({
         back ? (
           <>
             <SheIsBack shipId={back.shipId} name={back.name} eta={back.eta} />
-            <Link href="/account" className="alink outra" prefetch={false}>
+            <Link href="/account?next=/" className="alink outra" prefetch={false}>
               I&apos;m on a different vessel
             </Link>
           </>
         ) : (
-          <Link href="/account" className="btn acao" prefetch={false}>
+          <Link href="/account?next=/" className="btn acao" prefetch={false}>
             I&apos;m on a new vessel
           </Link>
         )

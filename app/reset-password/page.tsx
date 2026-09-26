@@ -39,15 +39,28 @@ export default function ResetPasswordPage() {
     setBusy(true);
     setErr(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password: pw1 });
-    setBusy(false);
+    const { data, error } = await supabase.auth.updateUser({ password: pw1 });
     if (error) {
+      setBusy(false);
       setErr(error.message);
       return;
     }
+    // Quem só trocou a senha não tem nada a cadastrar: /account era o
+    // formulário. A home mostra o navio, o prazo e o botão de comprar;
+    // admin vai direto ao painel.
+    let dest = "/";
+    if (data.user) {
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .maybeSingle();
+      if (p?.role === "admin") dest = "/admin";
+    }
+    setBusy(false);
     setDone(true);
     setTimeout(() => {
-      router.push("/account");
+      router.push(dest);
       router.refresh();
     }, 1400);
   }
@@ -75,7 +88,7 @@ export default function ResetPasswordPage() {
             </p>
           </>
         ) : done ? (
-          <p className="note">Password updated — taking you to your account…</p>
+          <p className="note">Password updated — you&apos;re signed in.</p>
         ) : (
           <form onSubmit={submit} className="stack" style={{ padding: 0 }}>
             <div className="field">

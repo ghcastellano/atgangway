@@ -104,7 +104,7 @@ export default async function CheckoutPage() {
               : `The window closed ${fecha ? santosTime(fecha) : "already"} and the chandler is now buying against this call. Your kit is saved — it will be ready for the next one.`}
           </p>
           <p style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 18 }}>
-            <Link href="/account" className="btn">
+            <Link href="/account?next=/checkout" className="btn">
               {estado === "sailed" ? "I'm on a new vessel" : "Pick my next call"}
             </Link>
             <Link href="/ports" className="alink">
@@ -182,7 +182,7 @@ export default async function CheckoutPage() {
             legível — só perde o fio que o separa do último campo. */}
         <p className="finehint factfoot">
           Need to change these details?{" "}
-          <Link className="alink" href="/account">
+          <Link className="alink" href="/account?next=/checkout">
             👤 Update your profile
           </Link>
         </p>
@@ -228,7 +228,7 @@ function Missing({ field, required = true }: { field: string; required?: boolean
   return (
     <>
       {field} is {required ? "required" : "recommended"}.{" "}
-      <Link href="/account">Please update your profile.</Link>
+      <Link href="/account?next=/checkout">Please update your profile.</Link>
     </>
   );
 }

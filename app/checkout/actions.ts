@@ -86,7 +86,10 @@ async function createDepositSession(db: Db, input: SessionInput, origin: string)
         amount_usd: String(input.amountUsd),
       },
       success_url: `${origin}/orders/${input.code}?paid=1`,
-      cancel_url: `${origin}/orders/${input.code}?placed=1`,
+      // cancelled=1: quem fechou o Stripe sem pagar não pode ler
+      // "Order confirmed" — a página do pedido mostra "reserved" e o
+      // botão de pagar.
+      cancel_url: `${origin}/orders/${input.code}?placed=1&cancelled=1`,
     },
     // Mesmo pedido + mesmo valor = a MESMA session de volta por 24h: o
     // clique duplo e o retry caem na mesma página de pagamento em vez

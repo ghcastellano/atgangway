@@ -322,7 +322,7 @@ export default function CheckoutClient({
         ) : bloqueio?.motivo === "perfil" ? (
           <>
             Add the missing details above to your{" "}
-            <Link className="alink" href="/account">
+            <Link className="alink" href="/account?next=/checkout">
               profile
             </Link>{" "}
             to place this order.

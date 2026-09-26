@@ -1,7 +1,9 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { CHAVE_CARRINHO } from "@/lib/chaves";
+import { createClient } from "@/lib/supabase/client";
+import { reconciliar } from "@/lib/carrinho-dono";
 
 /**
  * O carrinho guarda ITENS, e só.
@@ -24,6 +26,8 @@ type CartState = {
   add: (variantId: string, qty?: number) => void;
   change: (variantId: string, delta: number) => void;
   clear: () => void;
+  /** Ao sair da conta: esvazia e desvincula (ver <SairDaConta/>). */
+  esquecerDono: () => void;
   count: number;
 };
 
@@ -36,33 +40,61 @@ const CartContext = createContext<CartState | null>(null);
 // O nome mora em lib/chaves.ts, que também migra o do prefixo antigo.
 const LS_KEY = CHAVE_CARRINHO;
 
-type Persisted = { items: Record<string, number> };
+// `dono`: a conta a quem o carrinho pertence (null = visitante). Carrinho
+// gravado antes deste campo é lido como de visitante. Ver lib/carrinho-dono.
+type Persisted = { items: Record<string, number>; dono?: string | null };
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [items, setItems] = useState<Record<string, number>>({});
+  const dono = useRef<string | null>(null);
 
   useEffect(() => {
+    let guardado: Persisted = { items: {} };
     try {
       const raw = localStorage.getItem(LS_KEY);
-      if (raw) {
-        const data = JSON.parse(raw) as Persisted;
-        if (data.items) setItems(data.items);
-      }
+      if (raw) guardado = JSON.parse(raw) as Persisted;
     } catch {
       // storage indisponível (modo privado etc.) — segue com estado em memória
     }
-    setReady(true);
+    const supabase = createClient();
+    // getSession lê o cookie local, sem rede: aqui só importa QUEM é, para
+    // não mostrar a uma conta o carrinho de outra.
+    supabase.auth.getSession().then(({ data }) => {
+      const uid = data.session?.user.id ?? null;
+      setItems(reconciliar({ items: guardado.items ?? {}, dono: guardado.dono ?? null }, uid));
+      dono.current = uid;
+      setReady(true);
+    });
+    // Login na mesma aba (senha ou Google) chega por aqui. Sair da conta
+    // não chega — o cookie morre no servidor — e é <SairDaConta/> quem limpa.
+    const { data: sub } = supabase.auth.onAuthStateChange((_evento, session) => {
+      const uid = session?.user.id ?? null;
+      if (uid === dono.current) return;
+      setItems((prev) => {
+        const proximos = reconciliar({ items: prev, dono: dono.current }, uid);
+        dono.current = uid;
+        // Grava aqui também: quando o visitante entra, os itens não mudam
+        // e o efeito de persistência não roda — o dono ficaria null no
+        // storage, e a próxima conta herdaria o carrinho.
+        gravar(proximos);
+        return proximos;
+      });
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (ready) gravar(items);
+  }, [ready, items]);
+
+  function gravar(itens: Record<string, number>) {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ items } satisfies Persisted));
+      localStorage.setItem(LS_KEY, JSON.stringify({ items: itens, dono: dono.current } satisfies Persisted));
     } catch {
       // sem persistência — ok
     }
-  }, [ready, items]);
+  }
 
   const add = useCallback((id: string, qty = 1) => {
     setItems((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + Math.max(1, qty) }));
@@ -79,12 +111,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const clear = useCallback(() => setItems({}), []);
+  // Sair da conta: o carrinho volta a ser de ninguém, e vazio.
+  const esquecerDono = useCallback(() => {
+    dono.current = null;
+    setItems({});
+  }, []);
 
   const count = useMemo(() => Object.values(items).reduce((a, b) => a + b, 0), [items]);
 
   const value = useMemo(
-    () => ({ ready, items, add, change, clear, count }),
-    [ready, items, add, change, clear, count]
+    () => ({ ready, items, add, change, clear, esquecerDono, count }),
+    [ready, items, add, change, clear, esquecerDono, count]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

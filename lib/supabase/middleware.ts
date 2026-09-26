@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { safeNext } from "@/lib/format";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_ANON_KEY, supabaseConfigured } from "@/lib/env";
 import { sessionUser } from "@/lib/supabase/session";
@@ -46,6 +47,17 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const needsAuth = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
 
+  // Quem já tem sessão e abre /login ou /signup (link antigo, "Sign in"
+  // num cabeçalho que ainda não soube da sessão) não deve entrar de novo
+  // — vai para onde ia, ou para a loja.
+  if (user && (pathname === "/login" || pathname === "/signup")) {
+    const url = request.nextUrl.clone();
+    const destino = safeNext(request.nextUrl.searchParams.get("next"));
+    url.pathname = destino.split("?")[0];
+    url.search = destino.includes("?") ? destino.slice(destino.indexOf("?")) : "";
+    return NextResponse.redirect(url);
+  }
+
   // O painel tem porta própria: quem cai em /admin deslogado vai para
   // /admin/login, não para o login da loja. E a tela de login do painel
   // não pode exigir login para ser vista.
@@ -54,7 +66,7 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = pathname.startsWith("/admin") ? "/admin/login" : "/login";
     url.search = "";
-    url.searchParams.set("next", pathname);
+    url.searchParams.set("next", pathname + request.nextUrl.search);
     return NextResponse.redirect(url);
   }
 
@@ -82,7 +94,7 @@ export async function updateSession(request: NextRequest) {
         url.search = "";
         // De onde veio, para a tela de conta poder devolver a pessoa ao
         // que ela estava fazendo depois de completar.
-        url.searchParams.set("next", pathname);
+        url.searchParams.set("next", pathname + request.nextUrl.search);
         return NextResponse.redirect(url);
       }
     } catch {

@@ -140,7 +140,7 @@ export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
                        aqui é a navegação, no efeito ligado a `path`. */
                     <SairDaConta role="menuitem">Sign out</SairDaConta>
                   ) : (
-                    <Link href="/login" role="menuitem" onClick={() => setMenu(false)}>
+                    <Link href={`/login?next=${encodeURIComponent(path)}`} role="menuitem" onClick={() => setMenu(false)}>
                       Sign in
                     </Link>
                   )}

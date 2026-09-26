@@ -32,8 +32,13 @@ export default async function ReferralLanding({
             Pick your ship, build your kit and pay the 30% deposit — delivery happens at the
             gangway when you dock in Santos. Your shipmate gets credit for the order.
           </p>
-          <Link className="btn" href="/">
-            ⚓ Choose my ship
+          {/* O navio é escolhido no cadastro — a home deslogada não tem
+              seletor, e "Choose my ship" apontava para ela. */}
+          <Link className="btn" href="/signup?next=/shop">
+            Create my account
+          </Link>
+          <Link className="btn ghost" href="/shop">
+            Browse the catalog
           </Link>
         </div>
       </main>

@@ -9,6 +9,7 @@
  * pior lugar para descobrir um typo só em produção.
  */
 import { orderCloseAt, santosTime, usd } from "./format.ts";
+import type { OrderStatus } from "./types.ts";
 
 export type PlaceOrderRpcError = {
   ok: false;
@@ -64,3 +65,41 @@ export function placeOrderErrorMessage(r: PlaceOrderRpcError): string {
 /* re-export de conveniência para quem monta mensagens de janela fora da
    RPC (o checkout gate usa orderCloseAt direto) */
 export { orderCloseAt };
+
+/**
+ * A volta do Stripe, decidida sem tocar a tela.
+ *
+ * Três portas de entrada na página do pedido: `?placed=1` (acabou de
+ * pedir), `?paid=1` (success_url) e `?placed=1&cancelled=1` (cancel_url —
+ * fechou o Stripe sem pagar). Antes, o cancelamento lia "Order confirmed"
+ * e o pagamento ficava sem confirmação quando o webhook já tinha
+ * chegado. Aqui a combinação vira um estado só; a página só desenha.
+ *
+ * `confirming` é o webhook atrasado: pagou, mas o pedido ainda diz
+ * awaiting_deposit — a tela se atualiza sozinha até o status virar.
+ */
+export type OrderReturnKind = "plain" | "placed" | "cancelled" | "paid";
+
+export function orderReturn(
+  q: { placed?: string; paid?: string; cancelled?: string },
+  status: OrderStatus
+): { kind: OrderReturnKind; title: string; confirming: boolean } {
+  if (q.paid) {
+    return {
+      kind: "paid",
+      title: "Deposit received — see you at the gangway",
+      confirming: status === "awaiting_deposit",
+    };
+  }
+  // Cancelou no Stripe mas o depósito já entrou por outra via (webhook
+  // de uma tentativa anterior): pedir para pagar de novo seria mentira.
+  if (q.cancelled && status === "awaiting_deposit") {
+    return {
+      kind: "cancelled",
+      title: "Your order is reserved — pay the deposit to confirm it",
+      confirming: false,
+    };
+  }
+  if (q.placed) return { kind: "placed", title: "Order confirmed, sailor.", confirming: false };
+  return { kind: "plain", title: "", confirming: false };
+}

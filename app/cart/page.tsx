@@ -321,7 +321,7 @@ export default function CartPage() {
                     ? "Your vessel has sailed — this kit is saved for your next call."
                     : "Orders for this call have closed — your kit is saved for the next one."}
                 </p>
-                <Link className="btn" href="/account">
+                <Link className="btn" href="/account?next=/cart">
                   {callSt === "sailed" ? "I'm on a new vessel" : "Pick my next call"}
                 </Link>
               </>
