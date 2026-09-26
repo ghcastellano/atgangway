@@ -148,7 +148,6 @@
   /* ================= CABEÇALHO ================= */
 
   /* faixa âmbar mais discreta: 40px de altura em tela larga vira parede */
-  .announce { padding: 7px 14px; font-size: 12.5px; }
 
   /* Uma fileira: ☰ All · logo · busca · ícones.
      display:contents dissolve a CAIXA de .sunhead-row sem tocar no
@@ -952,7 +951,6 @@
   .sunfoot { padding-left: calc(50vw - 50% + var(--gut)); padding-right: calc(50vw - 50% + var(--gut)); }
   /* A faixa de anúncio segue a mesma régua, senão fica uma listra curta
      em cima de um cabeçalho largo. */
-  .announce { margin-inline: calc(50% - 50vw); }
 }
 
 @media (min-width: 1600px) and (min-height: 520px) {

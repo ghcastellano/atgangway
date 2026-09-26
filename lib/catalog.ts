@@ -104,8 +104,10 @@ export type SortKey = "featured" | "price_asc" | "price_desc" | "newest";
 
 export const SORT_LABEL: Record<SortKey, string> = {
   featured: "Featured",
-  price_asc: "Price ↑",
-  price_desc: "Price ↓",
+  // Por extenso: "Price ↑" foi lido como "preço para cima" (mais caro
+  // primeiro) quando ordenava do mais barato. Seta não tem sentido fixo.
+  price_asc: "Price: low to high",
+  price_desc: "Price: high to low",
   newest: "Newest",
 };
 

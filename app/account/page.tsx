@@ -14,6 +14,7 @@ import AccountRail from "@/components/AccountRail";
 import EsqueletoConta from "@/components/EsqueletoConta";
 import AccountTabs from "@/components/AccountTabs";
 import { missingProfileFields } from "@/lib/profile";
+import { safeNext } from "@/lib/format";
 import { saveProfile } from "./actions";
 
 /**
@@ -222,12 +223,26 @@ export default function AccountPage() {
       setErr(res.error);
       return;
     }
-    setSaved(true);
     // Salvar cadastro parcial é permitido de propósito — quem ainda não
     // sabe o navio precisa poder guardar o resto. O que o checkout vai
     // cobrar depois vira aviso aqui, não trava.
     setMissing(res.missing);
 
+    // Cadastro completo: a pessoa não veio aqui para ler "saved", veio
+    // para poder comprar. Segue para onde estava indo (?next=) ou para a
+    // home, onde o painel do navio mostra o prazo e o botão de comprar.
+    // Só o cadastro incompleto fica na tela — o aviso do que falta é o
+    // conteúdo, e o campo está logo acima.
+    if (res.missing.length === 0) {
+      setSaved(true);
+      // Lido aqui, não com useSearchParams: a página não tem borda de
+      // Suspense e o valor só interessa neste instante.
+      const next = safeNext(new URLSearchParams(window.location.search).get("next"));
+      router.push(next);
+      router.refresh();
+      return;
+    }
+    setSaved(true);
     // O cabeçalho e o checkout leem o perfil no servidor.
     router.refresh();
   }

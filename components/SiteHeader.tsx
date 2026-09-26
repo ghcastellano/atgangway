@@ -82,10 +82,9 @@ export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
 
   return (
     <>
-      <Link className="announce" href="/brochures">
-        View Catalog &amp; Flyers
-      </Link>
-
+      {/* A faixa "View Catalog & Flyers" saiu por decisão do produto (26/09):
+          ocupava a primeira linha da tela para levar a uma página que o
+          menu já alcança. /brochures continua existindo. */}
       <header className="sunhead sup-escura">
         <div className="sunhead-row">
           <button className="hamb" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}>
