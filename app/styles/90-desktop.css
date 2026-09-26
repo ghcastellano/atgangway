@@ -50,6 +50,9 @@
   background: rgba(4,13,26,.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
 }
+/* A barra é fixa: sem folga embaixo, ela cobria a última linha do
+   rodapé (os cartões aceitos) em toda tela de conta no celular. */
+body:has(.acct-tabs) { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
 .acct-tabs a, .acct-tabs button {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   width: 100%; height: 100%; color: var(--faint); font: inherit; font-size: 10.5px; font-weight: 600;
@@ -700,6 +703,11 @@
     grid-template-rows: auto auto auto 1fr auto auto; gap: 14px;
   }
   .pg-home.lado > .vpanel { grid-column: span 4; align-self: stretch; }
+  /* Com o próximo passo, são sete filhos e ele ocupa a trilha que
+     estica, centrado; os dados voltam ao fluxo normal. */
+  .pg-home > .vpanel.com-passo { grid-template-rows: auto auto auto 1fr auto auto auto; }
+  .pg-home > .vpanel.com-passo .passo { align-self: center; }
+  .pg-home > .vpanel.com-passo .dados { align-self: auto; }
   .pg-home > .vpanel .nome { font-size: clamp(22px, 1.7vw, 28px); }
   .pg-home > .vpanel .nome .fl { font-size: 22px; }
   .pg-home > .vpanel .dados { align-self: end; }
@@ -852,6 +860,7 @@
   /* ---- CONTA: rail de seções à esquerda; as abas do celular somem ---- */
   .acct-rail { display: block; }
   .acct-tabs { display: none; }
+  body:has(.acct-tabs) { padding-bottom: 0; }
   .shell > main.pg-acct {
     display: grid; grid-template-columns: 244px minmax(0, 1fr);
     column-gap: 32px; align-items: start; padding: 0 var(--gut) 8px;

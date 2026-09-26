@@ -4,7 +4,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import ConfirmandoPagamento from "@/components/ConfirmandoPagamento";
 import PayNowButton from "@/components/PayNowButton";
 import { createClient } from "@/lib/supabase/server";
-import { hoursUntil, santosTime } from "@/lib/format";
+import { diaCurto, santosTime } from "@/lib/format";
 import { toCents, usd } from "@/lib/money";
 import { orderReturn } from "@/lib/pedido";
 import {
@@ -38,7 +38,8 @@ type Row = {
   created_at: string;
   delivery_photo_path: string | null;
   delivered_at: string | null;
-  ships: { name: string; berth: string | null; eta: string } | null;
+  delivery_date: string | null;
+  ships: { name: string; berth: string | null; eta: string; ata: string | null } | null;
   order_items: {
     name: string;
     emoji: string | null;
@@ -47,6 +48,14 @@ type Row = {
     qty: number;
   }[];
 };
+
+/** Data de entrega marcada, ETA à frente, ou desde quando está no cais. */
+function quandoChega(o: Row): string {
+  if (o.delivery_date) return `GANGWAY DELIVERY ${diaCurto(o.delivery_date)}`;
+  const eta = o.ships?.eta ?? "";
+  if (new Date(eta).getTime() > Date.now()) return `ETA ${santosTime(eta)}`;
+  return `ALONGSIDE SINCE ${santosTime(o.ships?.ata ?? eta)}`;
+}
 
 export default async function OrderDetailPage({
   params,
@@ -65,7 +74,7 @@ export default async function OrderDetailPage({
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, code, status, payment_method, subtotal_cents, deposit_cents, balance_cents, subtotal_usd, deposit_usd, balance_usd, credit_applied_usd, created_at, delivery_photo_path, delivered_at, ships(name, berth, eta), order_items(name, emoji, unit_price_cents, unit_price_usd, qty)"
+      "id, code, status, payment_method, subtotal_cents, deposit_cents, balance_cents, subtotal_usd, deposit_usd, balance_usd, credit_applied_usd, created_at, delivery_photo_path, delivered_at, delivery_date, ships(name, berth, eta, ata), order_items(name, emoji, unit_price_cents, unit_price_usd, qty)"
     )
     .eq("code", code.toUpperCase())
     .maybeSingle();
@@ -140,9 +149,13 @@ export default async function OrderDetailPage({
         </div>
       ) : (
         <div className="hero-mini">
+          {/* "ETA IN 0H" para navio já atracado não dizia nada. O que a
+              pessoa quer saber é QUANDO o kit chega: a data de entrega
+              quando o balcão a marcou; senão o ETA; navio já no cais,
+              desde quando. */}
           <p className="kicker">
             {o.ships
-              ? `${o.ships.name} · BERTH ${o.ships.berth ?? "—"} · ETA IN ${hoursUntil(o.ships.eta)}H`
+              ? `${o.ships.name} · BERTH ${o.ships.berth ?? "—"} · ${quandoChega(o)}`
               : "—"}
           </p>
           <h2>

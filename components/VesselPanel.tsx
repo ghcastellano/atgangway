@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { orderCloseAt, santosTime, usd } from "@/lib/format";
+import { diaCurto, orderCloseAt, santosTime, usd } from "@/lib/format";
 import { callState, canOrder } from "@/lib/callstate";
+import { STATUS_LABEL, type OrderStatus } from "@/lib/types";
 import SheIsBack from "./SheIsBack";
 
 /**
@@ -30,6 +31,9 @@ export type VesselFacts = {
   delayHours: number | null;
 };
 
+/** O pedido em andamento mais novo, ou null. */
+export type PedidoAberto = { code: string; status: OrderStatus; deliveryDate: string | null } | null;
+
 /** Bandeira em ISO-2 vira emoji somando o offset dos Regional Indicators. */
 function bandeira(iso: string | null): string | null {
   if (!iso || !/^[A-Za-z]{2}$/.test(iso)) return null;
@@ -51,10 +55,12 @@ export default function VesselPanel({
   v,
   credit = 0,
   back = null,
+  pedido = null,
 }: {
   v: VesselFacts;
   credit?: number;
   back?: { shipId: string; name: string; eta: string } | null;
+  pedido?: PedidoAberto;
 }) {
   const fecha = orderCloseAt(v.eta, v.cutoffHours);
   const faltaMs = fecha.getTime() - Date.now();
@@ -76,9 +82,13 @@ export default function VesselPanel({
   const usado = Math.min(100, Math.max(0, ((janelaMs - faltaMs) / janelaMs) * 100));
 
   const atrasado = (v.delayHours ?? 0) >= 1;
+  // O próximo passo da compra: com pedido aberto, é ele; sem pedido e
+  // com janela aberta, é o que a pessoa ganha ao pedir agora. Escala
+  // fechada ou encerrada já tem o seu assunto no bloco do prazo.
+  const passo = pedido ? "pedido" : aberto && !encerrada ? "entrega" : null;
 
   return (
-    <aside className={`vpanel${aberto ? "" : " fechado"}`} aria-label="Your vessel">
+    <aside className={`vpanel${aberto ? "" : " fechado"}${passo ? " com-passo" : ""}`} aria-label="Your vessel">
       <header>
         <span className="lb">Your vessel</span>
         <span className={`dot${alongside && !encerrada ? " on" : ""}`} aria-hidden />
@@ -100,6 +110,30 @@ export default function VesselPanel({
           {v.imo && v.voyage && " · "}
           {v.voyage && <>Voy {v.voyage}</>}
         </p>
+      )}
+
+      {/* No desktop o cartão estica até a altura do herói e este é o
+          espaço que sobrava entre o IMO e o berço. */}
+      {passo === "pedido" && pedido && (
+        <Link href={`/orders/${pedido.code}`} className="passo" prefetch={false}>
+          <span className="ct">Your order</span>
+          <strong>#{pedido.code}</strong>
+          <span className="qd">
+            {STATUS_LABEL[pedido.status]}
+            {pedido.deliveryDate && ` · delivery ${diaCurto(pedido.deliveryDate)}`}
+          </span>
+          <span className="lk">Track it</span>
+        </Link>
+      )}
+      {/* Sem a promessa genérica da grade ("delivered in 4 days"): para
+          quem ainda está a caminho, a entrega é quando atraca — e o ETA
+          está logo abaixo. */}
+      {passo === "entrega" && (
+        <div className="passo">
+          <span className="ct">Next step</span>
+          <strong>Order now, receive at the gangway</strong>
+          <span className="qd">30% deposit today · the rest when we meet you on docking</span>
+        </div>
       )}
 
       <dl className="dados">

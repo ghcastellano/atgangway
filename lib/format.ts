@@ -60,3 +60,8 @@ export function etaToLocalInput(iso: string | Date): string {
 export function localInputToIso(value: string): string {
   return new Date(`${value}:00-03:00`).toISOString();
 }
+
+/** 'YYYY-MM-DD' (data local do porto) → "03 Oct". */
+export function diaCurto(d: string): string {
+  return new Date(`${d}T12:00:00-03:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+}

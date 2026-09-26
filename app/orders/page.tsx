@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
 import { createClient } from "@/lib/supabase/server";
 import { toCents, usd } from "@/lib/money";
+import { diaCurto } from "@/lib/format";
 import { STATUS_LABEL, STATUS_PILL, type OrderStatus } from "@/lib/types";
 import { sessionUser } from "@/lib/supabase/session";
 
@@ -20,7 +21,8 @@ type Row = {
   subtotal_usd: number; // retaguarda p/ pedido anterior à virada
   deposit_cents: number | null;
   created_at: string;
-  ships: { name: string; berth: string | null } | null;
+  delivery_date: string | null;
+  ships: { name: string; berth: string | null; eta: string } | null;
   order_items: { qty: number }[];
 };
 
@@ -32,7 +34,7 @@ export default async function OrdersPage() {
   const { data } = await supabase
     .from("orders")
     .select(
-      "id, code, status, subtotal_cents, subtotal_usd, deposit_cents, created_at, ships(name, berth), order_items(qty)"
+      "id, code, status, subtotal_cents, subtotal_usd, deposit_cents, created_at, delivery_date, ships(name, berth, eta), order_items(qty)"
     )
     .order("created_at", { ascending: false });
 
@@ -81,6 +83,13 @@ export default async function OrdersPage() {
                   {o.ships?.name ?? "—"}
                   {o.ships?.berth ? ` · BERTH ${o.ships.berth}` : ""} · {items} ITEMS ·{" "}
                   {usd(o.subtotal_cents ?? toCents(o.subtotal_usd))}
+                  {/* A promessa da página ("rides with its ship's ETA")
+                      sem a data no cartão era promessa vazia. */}
+                  {o.delivery_date
+                    ? ` · DELIVERY ${diaCurto(o.delivery_date).toUpperCase()}`
+                    : o.ships?.eta
+                      ? ` · ETA ${diaCurto(o.ships.eta.slice(0, 10)).toUpperCase()}`
+                      : ""}
                   {/* created_at já vinha na consulta e era descartado.
                       Aparece só a partir de 1024, onde sobra largura. */}
                   <span className="odate">

@@ -4,7 +4,8 @@ import CaptainStrip from "@/components/CaptainStrip";
 import DeliveryStrip from "@/components/DeliveryStrip";
 import HeroSteps from "@/components/HeroSteps";
 import { IconCompass, IconPackage } from "@/components/Icon";
-import VesselPanel, { type VesselFacts } from "@/components/VesselPanel";
+import type { OrderStatus } from "@/lib/types";
+import VesselPanel, { type PedidoAberto, type VesselFacts } from "@/components/VesselPanel";
 import { callState, canOrder } from "@/lib/callstate";
 import { unstable_cache } from "next/cache";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
@@ -190,7 +191,7 @@ type Captain = { code: string; rate: number } | null;
 export type BackAgain = { shipId: string; name: string; eta: string } | null;
 
 type Crew =
-  | { kind: "vessel"; v: VesselFacts; cap: Captain; credit: number; back: BackAgain }
+  | { kind: "vessel"; v: VesselFacts; cap: Captain; credit: number; back: BackAgain; pedido: PedidoAberto }
   | { kind: "invite"; cap: Captain }
   | null;
 
@@ -278,11 +279,27 @@ async function loadCrew(): Promise<Crew> {
       }
     }
 
+    // O próximo passo da compra, no espaço que sobrava no cartão: o
+    // pedido em andamento (o mais novo dos abertos) vale mais que a
+    // promessa genérica de entrega. Mesma lista de "abertos" do painel.
+    const { data: ped } = await supabase
+      .from("orders")
+      .select("code, status, delivery_date")
+      .eq("user_id", user.id)
+      .in("status", ["awaiting_deposit", "deposit_paid", "preparing", "at_gangway"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const pedido: PedidoAberto = ped
+      ? { code: ped.code, status: ped.status as OrderStatus, deliveryDate: ped.delivery_date }
+      : null;
+
     return {
       kind: "vessel",
       cap,
       credit,
       back,
+      pedido,
       v: {
         name: s.name, berth: s.berth, eta: s.eta, ata: s.ata,
         imo: s.imo, voyage: s.voyage, flag: s.flag,
@@ -327,7 +344,7 @@ export default async function Home() {
   const cartao = !crew ? (
     <HeroSteps />
   ) : crew.kind === "vessel" ? (
-    <VesselPanel v={crew.v} credit={crew.credit} back={crew.back} />
+    <VesselPanel v={crew.v} credit={crew.credit} back={crew.back} pedido={crew.pedido} />
   ) : null;
 
   return (

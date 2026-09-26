@@ -792,6 +792,21 @@
   letter-spacing: .06em; color: var(--faint);
 }
 
+/* O próximo passo da compra (pedido aberto ou promessa de entrega).
+   Mesma família visual do bloco do prazo, mais discreto: é contexto. */
+.vpanel .passo {
+  display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px;
+  background: var(--night); border: 1px solid var(--line); text-decoration: none; color: inherit;
+}
+.vpanel .passo .ct {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--faint);
+}
+.vpanel .passo strong { font-family: var(--font-disp); font-size: 16px; line-height: 1.2; }
+.vpanel .passo .qd { font-size: 11.5px; color: var(--muted); }
+.vpanel .passo .lk { font-size: 12px; font-weight: 700; color: var(--amber-hi); margin-top: 2px; }
+a.vpanel .passo:hover, .vpanel a.passo:hover { background: var(--card-hi); }
+
 /* Berço e ETA lado a lado: são dois dados curtos, e empilhá-los
    gastaria altura que o prazo usa melhor. */
 .vpanel .dados {
