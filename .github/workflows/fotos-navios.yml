@@ -1,0 +1,40 @@
+# Foto, IMO e crédito dos navios, do Wikimedia Commons.
+#
+# O line-up de Santos não traz foto nem IMO; o Commons tem os dois para
+# cerca de um terço dos navios que passam por aqui, com licença livre.
+# Semanal porque a fila de navios se renova nesse ritmo — e porque cada
+# navio consultado é uma dezena de chamadas ao Commons, que pede calma.
+#
+# Precisa do segredo SUPABASE_SERVICE_ROLE_KEY (o mesmo do backup).
+name: fotos-navios
+
+on:
+  schedule:
+    # 07:30 UTC de segunda = 04:30 em Santos, depois do backup diário.
+    - cron: "30 7 * * 1"
+  workflow_dispatch: {}
+
+concurrency:
+  group: fotos-navios
+  cancel-in-progress: false
+
+jobs:
+  enriquecer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # sharp precisa do binário nativo; o resto do lock vem junto.
+      - run: npm ci --ignore-scripts=false
+
+      - name: Consultar o Commons e gravar
+        env:
+          SUPABASE_URL: https://cuaocjxofaizefzcxlyc.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/fotos-navios.mjs

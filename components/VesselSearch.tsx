@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { imageUrl } from "@/lib/catalog";
+import { tituloNavio } from "@/lib/navio";
 import { imoChecksumOk, normalizeImo } from "@/lib/imo";
 import { callState } from "@/lib/callstate";
 
@@ -11,6 +14,9 @@ export type VesselValue = {
   name: string;
   imo: string | null;
   flag: string | null;
+  /** Foto e crédito vêm da busca; navio novo nasce sem. */
+  image_path?: string | null;
+  image_credit?: string | null;
 };
 
 type VesselRow = {
@@ -19,6 +25,7 @@ type VesselRow = {
   imo: string | null;
   flag: string | null;
   image_path: string | null;
+  image_credit: string | null;
   verified: boolean;
   /** ETA da escala — ver `rotulo` abaixo. */
   eta: string | null;
@@ -27,21 +34,16 @@ type VesselRow = {
 };
 
 /**
- * O que escrever ao lado do nome na lista.
+ * O que escrever ABAIXO do título na lista.
  *
- * Era `IMO ${imo}` ou, na falta dele, o literal "no IMO" — e como a
- * fonte do line-up do porto publica nome, ETA e berço mas NÃO o IMO,
- * as 253 escalas do banco estão sem ele. Ou seja: "no IMO" aparecia em
- * 100% das linhas. Rótulo que nunca varia não desambigua nada; só
- * parece defeito para quem está escolhendo o próprio navio.
- *
- * O que separa duas linhas para quem está a bordo é a data de atracação.
- * O IMO continua aparecendo quando existe — aí ele é a identidade do
- * casco e vale mais que a data.
+ * Nome, bandeira e IMO vão no título, no padrão do Sunny
+ * (`BOW CEDAR [MH] (9087013)`) — ver tituloNavio. Aqui fica só o que
+ * separa duas escalas para quem está a bordo: a data de atracação.
+ * A fonte do line-up publica nome, ETA e berço mas NÃO o IMO, então a
+ * data é o que varia de linha para linha.
  */
 function rotulo(r: VesselRow): string {
-  if (r.imo) return `IMO ${r.imo}${r.flag ? ` · ${r.flag}` : ""}`;
-  if (!r.eta) return r.flag ?? "";
+  if (!r.eta) return "";
   const d = new Date(r.eta);
   const quando = d.toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -51,7 +53,25 @@ function rotulo(r: VesselRow): string {
   // A RPC só devolve escala com janela aberta (mesma régua do banco);
   // "closing" é a mesma máquina de estados do painel do navio.
   const fase = callState({ eta: r.eta, ata: r.ata, cutoff_hours: r.cutoff_hours });
-  return `due ${quando}${fase === "closing" ? " · last call" : ""}${r.flag ? ` · ${r.flag}` : ""}`;
+  return `due ${quando}${fase === "closing" ? " · last call" : ""}`;
+}
+
+/**
+ * A foto do navio, ou a âncora quando não há. Fundo branco e `contain`,
+ * a mesma regra do checkout: recortar o casco para caber num retângulo
+ * é o que faz a foto parecer de outro navio.
+ */
+function Foto({ path, tamanho, alt = "" }: { path: string | null | undefined; tamanho: string; alt?: string }) {
+  const src = imageUrl(path);
+  return (
+    <span className="ph" style={src ? { background: "#FFFFFF" } : undefined}>
+      {src ? (
+        <Image src={src} alt={alt} fill sizes={tamanho} style={{ objectFit: "contain" }} />
+      ) : (
+        <span aria-hidden>⚓</span>
+      )}
+    </span>
+  );
 }
 
 /** A RPC só busca a partir de 3 caracteres — repetimos aqui para não bater à toa. */
@@ -195,7 +215,10 @@ export default function VesselSearch({
   }, [open]);
 
   function pick(r: VesselRow) {
-    onChange({ id: r.id, name: r.name, imo: r.imo, flag: r.flag });
+    onChange({
+      id: r.id, name: r.name, imo: r.imo, flag: r.flag,
+      image_path: r.image_path, image_credit: r.image_credit,
+    });
     setQ("");
     setCreating(false);
     setOpen(false);
@@ -296,8 +319,9 @@ export default function VesselSearch({
           aria-autocomplete="list"
           autoComplete="off"
           enterKeyHint="search"
+          className={value && !open ? "has-clear" : undefined}
           placeholder="Enter your imo or Vessel name to search"
-          value={open ? q : value?.name ?? ""}
+          value={open ? q : value ? tituloNavio(value) : ""}
           onFocus={() => {
             setQ("");
             setOpen(true);
@@ -308,6 +332,27 @@ export default function VesselSearch({
           }}
           onKeyDown={onKeyDown}
         />
+        {/* O X do Sunny: trocar de navio sem ter de apagar o texto
+            letra a letra — no celular, é a diferença entre trocar e
+            desistir. */}
+        {value && !open && (
+          <button
+            type="button"
+            className="ta-clear"
+            aria-label="Clear vessel"
+            onClick={() => {
+              onChange(null);
+              setCreating(false);
+              setImoOpen(false);
+              setErr(null);
+              document.getElementById(`${uid}-in`)?.focus();
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
 
         {open && (
           <div className="ta-panel" id={`${uid}-list`} role="listbox">
@@ -339,7 +384,8 @@ export default function VesselSearch({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => pick(r)}
                 >
-                  <span style={{ flex: 1, minWidth: 0 }}>{r.name}</span>
+                  <Foto path={r.image_path} tamanho="52px" />
+                  <span className="nm">{tituloNavio(r)}</span>
                   <span className="sub">{rotulo(r)}</span>
                 </button>
               ))
@@ -393,8 +439,23 @@ export default function VesselSearch({
         </>
       )}
 
+      {/* O navio escolhido, com a foto: é a confirmação visual de que é
+          o casco certo — e o lugar do crédito, que a licença da foto
+          exige onde ela aparece. */}
+      {value?.image_path && !open && (
+        <div className="vs-pick">
+          <Foto path={value.image_path} tamanho="88px" alt={value.name} />
+          <span className="vs-pick-txt">
+            <strong>{tituloNavio(value)}</strong>
+            {value.image_credit && <small>{value.image_credit}</small>}
+          </span>
+        </div>
+      )}
+
       {err && <p className="finehint" style={{ color: "var(--danger)" }}>{err}</p>}
-      {value && !err && (
+      {/* Com o cartão da foto, a linha "IMO · bandeira" repetiria o que
+          está logo acima; ela só volta quando há algo a pedir (o IMO). */}
+      {value && !err && !(value.image_path && value.imo && !open) && (
         <p className="finehint">
           {value.id ? (
             value.imo ? (

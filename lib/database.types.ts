@@ -1042,11 +1042,14 @@ export type Database = {
           flag: string | null
           hidden_at: string | null
           id: string
+          image_credit: string | null
           image_path: string | null
+          image_source: string | null
           imo: string | null
           last_synced_at: string | null
           mmsi: string | null
           name: string
+          photo_checked_at: string | null
           previous_eta: string | null
           search_name: string | null
           sync_key: string | null
@@ -1066,11 +1069,14 @@ export type Database = {
           flag?: string | null
           hidden_at?: string | null
           id?: string
+          image_credit?: string | null
           image_path?: string | null
+          image_source?: string | null
           imo?: string | null
           last_synced_at?: string | null
           mmsi?: string | null
           name: string
+          photo_checked_at?: string | null
           previous_eta?: string | null
           search_name?: string | null
           sync_key?: string | null
@@ -1090,11 +1096,14 @@ export type Database = {
           flag?: string | null
           hidden_at?: string | null
           id?: string
+          image_credit?: string | null
           image_path?: string | null
+          image_source?: string | null
           imo?: string | null
           last_synced_at?: string | null
           mmsi?: string | null
           name?: string
+          photo_checked_at?: string | null
           previous_eta?: string | null
           search_name?: string | null
           sync_key?: string | null
@@ -1278,6 +1287,7 @@ export type Database = {
           eta: string
           flag: string
           id: string
+          image_credit: string
           image_path: string
           imo: string
           name: string

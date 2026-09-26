@@ -7,6 +7,7 @@ import {
   tableRows,
 } from "../../../../lib/lineup.ts";
 import { sendMail, sendOrderEmail } from "../../../../lib/mailer.ts";
+import { bandeiraIso } from "../../../../lib/navio.ts";
 import { alertarAtrasos } from "../../../../lib/alertas.ts";
 import { cronometrar, medir } from "../../../../lib/metricas.ts";
 import { buildLastCallEmail, type LastCallData } from "../../../../lib/emails.ts";
@@ -116,7 +117,12 @@ export async function GET(request: Request) {
      banco itera por dentro com a mesma sync_ship_eta de sempre. */
   const lote = upcoming.map((r) => ({
     name: r.name, eta: r.eta, berth: r.berth, imo: r.imo, voyage: r.voyage, source: "port_lineup",
+    // A CODESP dá a bandeira como gentílico ("LIBERIANA"); o banco guarda
+    // ISO. O que o mapa não conhece vai para o log, não para a tela.
+    flag: bandeiraIso(r.flag),
   }));
+  const semBandeira = [...new Set(upcoming.filter((r) => r.flag && !bandeiraIso(r.flag)).map((r) => r.flag))];
+  if (semBandeira.length) console.warn("lineup: bandeira desconhecida", semBandeira);
   const { data: loteRes, error: loteErr } = await cronometrar("lineup.sync_ms", async () =>
     supabase.rpc("sync_ship_etas", { p_rows: lote, p_secret: secret })
   );
