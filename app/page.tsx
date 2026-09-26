@@ -16,6 +16,7 @@ import { imageUrl, listProducts, type Category, type ProductCard } from "@/lib/c
 import { SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 import { DEPOSIT_PCT } from "@/lib/money";
 import { resolveDelivery, type PortRule } from "@/lib/delivery";
+import { diaLocal } from "@/lib/format";
 import { sessionUser } from "@/lib/supabase/session";
 
 /**
@@ -284,14 +285,21 @@ async function loadCrew(): Promise<Crew> {
     // promessa genérica de entrega. Mesma lista de "abertos" do painel.
     const { data: ped } = await supabase
       .from("orders")
-      .select("code, status, delivery_date")
+      .select("code, status, delivery_date, ships(eta)")
       .eq("user_id", user.id)
       .in("status", ["awaiting_deposit", "deposit_paid", "preparing", "at_gangway"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    // Sem data marcada pelo balcão vale o ETA do navio DO PEDIDO: a
+    // entrega acontece quando ele atraca. Data local do porto (UTC-3).
+    const navioDoPedido = (ped as { ships?: { eta: string } | null } | null)?.ships;
     const pedido: PedidoAberto = ped
-      ? { code: ped.code, status: ped.status as OrderStatus, deliveryDate: ped.delivery_date }
+      ? {
+          code: ped.code,
+          status: ped.status as OrderStatus,
+          deliveryDate: ped.delivery_date ?? (navioDoPedido?.eta ? diaLocal(navioDoPedido.eta) : null),
+        }
       : null;
 
     return {

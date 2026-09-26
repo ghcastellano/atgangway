@@ -4,7 +4,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import ConfirmandoPagamento from "@/components/ConfirmandoPagamento";
 import PayNowButton from "@/components/PayNowButton";
 import { createClient } from "@/lib/supabase/server";
-import { diaCurto, santosTime } from "@/lib/format";
+import { diaCurto, diaLocal, santosTime } from "@/lib/format";
 import { toCents, usd } from "@/lib/money";
 import { orderReturn } from "@/lib/pedido";
 import {
@@ -53,7 +53,8 @@ type Row = {
 function quandoChega(o: Row): string {
   if (o.delivery_date) return `GANGWAY DELIVERY ${diaCurto(o.delivery_date)}`;
   const eta = o.ships?.eta ?? "";
-  if (new Date(eta).getTime() > Date.now()) return `ETA ${santosTime(eta)}`;
+  // Sem data marcada, a entrega é na atracação: o ETA vira a data.
+  if (new Date(eta).getTime() > Date.now()) return `GANGWAY DELIVERY ${diaCurto(diaLocal(eta))} (on docking)`;
   return `ALONGSIDE SINCE ${santosTime(o.ships?.ata ?? eta)}`;
 }
 

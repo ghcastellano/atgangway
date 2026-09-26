@@ -69,3 +69,10 @@ test("ETA ida-e-volta no fuso de Santos (UTC-3, sem DST)", () => {
   assert.equal(iso, "2026-12-24T21:30:00.000Z");
   assert.equal(fmt.etaToLocalInput(iso), local);
 });
+
+test("diaLocal: instante UTC vira data de Santos (UTC-3)", async () => {
+  const { diaLocal, diaCurto } = await import("../lib/format.ts");
+  assert.equal(diaLocal("2026-10-08T01:30:00.000Z"), "2026-10-07", "01:30 UTC ainda é dia 7 em Santos");
+  assert.equal(diaLocal("2026-10-08T15:00:00.000Z"), "2026-10-08");
+  assert.equal(diaCurto("2026-10-08"), "08 Oct");
+});

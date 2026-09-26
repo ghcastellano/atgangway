@@ -65,3 +65,8 @@ export function localInputToIso(value: string): string {
 export function diaCurto(d: string): string {
   return new Date(`${d}T12:00:00-03:00`).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 }
+
+/** Instante ISO → 'YYYY-MM-DD' no fuso de Santos (UTC-3, sem horário de verão). */
+export function diaLocal(iso: string): string {
+  return new Date(new Date(iso).getTime() - 3 * 3600e3).toISOString().slice(0, 10);
+}

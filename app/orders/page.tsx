@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
 import { createClient } from "@/lib/supabase/server";
 import { toCents, usd } from "@/lib/money";
-import { diaCurto } from "@/lib/format";
+import { diaCurto, diaLocal } from "@/lib/format";
 import { STATUS_LABEL, STATUS_PILL, type OrderStatus } from "@/lib/types";
 import { sessionUser } from "@/lib/supabase/session";
 
@@ -85,11 +85,9 @@ export default async function OrdersPage() {
                   {usd(o.subtotal_cents ?? toCents(o.subtotal_usd))}
                   {/* A promessa da página ("rides with its ship's ETA")
                       sem a data no cartão era promessa vazia. */}
-                  {o.delivery_date
-                    ? ` · DELIVERY ${diaCurto(o.delivery_date).toUpperCase()}`
-                    : o.ships?.eta
-                      ? ` · ETA ${diaCurto(o.ships.eta.slice(0, 10)).toUpperCase()}`
-                      : ""}
+                  {o.delivery_date || o.ships?.eta
+                    ? ` · DELIVERY ${diaCurto(o.delivery_date ?? diaLocal(o.ships!.eta)).toUpperCase()}`
+                    : ""}
                   {/* created_at já vinha na consulta e era descartado.
                       Aparece só a partir de 1024, onde sobra largura. */}
                   <span className="odate">
