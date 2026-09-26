@@ -22,22 +22,33 @@ function LoginInner() {
   const [err, setErr] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Senha aceita e navegação em curso: o botão muda de frase e segue
+  // travado até esta tela sair (ver submit).
+  const [entrou, setEntrou] = useState(false);
   const [needsConfirm, setNeedsConfirm] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Enter repetido ou clique duplo antes do botão travar: um login só.
+    if (busy || entrou) return;
     setBusy(true);
     setErr(null);
     setInfo(null);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
     if (error) {
+      setBusy(false);
       const kind = signInFailure(error);
       setNeedsConfirm(kind === "unconfirmed");
       setErr(signInMessage(kind) ?? error.message);
       return;
     }
+    // Senha aceita, mas a pessoa ainda está NESTA tela até o push e o
+    // refresh terminarem — e isso leva um ou dois segundos (o servidor
+    // reconstrói a página com a sessão nova). O botão voltava a "Login"
+    // nesse intervalo: parecia que nada tinha acontecido, o segundo
+    // clique abria uma segunda sessão. O ocupado fica até a tela trocar.
+    setEntrou(true);
     router.push(next);
     router.refresh();
   }
@@ -132,8 +143,8 @@ function LoginInner() {
           </button>
         )}
 
-        <button className="btn" type="submit" disabled={busy}>
-          {busy ? "Signing in…" : "Login"}
+        <button className="btn" type="submit" disabled={busy || entrou} aria-busy={busy || entrou}>
+          {entrou ? "Signed in — opening your account…" : busy ? "Signing in…" : "Login"}
         </button>
       </form>
 
