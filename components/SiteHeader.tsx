@@ -69,6 +69,15 @@ export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
     };
   }, [mega]);
 
+  // A ficha do produto pede para abrir o mini-carrinho ao adicionar
+  // (ver ProductBuy.addNow). Evento, e não prop: a ficha mora fora do
+  // cabeçalho.
+  useEffect(() => {
+    const abrir = () => setCart(true);
+    window.addEventListener("ag:abrir-carrinho", abrir);
+    return () => window.removeEventListener("ag:abrir-carrinho", abrir);
+  }, []);
+
   // Navegou: fecha. Sem isto o painel fica aberto por cima da página nova.
   useEffect(() => setMega(null), [path]);
   // O mesmo para o menu da conta. Antes cada item fechava no próprio

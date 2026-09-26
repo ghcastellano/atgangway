@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import WishButton from "./WishButton";
 import { IconPackage } from "./Icon";
 import { useCart } from "@/lib/cart";
@@ -77,7 +77,24 @@ export default function ProductBuy({
   function addNow() {
     if (!variant || soldOut) return;
     add(variant.id, qty);
+    // Abre o mini-carrinho: ele já tem "Checkout" e "View and Edit Cart".
+    // Sem isto o botão só mudava para "Add N more" e a pessoa não via o
+    // próximo passo. Quem escuta é o cabeçalho (dono do mini-carrinho).
+    window.dispatchEvent(new Event("ag:abrir-carrinho"));
   }
+
+  // A barra fixa de baixo só faz sentido quando o botão principal saiu
+  // da tela: com os dois visíveis eram duas chamadas iguais na mesma
+  // dobra, e a barra cobria o preço.
+  const acoes = useRef<HTMLDivElement>(null);
+  const [foraDaTela, setForaDaTela] = useState(false);
+  useEffect(() => {
+    const el = acoes.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setForaDaTela(!e.isIntersecting), { threshold: 0 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
     <>
@@ -196,7 +213,7 @@ export default function ProductBuy({
                 alguém pode pagar em PIX, e lá sai do PTAX de verdade. */}
           </div>
 
-          <div className="pdp-actions">
+          <div className="pdp-actions" ref={acoes}>
             <div className="qty">
               {/* O piso é o min_qty do produto, não 1. Um item com
                   mínimo de 6 descia até 1 no botão −, e o pedido saía
@@ -226,7 +243,7 @@ export default function ProductBuy({
         </div>
       </section>
 
-      {!soldOut && (
+      {!soldOut && foraDaTela && (
         <div className="buydock sup-escura">
           <div className="thumb">
             {src && <Image src={src} alt="" fill sizes="46px" style={{ objectFit: "contain" }} />}
