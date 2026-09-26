@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -28,6 +28,10 @@ function LoginInner() {
   // Ref, não estado: dois eventos no mesmo tick (clique + Enter do
   // mesmo gesto) leem o estado ainda antigo; a ref muda na hora.
   const enviando = useRef(false);
+  // Se a navegação suave não sair do lugar (cookie antigo, rede ruim),
+  // a saída é uma navegação inteira. A ref sabe se esta tela ainda existe.
+  const montado = useRef(true);
+  useEffect(() => () => { montado.current = false; }, []);
   const [needsConfirm, setNeedsConfirm] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -56,6 +60,12 @@ function LoginInner() {
     setEntrou(true);
     router.push(next);
     router.refresh();
+    // Quatro segundos é mais que a navegação normal (~1 s) e menos que o
+    // tempo em que a pessoa desiste e clica de novo. O cookie já está
+    // gravado: a navegação inteira chega logada.
+    setTimeout(() => {
+      if (montado.current && window.location.pathname.startsWith("/login")) window.location.assign(next);
+    }, 4000);
   }
 
   async function resendConfirmation() {
