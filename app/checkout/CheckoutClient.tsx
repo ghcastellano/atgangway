@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { brlRef, type FxRate } from "@/lib/fx";
 import { createClient } from "@/lib/supabase/client";
-import { supabaseConfigured } from "@/lib/env";
+import { supabaseConfigured, whatsappLink } from "@/lib/env";
 import { bloqueioDoCheckout, DEPOSIT_PCT, splitOrder, toCents, usd } from "@/lib/money";
 import { placeOrder } from "./actions";
 
@@ -346,6 +346,28 @@ export default function CheckoutClient({
             skips the call, the deposit becomes full credit for the next one — no paperwork.
           </>
         )}
+      </p>
+
+      {/* O que acontece depois de pagar, na tela onde se decide pagar. A
+          página do pedido já conta isso em cinco passos; aqui são três,
+          com o número do saldo — é a pergunta que fica: "e o resto?". */}
+      <ol className="proximos" aria-label="What happens next">
+        <li>
+          <b>Deposit confirmed</b> — your gangway slot is reserved.
+        </li>
+        <li>
+          <b>We shop in Santos</b> — fresh, matched to your vessel&apos;s ETA.
+        </li>
+        <li>
+          <b>At the gangway</b> — pay the balance {usd(split.balance)} by card, with photo proof of delivery.
+        </li>
+      </ol>
+      <p className="finehint">
+        Questions before paying?{" "}
+        <a className="alink" href={whatsappLink("Hi! I'm at the checkout on atgangway.com and have a question.")} target="_blank" rel="noopener noreferrer">
+          WhatsApp us
+        </a>
+        .
       </p>
     </section>
   );
