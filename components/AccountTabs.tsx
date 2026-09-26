@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import SairDaConta from "./SairDaConta";
 import { IconCap, IconHeart, IconLogout, IconPackage, IconUser } from "./Icon";
@@ -28,6 +29,13 @@ const ABAS = [
 
 export default function AccountTabs() {
   const path = usePathname();
+  // Marca o body enquanto a barra existe: é a folga que impede a barra
+  // fixa de cobrir o rodapé (CSS em 90-desktop, body.com-abas).
+  useEffect(() => {
+    document.body.classList.add("com-abas");
+    return () => document.body.classList.remove("com-abas");
+  }, []);
+
   return (
     <nav className="acct-tabs sup-escura" aria-label="My account">
       {ABAS.map((a) => {
