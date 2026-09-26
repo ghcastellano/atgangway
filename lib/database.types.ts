@@ -793,6 +793,7 @@ export type Database = {
           created_at: string
           default_variant_id: string | null
           description: string | null
+          dietary: string[]
           emoji: string
           id: string
           max_price_cents: number | null
@@ -826,6 +827,7 @@ export type Database = {
           created_at?: string
           default_variant_id?: string | null
           description?: string | null
+          dietary?: string[]
           emoji?: string
           id?: string
           max_price_cents?: number | null
@@ -859,6 +861,7 @@ export type Database = {
           created_at?: string
           default_variant_id?: string | null
           description?: string | null
+          dietary?: string[]
           emoji?: string
           id?: string
           max_price_cents?: number | null
@@ -1233,6 +1236,7 @@ export type Database = {
           compare_at_cents: number
           cursor: string
           default_variant_id: string
+          dietary: string[]
           id: string
           max_price_cents: number
           name: string

@@ -3,7 +3,7 @@ import Link from "next/link";
 import AddToCart from "./AddToCart";
 import WishButton from "./WishButton";
 import { IconPackage } from "./Icon";
-import { BADGE_LABEL, imageUrl, inStock, packSize, type ProductCard as Card } from "@/lib/catalog";
+import { BADGE_LABEL, DIETARY_LABEL, imageUrl, inStock, packSize, precoPorMedida, type ProductCard as Card } from "@/lib/catalog";
 import { discountPercent, usd } from "@/lib/money";
 
 /**
@@ -63,6 +63,7 @@ export default function ProductCardView({
   const soldOut = !inStock(p);
   const from = p.max_price_cents != null && p.max_price_cents > p.price_cents;
   const { title, unit } = packSize(p.name);
+  const porMedida = from ? null : precoPorMedida(p.price_cents, unit);
 
   return (
     <article className={`pcard ${soldOut ? "out" : ""}`}>
@@ -119,6 +120,17 @@ export default function ProductCardView({
           </b>
           {p.compare_at_cents ? <s className="was">{usd(p.compare_at_cents)}</s> : null}
         </div>
+        {/* Por medida: comparar 125 g com 200 g sem calculadora. Só
+            quando o tamanho está no nome — número inventado é pior que
+            nenhum. */}
+        {porMedida && <span className="pmeasure">{porMedida}</span>}
+        {p.dietary?.length ? (
+          <span className="dietas" aria-label="Dietary">
+            {p.dietary.map((d) => (
+              <i key={d}>{DIETARY_LABEL[d] ?? d}</i>
+            ))}
+          </span>
+        ) : null}
 
         <AddToCart
           variantId={p.default_variant_id}

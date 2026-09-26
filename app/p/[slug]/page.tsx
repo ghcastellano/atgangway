@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { data } = await supabase
     .from("products")
     .select(
-      `id, slug, name, short_description, description, specs, badge, sku, tax_class,
+      `id, slug, name, short_description, description, specs, dietary, badge, sku, tax_class,
        min_qty, max_qty, price_cents, compare_at_cents, max_price_cents, stock_qty,
        variant_count, primary_image_path, primary_category_id, brand_id,
        brands(name, slug),
@@ -121,6 +121,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           tax_class: p.tax_class,
           min_qty: p.min_qty,
           max_qty: p.max_qty,
+          dietary: p.dietary,
         }}
         images={images.length ? images : p.primary_image_path
           ? [{ id: "primary", path: p.primary_image_path, alt: p.name, sort_order: 0 }]

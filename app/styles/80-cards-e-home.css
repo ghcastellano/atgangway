@@ -1033,3 +1033,11 @@ main.esq { min-height: calc(100svh - 180px); }
 .infobox.minimo .barra i { display: block; height: 100%; background: var(--amber); }
 .sugestoes { margin: 14px 0 18px; }
 .sugestoes .secttl { font-size: 16px; margin-bottom: 8px; }
+
+/* Preço por medida e selos alimentares no card e na ficha. */
+.pmeasure { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--faint); margin-top: -2px; }
+.dietas { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.dietas i {
+  font-style: normal; font-size: 10px; letter-spacing: .04em; padding: 2px 7px;
+  border-radius: 999px; border: 1px solid var(--line-hi); color: var(--muted); background: var(--night);
+}

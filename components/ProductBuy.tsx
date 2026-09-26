@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import WishButton from "./WishButton";
 import { IconPackage } from "./Icon";
 import { useCart } from "@/lib/cart";
-import { BADGE_LABEL, imageUrl, type ProductImage, type ProductVariant } from "@/lib/catalog";
+import { BADGE_LABEL, DIETARY_LABEL, imageUrl, packSize, precoPorMedida, type ProductImage, type ProductVariant } from "@/lib/catalog";
 import { discountPercent, usd } from "@/lib/money";
 import { shortRegime } from "@/lib/taxregime";
 
@@ -20,6 +20,8 @@ type Head = {
   tax_class: "bonded" | "domestic" | "digital";
   min_qty: number;
   max_qty: number | null;
+  /** Selos alimentares (halal, vegetarian…). */
+  dietary?: string[] | null;
 };
 
 /**
@@ -64,6 +66,7 @@ export default function ProductBuy({
   }, [images, variant, product.name]);
 
   const price = variant?.price_cents ?? 0;
+  const porMedida = precoPorMedida(price, packSize(product.name).unit);
   const was = variant?.compare_at_cents ?? null;
   const off = discountPercent(price, was);
   const stock = variant ? (variant.track_stock ? variant.stock_qty : 999) : 0;
@@ -206,6 +209,7 @@ export default function ProductBuy({
           <div className="pdp-price">
             {was ? <s className="was">{usd(was)}</s> : null}
             <b className="now">{usd(price)}</b>
+            {porMedida && <span className="pmeasure">{porMedida}</span>}
             {/* O real saiu daqui. A cobrança é em dólar, o público é
                 estrangeiro, e a linha "≈ R$ X at today's rate" vinha de
                 uma constante congelada — era a única afirmação falsa da
@@ -238,6 +242,13 @@ export default function ProductBuy({
             <WishButton productId={product.id} name={product.name} initial={wished} />
           </div>
           {inCart > 0 && <p className="finehint">{inCart} already in your cart.</p>}
+          {product.dietary?.length ? (
+            <span className="dietas" aria-label="Dietary">
+              {product.dietary.map((d) => (
+                <i key={d}>{DIETARY_LABEL[d] ?? d}</i>
+              ))}
+            </span>
+          ) : null}
           <p className="finehint mono">SKU {variant?.sku ?? product.sku ?? "—"}</p>
         </div>
         </div>

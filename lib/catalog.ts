@@ -61,6 +61,8 @@ export type ProductCard = {
   variant_count: number;
   primary_image_path: string | null;
   badge: "promo" | "new" | "outlet" | null;
+  /** Selos alimentares (halal, vegetarian…). Vazio = não informado. */
+  dietary?: string[] | null;
   sku: string | null;
   /** Variante mais barata ativa — é o que o botão da grade adiciona. */
   default_variant_id: string | null;
@@ -132,6 +134,15 @@ export function imageUrl(path: string | null | undefined): string | null {
     .map(encodeURIComponent)
     .join("/")}`;
 }
+
+export const DIETARY_LABEL: Record<string, string> = {
+  halal: "Halal",
+  vegetarian: "Vegetarian",
+  vegan: "Vegan",
+  gluten_free: "Gluten-free",
+  lactose_free: "Lactose-free",
+  contains_nuts: "Contains nuts",
+};
 
 export const BADGE_LABEL: Record<string, string> = {
   promo: "Promo",
@@ -248,3 +259,26 @@ export function packSize(name: string): { title: string; unit: string | null } {
 
 /** Marca com produto ativo. `count` é o que o filtro devolve se clicado. */
 export type BrandOption = { id: string; slug: string; name: string; count: number };
+
+/**
+ * Preço por medida, para comparar embalagens: "USD 3.33 / 100 g".
+ *
+ * Sai do tamanho que já está no nome (ver packSize). Peso e volume
+ * viram por 100 g / 100 ml; "6 x 330 ml" vira por unidade, que é como
+ * a tripulação compara um pack. Sem tamanho reconhecível, nada — número
+ * inventado é pior que nenhum.
+ */
+export function precoPorMedida(priceCents: number, unit: string | null): string | null {
+  if (!unit || !priceCents) return null;
+  const m = /^(?:(\d+)\s*[x\u00d7]\s*)?(\d+(?:[.,]\d+)?)\s*(kg|g|ml|l|cl|un|ct|pack)$/i.exec(unit.trim());
+  if (!m) return null;
+  const pack = m[1] ? Number(m[1]) : 1;
+  const qtd = Number(m[2].replace(",", "."));
+  const u = m[3].toLowerCase();
+  const fmt = (c: number) => `USD ${(c / 100).toFixed(2)}`;
+  if (pack > 1) return `${fmt(priceCents / pack)} each`;
+  if (u === "un" || u === "ct" || u === "pack") return qtd > 1 ? `${fmt(priceCents / qtd)} each` : null;
+  const base = u === "kg" ? qtd * 1000 : u === "l" ? qtd * 1000 : u === "cl" ? qtd * 10 : qtd;
+  if (!base) return null;
+  return `${fmt((priceCents / base) * 100)} / 100 ${u === "kg" || u === "g" ? "g" : "ml"}`;
+}
