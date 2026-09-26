@@ -1,9 +1,15 @@
 # IMO, MMSI e bandeira dos navios, ouvindo o AIS ao redor de Santos.
 #
 # O line-up da CODESP não traz o IMO; o AIS traz, e o aisstream.io repassa
-# o feed de graça. Oito minutos de escuta a cada três horas pegam a
-# mensagem estática (a cada 6 min) de quem está no porto, no fundeadouro
-# ou chegando. Com IMO no banco, o buscador de fotos acha o casco certo.
+# o feed de graça. Seis minutos de escuta a cada seis horas pegam a
+# mensagem estática (transmitida a cada 6 min) de quem está no porto, no
+# fundeadouro ou chegando. Com IMO no banco, o buscador de fotos acha o
+# casco certo.
+#
+# O ritmo é conta de minutos: o repositório é privado e o GitHub dá
+# 2.000 min/mês. Quatro rodadas de ~7 min por dia são ~840 min/mês, e
+# ainda sobra para o backup diário e as fotos semanais. A cada 3 h com
+# 8 min estourava a cota.
 #
 # Precisa dos segredos AISSTREAM_API_KEY (chave gratuita, criada com o
 # login do GitHub em https://aisstream.io) e SUPABASE_SERVICE_ROLE_KEY.
@@ -12,7 +18,7 @@ name: ais-santos
 
 on:
   schedule:
-    - cron: "15 */3 * * *"
+    - cron: "15 */6 * * *"
   workflow_dispatch: {}
 
 concurrency:
@@ -40,4 +46,4 @@ jobs:
             echo "AISSTREAM_API_KEY ausente — nada a fazer."
             exit 0
           fi
-          node scripts/ais-santos.mjs --minutos 8
+          node scripts/ais-santos.mjs --minutos 6
