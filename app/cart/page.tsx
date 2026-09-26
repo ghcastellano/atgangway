@@ -8,7 +8,8 @@ import CallStrip from "@/components/CallStrip";
 import { useCart } from "@/lib/cart";
 import { createClient } from "@/lib/supabase/client";
 import { supabaseConfigured } from "@/lib/env";
-import { imageUrl } from "@/lib/catalog";
+import { imageUrl, listProducts, type ProductCard } from "@/lib/catalog";
+import ProductCardView from "@/components/ProductCard";
 import { DEPOSIT_PCT, faltaParaMinimo, splitOrder, toCents, usd } from "@/lib/money";
 import { IconCart, IconPackage, IconTrash } from "@/components/Icon";
 import { callState, canOrder, type CallState } from "@/lib/callstate";
@@ -215,7 +216,32 @@ export default function CartPage() {
     0
   );
   const split = splitOrder(subtotal);
-  const { below: belowMin, label: avisoMin } = faltaParaMinimo(subtotal, minOrderCents);
+  const { below: belowMin, label: avisoMin, missing: faltaMin } = faltaParaMinimo(subtotal, minOrderCents);
+
+  // Abaixo do mínimo, o carrinho era um muro ("Add USD 42.00 more") sem
+  // caminho. Três itens em destaque que ainda não estão no carrinho
+  // fecham a conta em um toque. Só de variante única: o card adiciona
+  // direto, sem abrir a ficha.
+  const [destaques, setDestaques] = useState<ProductCard[]>([]);
+  useEffect(() => {
+    if (!belowMin || !supabaseConfigured || destaques.length) return;
+    let vivo = true;
+    listProducts(createClient(), { sort: "featured", limit: 12 }).then(({ items: lista }) => {
+      if (vivo) setDestaques(lista);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [belowMin, destaques.length]);
+  // Derivado do carrinho atual: o que a pessoa acabou de adicionar sai da
+  // lista e o próximo entra, sem nova ida ao banco.
+  const sugestoes = useMemo(
+    () =>
+      destaques
+        .filter((p) => p.default_variant_id && !(p.default_variant_id in items) && p.variant_count <= 1)
+        .slice(0, 3),
+    [destaques, items]
+  );
 
   return (
     <main className="pg-cart">
@@ -225,8 +251,13 @@ export default function CartPage() {
           única pista do mínimo — e o botão de checkout seguia ativo. Quem
           decide é o CTA lá embaixo; este box só antecipa o número. */}
       {belowMin && rows.length > 0 && (
-        <div className="infobox">
-          <span>Minimum order amount {usd(minOrderCents)}</span>
+        <div className="infobox minimo">
+          <span>
+            Minimum order {usd(minOrderCents)} · <b>{usd(faltaMin)} to go</b>
+          </span>
+          <span className="barra" aria-hidden>
+            <i style={{ width: `${Math.min(100, (subtotal / (minOrderCents || 1)) * 100)}%` }} />
+          </span>
         </div>
       )}
 
@@ -350,6 +381,19 @@ export default function CartPage() {
               for your next call — no paperwork.
             </p>
           </section>
+
+          {/* Logo abaixo do "Add USD X more": é onde a pergunta "o quê?"
+              surge. Acima do resumo, empurrava o carrinho para baixo. */}
+          {belowMin && sugestoes.length > 0 && (
+            <section className="sugestoes" aria-labelledby="sug">
+              <h2 id="sug" className="secttl left">Popular add-ons to reach the minimum</h2>
+              <div className="pgrid">
+                {sugestoes.map((p) => (
+                  <ProductCardView key={p.id} p={p} sizes="(max-width: 620px) 46vw, 200px" />
+                ))}
+              </div>
+            </section>
+          )}
 
           {dropped > 0 && (
             <div className="stack">
