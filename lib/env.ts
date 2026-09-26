@@ -43,6 +43,30 @@ export const SUPABASE_URL_NAVEGADOR =
     ? process.env.NEXT_PUBLIC_SITE_URL || "https://atgangway.com"
     : SUPABASE_URL;
 
+/**
+ * O nome do cookie onde a sessão mora — sempre derivado do endereço do
+ * SERVIDOR, nunca do endereço do navegador.
+ *
+ * O @supabase/ssr monta essa chave a partir do hostname: com
+ * cuaocjxofaizefzcxlyc.supabase.co ele grava em
+ * `sb-cuaocjxofaizefzcxlyc-auth-token`; com atgangway.com, em
+ * `sb-atgangway-auth-token`. Como o proxy deu endereços diferentes para o
+ * navegador e para o servidor, cada lado passou a usar um cookie diferente:
+ * o login acontecia, o token era emitido, e o servidor procurava a sessão
+ * num cookie que não existia. Para quem usava, era simplesmente "o login
+ * não funciona" — sem erro nenhum na tela.
+ *
+ * Fixando a chave, os dois lados voltam a falar do mesmo cookie.
+ */
+export const SUPABASE_STORAGE_KEY = (() => {
+  try {
+    const ref = new URL(SUPABASE_URL).hostname.split(".")[0];
+    return ref ? `sb-${ref}-auth-token` : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+
 // Volta a significar algo: na Vercel é sempre true (retaguarda), no dev
 // local sem .env.local é FALSE — e as telas mostram o aviso em vez de
 // falar com o banco errado.

@@ -25,7 +25,7 @@ function carrega(env) {
       "--input-type=module",
       "-e",
       `const m = await import(${JSON.stringify("file://" + lib)});` +
-        `console.log(JSON.stringify({ c: m.supabaseConfigured, u: m.SUPABASE_URL, s: m.SITE_URL, n: m.SUPABASE_URL_NAVEGADOR }));`,
+        `console.log(JSON.stringify({ c: m.supabaseConfigured, u: m.SUPABASE_URL, s: m.SITE_URL, n: m.SUPABASE_URL_NAVEGADOR, k: m.SUPABASE_STORAGE_KEY }));`,
     ],
     // PATH e afins continuam; só as chaves do contrato são controladas.
     { env: { ...process.env, ...env }, encoding: "utf-8" }
@@ -140,4 +140,36 @@ test("o matcher do middleware não pega os caminhos repassados ao Supabase", asy
       `${caminho} precisa estar fora do middleware — senão cada consulta vira dois getUser()`
     );
   }
+});
+
+/* O cookie da sessão sai do endereço do SERVIDOR, nunca do navegador.
+ *
+ * Este é o teste que faltava quando o proxy subiu. O @supabase/ssr monta o
+ * nome do cookie a partir do hostname: com o proxy ligado o navegador
+ * gravava em `sb-atgangway-auth-token` e o servidor procurava em
+ * `sb-cuaocjxofaizefzcxlyc-auth-token`. O login acontecia, o token era
+ * emitido, e a pessoa continuava deslogada — sem erro nenhum na tela, que é
+ * o tipo de defeito que só aparece quando alguém tenta usar. */
+test("o cookie de sessão não muda quando o proxy liga", () => {
+  const base = {
+    ...LIMPO,
+    NEXT_PUBLIC_SUPABASE_URL: "https://exemplo.supabase.co",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "k",
+    NEXT_PUBLIC_SITE_URL: "https://atgangway.com",
+  };
+  const sem = carrega(base);
+  const com = carrega({ ...base, NEXT_PUBLIC_SUPABASE_PROXY: "1" });
+  assert.equal(sem.k, "sb-exemplo-auth-token");
+  assert.equal(
+    com.k,
+    sem.k,
+    "com o proxy ligado o navegador gravaria a sessão noutro cookie, e o servidor nunca a veria"
+  );
+  // e o endereço do navegador MUDA — é justamente por isso que a chave precisa ficar fixa
+  assert.notEqual(com.n, sem.n);
+});
+
+test("sem backend configurado, não inventa nome de cookie", () => {
+  const m = carrega({ ...LIMPO });
+  assert.equal(m.k, undefined);
 });
