@@ -13,10 +13,13 @@ export default function DeliveryStrip({
   promise,
   portName,
   compact = false,
+  visitante = false,
 }: {
   promise: DeliveryPromise | null;
   portName: string;
   compact?: boolean;
+  /** Sem sessão: uma frase só, sem contagem nem "vessel must stay". */
+  visitante?: boolean;
 }) {
   // Sem janela aberta agora não se inventa data: a próxima abre e a
   // pessoa é avisada, em vez de receber uma promessa que não vale.
@@ -39,6 +42,21 @@ export default function DeliveryStrip({
   });
   // Abaixo de 6h a janela vira alarme. Um limiar só, aqui.
   const urgent = left <= 6;
+
+  // Quem chega sem conta não tem navio nem prazo: "LAST CALL", horas até
+  // o corte e "vessel must stay 6h" são jargão da operação na primeira
+  // dobra. O que convence é a promessa e quem a cumpre.
+  if (visitante) {
+    return (
+      <div className={`deadline ${compact ? "compact" : ""}`}>
+        🚢{" "}
+        <span>
+          Order today, delivered at your gangway <b>{day}</b> when you dock at {portName} — by an
+          accredited ship chandler.
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className={`deadline ${urgent ? "urgent" : ""} ${compact ? "compact" : ""}`}>

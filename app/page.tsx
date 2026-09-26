@@ -369,7 +369,7 @@ export default async function Home() {
             navio ao lado já diz o prazo — e dois prazos na mesma tela
             seriam dois relógios para conferir. */}
         {crew?.kind !== "vessel" && grid && (
-          <DeliveryStrip promise={promise} portName={grid.name} compact />
+          <DeliveryStrip promise={promise} portName={grid.name} compact visitante={!crew} />
         )}
           {/* Chamadas do herói: só aparecem no desktop. No celular a
               tela já é curta e a grade de categorias vem logo abaixo. */}
