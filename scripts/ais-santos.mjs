@@ -80,7 +80,7 @@ const MID = {
   770: "UY", 775: "VE",
 };
 
-const chave = (s) => (s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
+const chave = (s) => (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
 const cab = { apikey: KEY_DB, Authorization: `Bearer ${KEY_DB}`, "Content-Type": "application/json" };
 
 // Navios do banco que ainda têm algo a preencher, indexados pelo nome.
@@ -91,26 +91,41 @@ for (const s of await r.json()) porNome.set(chave(s.name), s);
 console.log(`${porNome.size} navio(s) com IMO, MMSI ou bandeira em branco; ouvindo ${MINUTOS} min…`);
 
 const vistos = new Map(); // mmsi → {nome, imo, destino}
-const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
-ws.addEventListener("open", () => {
-  ws.send(JSON.stringify({ APIKey: KEY_AIS, BoundingBoxes: [CAIXA], FilterMessageTypes: ["ShipStaticData"] }));
-});
-ws.addEventListener("message", (ev) => {
-  try {
-    const m = JSON.parse(ev.data);
-    const d = m.Message?.ShipStaticData;
-    if (!d) return;
-    const mmsi = String(d.UserID ?? m.MetaData?.MMSI ?? "");
-    const imo = d.ImoNumber && d.ImoNumber > 1000000 ? String(d.ImoNumber) : null;
-    const nome = (d.Name ?? m.MetaData?.ShipName ?? "").trim();
-    if (!mmsi || !nome) return;
-    vistos.set(mmsi, { nome, imo, destino: (d.Destination ?? "").trim() });
-  } catch {}
-});
-ws.addEventListener("error", (e) => console.error("websocket:", e.message ?? e));
+const fim = Date.now() + MINUTOS * 60_000;
 
-await new Promise((res) => setTimeout(res, MINUTOS * 60_000));
-ws.close();
+/* O aisstream derruba a conexão de vez em quando (code 1006, sem motivo).
+   Enquanto houver tempo, reconecta; o que já foi ouvido fica no mapa. */
+function ouvir() {
+  return new Promise((res) => {
+    const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
+    ws.addEventListener("open", () => {
+      ws.send(JSON.stringify({ APIKey: KEY_AIS, BoundingBoxes: [CAIXA], FilterMessageTypes: ["ShipStaticData"] }));
+    });
+    ws.addEventListener("message", async (ev) => {
+      try {
+        // O Node entrega o quadro como Blob; só o navegador dá string direto.
+        const texto = typeof ev.data === "string" ? ev.data : await ev.data.text();
+        const m = JSON.parse(texto);
+        if (m.error) { console.error("aisstream:", m.error); ws.close(); return; }
+        const d = m.Message?.ShipStaticData;
+        if (!d) return;
+        const mmsi = String(d.UserID ?? m.MetaData?.MMSI ?? "");
+        const imo = d.ImoNumber && d.ImoNumber > 1000000 ? String(d.ImoNumber) : null;
+        const nome = (d.Name ?? m.MetaData?.ShipName ?? "").trim();
+        if (!mmsi || !nome) return;
+        vistos.set(mmsi, { nome, imo, destino: (d.Destination ?? "").trim() });
+      } catch {}
+    });
+    ws.addEventListener("error", () => {});
+    ws.addEventListener("close", () => res());
+    const resta = fim - Date.now();
+    setTimeout(() => { try { ws.close(); } catch {} }, Math.max(0, resta));
+  });
+}
+while (Date.now() < fim - 5_000) {
+  await ouvir();
+  if (Date.now() < fim - 5_000) await new Promise((r) => setTimeout(r, 2_000));
+}
 
 let casados = 0, gravados = 0;
 for (const [mmsi, v] of vistos) {
