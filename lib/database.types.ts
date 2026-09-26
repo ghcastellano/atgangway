@@ -1279,6 +1279,17 @@ export type Database = {
         Returns: boolean
       }
       rotate_ship_calls: { Args: { p_secret?: string }; Returns: Json }
+      vessel_photo_credits: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name: string
+          imo: string
+          flag: string
+          image_path: string
+          image_credit: string
+          image_source: string
+        }[]
+      }
       search_vessels: {
         Args: { p_query: string }
         Returns: {

@@ -60,13 +60,34 @@ function rotulo(r: VesselRow): string {
  * A foto do navio, ou a âncora quando não há. Fundo branco e `contain`,
  * a mesma regra do checkout: recortar o casco para caber num retângulo
  * é o que faz a foto parecer de outro navio.
+ *
+ * `credito` vai no `title`: a licença pede atribuição, mas texto embaixo
+ * da foto poluía a tela de quem só quer achar o próprio navio. O crédito
+ * completo mora em /credits; aqui ele aparece só no hover.
  */
-function Foto({ path, tamanho, alt = "" }: { path: string | null | undefined; tamanho: string; alt?: string }) {
+function Foto({
+  path,
+  tamanho,
+  alt = "",
+  credito,
+}: {
+  path: string | null | undefined;
+  tamanho: string;
+  alt?: string;
+  credito?: string | null;
+}) {
   const src = imageUrl(path);
   return (
     <span className="ph" style={src ? { background: "#FFFFFF" } : undefined}>
       {src ? (
-        <Image src={src} alt={alt} fill sizes={tamanho} style={{ objectFit: "contain" }} />
+        <Image
+          src={src}
+          alt={alt}
+          title={credito ?? undefined}
+          fill
+          sizes={tamanho}
+          style={{ objectFit: "contain" }}
+        />
       ) : (
         <span aria-hidden>⚓</span>
       )}
@@ -384,7 +405,7 @@ export default function VesselSearch({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => pick(r)}
                 >
-                  <Foto path={r.image_path} tamanho="52px" />
+                  <Foto path={r.image_path} tamanho="52px" credito={r.image_credit} />
                   <span className="nm">{tituloNavio(r)}</span>
                   <span className="sub">{rotulo(r)}</span>
                 </button>
@@ -440,14 +461,13 @@ export default function VesselSearch({
       )}
 
       {/* O navio escolhido, com a foto: é a confirmação visual de que é
-          o casco certo — e o lugar do crédito, que a licença da foto
-          exige onde ela aparece. */}
+          o casco certo. O crédito da foto não fica escrito aqui — vive
+          na página /credits e no `title` da imagem. */}
       {value?.image_path && !open && (
         <div className="vs-pick">
-          <Foto path={value.image_path} tamanho="88px" alt={value.name} />
+          <Foto path={value.image_path} tamanho="88px" alt={value.name} credito={value.image_credit} />
           <span className="vs-pick-txt">
             <strong>{tituloNavio(value)}</strong>
-            {value.image_credit && <small>{value.image_credit}</small>}
           </span>
         </div>
       )}

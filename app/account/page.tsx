@@ -54,7 +54,10 @@ type ProfileRow = {
   vessel_imo: string | null;
   vessel_flag: string | null;
   role: string | null;
-  ships: { name: string; imo: string | null; flag: string | null; eta: string | null; ata: string | null } | null;
+  ships: {
+    name: string; imo: string | null; flag: string | null; eta: string | null; ata: string | null;
+    image_path: string | null; image_credit: string | null;
+  } | null;
 };
 
 export default function AccountPage() {
@@ -103,7 +106,7 @@ export default function AccountPage() {
           .select(
             `full_name, rank_slug, nationality, whatsapp, port_id, ship_id,
              vessel_name, vessel_imo, vessel_flag, role,
-             ships!profiles_ship_id_fkey(name, imo, flag, eta, ata)`
+             ships!profiles_ship_id_fkey(name, imo, flag, eta, ata, image_path, image_credit)`
           )
           .eq("id", user.id)
           .maybeSingle(),
@@ -149,6 +152,10 @@ export default function AccountPage() {
               name: shipName,
               imo: p?.ships?.imo ?? p?.vessel_imo ?? null,
               flag: p?.ships?.flag ?? p?.vessel_flag ?? null,
+              // Sem isto o cartão com a foto só aparecia depois de
+              // reescolher o navio — o salvo abria como texto seco.
+              image_path: p?.ships?.image_path ?? null,
+              image_credit: p?.ships?.image_credit ?? null,
             }
           : null
       );

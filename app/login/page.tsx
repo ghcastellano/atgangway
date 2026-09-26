@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -25,18 +25,23 @@ function LoginInner() {
   // Senha aceita e navegação em curso: o botão muda de frase e segue
   // travado até esta tela sair (ver submit).
   const [entrou, setEntrou] = useState(false);
+  // Ref, não estado: dois eventos no mesmo tick (clique + Enter do
+  // mesmo gesto) leem o estado ainda antigo; a ref muda na hora.
+  const enviando = useRef(false);
   const [needsConfirm, setNeedsConfirm] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     // Enter repetido ou clique duplo antes do botão travar: um login só.
-    if (busy || entrou) return;
+    if (enviando.current || busy || entrou) return;
+    enviando.current = true;
     setBusy(true);
     setErr(null);
     setInfo(null);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      enviando.current = false;
       setBusy(false);
       const kind = signInFailure(error);
       setNeedsConfirm(kind === "unconfirmed");

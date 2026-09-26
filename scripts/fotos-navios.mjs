@@ -10,8 +10,9 @@
  * um terço dos navios que passam por Santos — e as categorias de lá
  * são indexadas por IMO, o que também preenche o número que faltava.
  *
- * Licença livre exige crédito: fica em ships.image_credit, e a tela
- * mostra junto com a foto.
+ * Licença livre exige crédito: fica em ships.image_credit e aparece só
+ * no `title` da imagem e na página /credits (sem link — decisão do
+ * produto, o tripulante não precisa ver isso).
  *
  * Roda semanal no GitHub Actions (.github/workflows/fotos-navios.yml)
  * e à mão:
@@ -67,28 +68,46 @@ async function commons(params) {
 }
 
 const chave = (s) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 const semTags = (s) => (s ?? "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 
-/** Procura o navio no Commons. Devolve null quando não há categoria com o nome exato. */
-async function procurar(nome) {
-  const busca = await commons({
-    action: "query", list: "search", srnamespace: 14, srlimit: 20,
-    srsearch: `intitle:"${nome}" ship`,
-  });
+/**
+ * Procura o navio no Commons. Devolve null quando não há categoria.
+ *
+ * Com IMO no banco (vindo do AIS ou da tripulação) a busca é exata: a
+ * categoria "IMO 9087013" é o casco, sem chance de confundir dois navios
+ * de mesmo nome. Sem IMO, cai para o nome exato "NOME (ship, ANO)".
+ */
+async function procurar(nome, imoConhecido) {
   const alvo = chave(nome);
   const re = /^(.+) \(ship,? (\d{4})\)$/i;
-  const candidatos = [];
-  for (const it of busca.query?.search ?? []) {
-    const t = it.title.replace(/^Category:/, "");
-    const m = t.match(re);
-    if (m && chave(m[1]) === alvo) candidatos.push({ cat: it.title, ano: Number(m[2]) });
+  let candidatos = [];
+  if (imoConhecido) {
+    const m = await commons({ action: "query", list: "categorymembers", cmtitle: `Category:IMO ${imoConhecido}`, cmtype: "subcat", cmlimit: 20 });
+    for (const c of m.query?.categorymembers ?? []) {
+      const mm = c.title.replace(/^Category:/, "").match(re);
+      if (mm) candidatos.push({ cat: c.title, ano: Number(mm[2]) });
+    }
+    // Só a categoria do casco certo entra: o IMO pode ter mudado de nome
+    // (navio vendido), e aí o nome não bate — mas o casco é o mesmo.
+    if (candidatos.length) candidatos = [candidatos.sort((a, b) => b.ano - a.ano)[0]];
+  }
+  if (!candidatos.length) {
+    const busca = await commons({
+      action: "query", list: "search", srnamespace: 14, srlimit: 20,
+      srsearch: `intitle:"${nome}" ship`,
+    });
+    for (const it of busca.query?.search ?? []) {
+      const t = it.title.replace(/^Category:/, "");
+      const m = t.match(re);
+      if (m && chave(m[1]) === alvo) candidatos.push({ cat: it.title, ano: Number(m[2]) });
+    }
   }
   if (!candidatos.length) return null;
   candidatos.sort((a, b) => b.ano - a.ano);
   const principal = candidatos[0];
-  const ambiguo = candidatos.length > 1;
+  const ambiguo = candidatos.length > 1 && !imoConhecido;
 
   // IMO: é categoria-mãe ("Category:IMO 9087013")
   const pais = await commons({ action: "query", titles: principal.cat, prop: "categories", cllimit: 100 });
@@ -193,7 +212,7 @@ const resumo = { foto: 0, imo: 0, semCategoria: 0, semFotoBoa: 0, erro: 0 };
 for (const s of navios) {
   const agora = new Date().toISOString();
   try {
-    const achado = await procurar(s.name);
+    const achado = await procurar(s.name, s.imo);
     if (!achado) {
       resumo.semCategoria++;
       console.log(`--  ${s.name}`);

@@ -512,9 +512,9 @@
 .factrow.missing.soft dd { color: var(--muted); }
 .factrow.missing.soft dd a { color: var(--amber-hi); }
 .factship { display: flex; align-items: center; gap: 10px; }
-/* A moldura da foto de navio é uma só — checkout, lista de busca e navio
-   escolhido — para o mesmo casco não parecer dois. */
-.factship .ph, .ta-opt .ph, .vs-pick .ph {
+/* A moldura da foto de navio é uma só — checkout, lista de busca, navio
+   escolhido e página de créditos — para o mesmo casco não parecer dois. */
+.factship .ph, .ta-opt .ph, .vs-pick .ph, .credit-ship .ph {
   position: relative; width: 52px; height: 40px; flex: none; border-radius: 8px;
   overflow: hidden; background: var(--night); display: grid; place-items: center;
   font-size: 17px; border: 1px solid var(--line-hi);
@@ -547,7 +547,8 @@
   color: var(--faint); cursor: pointer; border-radius: 8px;
 }
 .ta-clear:hover, .ta-clear:focus-visible { color: var(--ink); background: var(--card-hi); outline: none; }
-/* O navio escolhido, com a foto maior e o crédito da foto. */
+/* O navio escolhido, com a foto maior. Sem crédito escrito: ele fica em
+   /credits e no title da imagem. */
 .vs-pick {
   display: flex; align-items: center; gap: 10px; margin-top: 8px;
   padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card);
@@ -555,7 +556,9 @@
 .vs-pick .ph { width: 88px; height: 60px; }
 .vs-pick-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .vs-pick-txt strong { font-size: 13.5px; }
-.vs-pick-txt small { color: var(--faint); font-size: 10.5px; line-height: 1.3; }
+/* Linha da página de créditos: a coluna da miniatura abre para a moldura
+   de navio (52px), que é mais larga que a de produto. */
+.ci.credit-ship { grid-template-columns: 52px 1fr; }
 .ta-hint { padding: 11px 13px; color: var(--faint); font-size: 12px; }
 .ta-group {
   padding: 7px 13px; color: var(--faint); font-size: 10px; letter-spacing: .14em;
