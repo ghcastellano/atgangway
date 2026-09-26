@@ -331,6 +331,14 @@ export default function VesselSearch({
       </label>
 
       <div className="typeahead" ref={box}>
+        {/* A foto do navio escolhido fica DENTRO do campo, à esquerda do
+            nome — como na linha da lista. Nada abre embaixo: o tripulante
+            já escolheu, não precisa de outro cartão para confirmar. */}
+        {value?.image_path && !open && (
+          <span className="ta-thumb">
+            <Foto path={value.image_path} tamanho="52px" credito={value.image_credit} alt={value.name} />
+          </span>
+        )}
         <input
           id={`${uid}-in`}
           type="text"
@@ -340,7 +348,7 @@ export default function VesselSearch({
           aria-autocomplete="list"
           autoComplete="off"
           enterKeyHint="search"
-          className={value && !open ? "has-clear" : undefined}
+          className={[value && !open ? "has-clear" : "", value?.image_path && !open ? "has-thumb" : ""].join(" ").trim() || undefined}
           placeholder="Enter your imo or Vessel name to search"
           value={open ? q : value ? tituloNavio(value) : ""}
           onFocus={() => {
@@ -460,22 +468,10 @@ export default function VesselSearch({
         </>
       )}
 
-      {/* O navio escolhido, com a foto: é a confirmação visual de que é
-          o casco certo. O crédito da foto não fica escrito aqui — vive
-          na página /credits e no `title` da imagem. */}
-      {value?.image_path && !open && (
-        <div className="vs-pick">
-          <Foto path={value.image_path} tamanho="88px" alt={value.name} credito={value.image_credit} />
-          <span className="vs-pick-txt">
-            <strong>{tituloNavio(value)}</strong>
-          </span>
-        </div>
-      )}
-
       {err && <p className="finehint" style={{ color: "var(--danger)" }}>{err}</p>}
-      {/* Com o cartão da foto, a linha "IMO · bandeira" repetiria o que
-          está logo acima; ela só volta quando há algo a pedir (o IMO). */}
-      {value && !err && !(value.image_path && value.imo && !open) && (
+      {/* O campo já mostra "[BANDEIRA] (IMO)" no título; a linha embaixo
+          só volta quando há algo a pedir (o IMO) ou a avisar (navio novo). */}
+      {value && !err && !(value.id && value.imo && !open) && (
         <p className="finehint">
           {value.id ? (
             value.imo ? (
