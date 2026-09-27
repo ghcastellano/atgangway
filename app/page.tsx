@@ -10,10 +10,11 @@ import { callState, canOrder } from "@/lib/callstate";
 import { unstable_cache } from "next/cache";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import CategoryIcon from "@/components/CategoryIcon";
+import JsonLd from "@/components/JsonLd";
 import ProductCardView from "@/components/ProductCard";
 import { createClient } from "@/lib/supabase/server";
 import { imageUrl, listProducts, type Category, type ProductCard } from "@/lib/catalog";
-import { SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
+import { CONTACT_EMAIL, SITE_URL, SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/env";
 import { DEPOSIT_PCT } from "@/lib/money";
 import { resolveDelivery, type PortRule } from "@/lib/delivery";
 import { diaLocal } from "@/lib/format";
@@ -357,6 +358,35 @@ export default async function Home() {
 
   return (
     <main className={`pg-home${cartao ? " lado" : ""}`}>
+      {/* Quem somos e a busca do site, para o Google. O logo é a mesma
+          imagem do Open Graph — o schema pede raster. */}
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": `${SITE_URL}#org`,
+              name: "At Gangway",
+              url: SITE_URL,
+              logo: `${SITE_URL}/og.png`,
+              email: CONTACT_EMAIL,
+              areaServed: "Porto de Santos, Brazil",
+            },
+            {
+              "@type": "WebSite",
+              url: SITE_URL,
+              name: "At Gangway",
+              publisher: { "@id": `${SITE_URL}#org` },
+              potentialAction: {
+                "@type": "SearchAction",
+                target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/shop?q={search_term_string}` },
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ],
+        }}
+      />
       <section className="homehero">
         <p className="kicker">At Gangway · Porto de Santos</p>
         <h1>Delivered to your gangway at Porto de Santos</h1>

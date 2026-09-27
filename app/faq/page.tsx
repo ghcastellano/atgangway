@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/Breadcrumb";
+import JsonLd from "@/components/JsonLd";
 import { CONTACT_EMAIL } from "@/lib/env";
 import { DEPOSIT_PCT } from "@/lib/money";
 
@@ -24,6 +25,15 @@ export const metadata: Metadata = {
  * O percentual do depósito sai de money.ts em vez de estar escrito no
  * texto — se a regra mudar, a resposta não fica mentindo.
  */
+/** Texto puro de um trecho de JSX: é o que vai no FAQPage. */
+function textoDe(n: React.ReactNode): string {
+  if (n == null || typeof n === "boolean") return "";
+  if (typeof n === "string" || typeof n === "number") return String(n);
+  if (Array.isArray(n)) return n.map(textoDe).join("");
+  if (typeof n === "object" && "props" in n) return textoDe((n as { props: { children?: React.ReactNode } }).props.children);
+  return "";
+}
+
 const QA: { q: string; a: React.ReactNode }[] = [
   {
     q: "Do I need an account?",
@@ -152,6 +162,17 @@ const QA: { q: string; a: React.ReactNode }[] = [
 export default function FaqPage() {
   return (
     <main>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: QA.map((item) => ({
+            "@type": "Question",
+            name: item.q,
+            acceptedAnswer: { "@type": "Answer", text: textoDe(item.a) },
+          })),
+        }}
+      />
       <Breadcrumb trail={[{ label: "FAQ" }]} />
 
       <h1 className="pagettl">FAQ</h1>

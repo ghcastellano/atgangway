@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumb from "@/components/Breadcrumb";
+import JsonLd from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/env";
 import ProductBuy from "@/components/ProductBuy";
 import ProductCardView from "@/components/ProductCard";
 import { clientePublico } from "@/lib/supabase/publico";
-import { listProducts, type ProductDetail } from "@/lib/catalog";
+import { imageUrl, listProducts, type ProductDetail } from "@/lib/catalog";
 import { ELIGIBILITY } from "@/lib/taxregime";
 
 export const revalidate = 300;
@@ -100,8 +102,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       )
     : [];
 
+  // Para o Google mostrar preço e estoque no resultado. Imagem do site
+  // (public/) é relativa; a do storage já vem absoluta.
+  const foto = imageUrl(p.primary_image_path);
+  const emEstoque = !p.tracks_stock || (p.stock_qty ?? 0) > 0;
+  const produtoLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    description: p.short_description ?? undefined,
+    sku: p.sku ?? undefined,
+    image: foto ? (foto.startsWith("/") ? `${SITE_URL}${foto}` : foto) : undefined,
+    brand: p.brands?.name ? { "@type": "Brand", name: p.brands.name } : undefined,
+    offers: {
+      "@type": "Offer",
+      url: `${SITE_URL}/p/${p.slug}`,
+      priceCurrency: "USD",
+      price: (p.price_cents / 100).toFixed(2),
+      availability: emEstoque ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+  };
+
   return (
     <main className="pb-dock pg-pdp">
+      <JsonLd data={produtoLd} />
       <Breadcrumb
         trail={[
           { label: "Shop", href: "/shop" },

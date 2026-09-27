@@ -11,6 +11,9 @@ import SiteFooter from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atgangway.com"),
+  // "./" resolve para a rota atual: cada página ganha o seu canonical
+  // sem ter de declarar (e a busca com ?q= não vira página duplicada).
+  alternates: { canonical: "./" },
   title: {
     default: "At Gangway",
     template: "%s · At Gangway",

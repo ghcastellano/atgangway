@@ -32,6 +32,18 @@ export const revalidate = 300;
  *  o mesmo produto duas vezes — o rótulo dizia 96 numa loja de 81. */
 const COLECOES = new Set(["new-arrivals", "promo", "outlet"]);
 
+export async function generateMetadata({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const sp = await searchParams;
+  const q = typeof sp.q === "string" ? sp.q.trim() : "";
+  // Resultado de busca é página infinita: não entra no índice.
+  if (q) return { title: `“${q}” · Shop`, robots: { index: false } };
+  return {
+    title: "Shop ship supplies for Porto de Santos",
+    description:
+      "Snacks, coffee, SIM cards, toiletries and more, delivered at your gangway when you dock at Porto de Santos. Pre-order before docking, 30% deposit.",
+  };
+}
+
 export default async function ShopPage({
   searchParams,
 }: {
