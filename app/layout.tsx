@@ -81,6 +81,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* O LCP da home é o título, em Bricolage. Sem preload a fonte só
+            é pedida depois de o CSS ser lido, e o título é pintado duas
+            vezes. Só o subconjunto latino, que é o que a primeira dobra
+            usa; o latin-ext vem quando o texto pedir. */}
+        <link rel="preload" href="/fonts/bricolage-grotesque-600-latin-4efd1a5a.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/inter-400-latin-1ab1ad55.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+      </head>
       <body>
         <WishProvider>
         <CartProvider>
