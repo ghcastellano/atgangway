@@ -540,3 +540,6 @@
    mesmo de dentro de cada uma, então liam como uma fita só. */
 .adm-page > .adm-chips + .adm-chips { margin-top: -4px; }
 .adm-toolbar + .adm-chips { margin-top: 2px; }
+
+/* Selos alimentares no formulário do produto: caixas lado a lado. */
+.adm-selos { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; }

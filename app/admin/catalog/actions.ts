@@ -62,6 +62,9 @@ export async function saveCatalogProduct(formData: FormData) {
     .map((s) => s.trim())
     .filter(Boolean);
 
+  const SELOS = ["halal", "vegetarian", "vegan", "gluten_free", "lactose_free", "contains_nuts"];
+  const dietary = formData.getAll("dietary").map(String).filter((d) => SELOS.includes(d));
+
   const categoryId = String(formData.get("category_id") ?? "") || null;
   const badge = String(formData.get("badge") ?? "") || null;
 
@@ -72,6 +75,7 @@ export async function saveCatalogProduct(formData: FormData) {
     short_description: String(formData.get("short_description") ?? "").trim() || null,
     description: String(formData.get("description") ?? "").trim() || null,
     specs: specs.length ? specs : null,
+    dietary,
     primary_category_id: categoryId,
     badge: ["promo", "new", "outlet"].includes(badge ?? "") ? badge : null,
     tax_class: String(formData.get("tax_class") ?? "bonded"),

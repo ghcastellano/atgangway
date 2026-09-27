@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 type P = {
   id: string; name: string; sku: string | null; slug: string | null;
-  short_description: string | null; description: string | null; specs: string[] | null;
+  short_description: string | null; description: string | null; specs: string[] | null; dietary: string[] | null;
   badge: string | null; tax_class: string; sort_order: number; active: boolean;
   price_cents: number; compare_at_cents: number | null; stock_qty: number;
   primary_category_id: string | null;
@@ -47,7 +47,7 @@ export default async function ProdutoPage({
     const { data } = await supabase
       .from("products")
       .select(
-        `id, name, sku, slug, short_description, description, specs, badge, tax_class,
+        `id, name, sku, slug, short_description, description, specs, dietary, badge, tax_class,
          sort_order, active, price_cents, compare_at_cents, stock_qty, primary_category_id,
          product_images(id, path, alt, sort_order),
          product_variants!product_variants_product_id_fkey(id, sku, price_cents, compare_at_cents, stock_qty, track_stock, option_label)`
@@ -113,6 +113,19 @@ export default async function ProdutoPage({
           </label>
         </div>
         <label className="adm-field"><span>Ficha técnica — uma linha por item</span><textarea name="specs" rows={4} defaultValue={(p?.specs ?? []).join("\n")} /></label>
+        {/* Selos alimentares: a segunda pergunta depois do preço para
+            tripulação filipina, indiana e ucraniana. Lista fechada, a
+            mesma do check no banco. */}
+        <fieldset className="adm-field">
+          <span>Selos alimentares (aparecem no card e na ficha)</span>
+          <div className="adm-selos">
+            {[["halal", "Halal"], ["vegetarian", "Vegetariano"], ["vegan", "Vegano"], ["gluten_free", "Sem glúten"], ["lactose_free", "Sem lactose"], ["contains_nuts", "Contém nozes"]].map(([v, rotulo]) => (
+              <label key={v} className="check">
+                <input type="checkbox" name="dietary" value={v} defaultChecked={(p?.dietary ?? []).includes(v)} /> {rotulo}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <label className="adm-field"><span>Descrição longa</span><textarea name="description" rows={4} defaultValue={p?.description ?? ""} /></label>
         <label className="check"><input type="checkbox" name="track_stock" defaultChecked={v ? v.track_stock : false} /> Controlar estoque (a loja bloqueia a venda quando zera)</label>
         <label className="check"><input type="checkbox" name="active" defaultChecked={p ? p.active : true} /> Publicado na loja</label>
