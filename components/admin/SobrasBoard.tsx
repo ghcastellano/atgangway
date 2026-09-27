@@ -294,7 +294,7 @@ function Cartao({
               const unit = i.unit_price_cents ?? Math.round(Number(i.unit_price_usd) * 100);
               return (
                 <tr key={k}>
-                  <td className="qty">{i.qty}×</td>
+                  <td className="adm-qty">{i.qty}×</td>
                   <td>
                     <b>{i.name}</b>
                     {i.sku && <small className="mono">{i.sku}</small>}
