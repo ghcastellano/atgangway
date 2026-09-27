@@ -184,7 +184,9 @@ function LoginInner() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="spin" />}>
+    // O fallback tem a altura do formulário: um spinner de 40px que vira
+    // uma tela inteira era um salto de layout (CLS 0,35 no Lighthouse).
+    <Suspense fallback={<main style={{ minHeight: 640 }} aria-busy />}>
       <LoginInner />
     </Suspense>
   );
