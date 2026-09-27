@@ -20,7 +20,11 @@ export const shortShipName = (name: string) => name.trim().split(/\s+/).slice(-1
 export const PASSWORD_MIN = 8;
 
 /** Sanitiza o parâmetro ?next= — só caminhos internos. */
-export const safeNext = (v: string | null | undefined, fallback = "/shop") => {
+// Sem destino explícito, a HOME: logado, ela é o painel — navio, prazo,
+// pedido em andamento com "Track it", botão de comprar. É o que os apps
+// grandes fazem (volta para onde estava; senão, o painel), e não uma
+// página de pedido específica nem o catálogo seco.
+export const safeNext = (v: string | null | undefined, fallback = "/") => {
   // Redireciono pós-login só pode ser um caminho INTERNO. Barra dupla é
   // URL protocol-relative (//evil.com → outro site), e barra invertida é
   // a mesma coisa disfarçada: o navegador trata "/\evil.com" como

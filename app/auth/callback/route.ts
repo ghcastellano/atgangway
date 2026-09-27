@@ -22,9 +22,14 @@ export async function GET(request: Request) {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("full_name, vessel_name, port_id, whatsapp")
+          .select("full_name, vessel_name, port_id, whatsapp, role")
           .eq("id", user.id)
           .maybeSingle();
+        // Staff sem destino explícito vai para o painel; não é tripulante,
+        // o cadastro de navio não se aplica.
+        if (profile?.role === "admin" && !searchParams.get("next")) {
+          return NextResponse.redirect(`${origin}/admin`);
+        }
         if (!profileIsComplete(profile)) {
           // /account devolve a pessoa ao ?next= depois de salvar; sem
           // ele o carrinho ficava para trás e ela caía na conta.

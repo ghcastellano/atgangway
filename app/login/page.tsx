@@ -43,7 +43,7 @@ function LoginInner() {
     setErr(null);
     setInfo(null);
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       enviando.current = false;
       setBusy(false);
@@ -58,13 +58,20 @@ function LoginInner() {
     // nesse intervalo: parecia que nada tinha acontecido, o segundo
     // clique abria uma segunda sessão. O ocupado fica até a tela trocar.
     setEntrou(true);
-    router.push(next);
+    // Sem destino explícito, quem é staff cai no painel administrativo —
+    // entrar pela loja e ter de digitar /admin era o caminho de todo dia.
+    let destino = next;
+    if (!params.get("next") && data.user) {
+      const { data: perfil } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
+      if (perfil?.role === "admin") destino = "/admin";
+    }
+    router.push(destino);
     router.refresh();
     // Quatro segundos é mais que a navegação normal (~1 s) e menos que o
     // tempo em que a pessoa desiste e clica de novo. O cookie já está
     // gravado: a navegação inteira chega logada.
     setTimeout(() => {
-      if (montado.current && window.location.pathname.startsWith("/login")) window.location.assign(next);
+      if (montado.current && window.location.pathname.startsWith("/login")) window.location.assign(destino);
     }, 4000);
   }
 

@@ -50,16 +50,16 @@ test("shortShipName pega a última palavra", () => {
 test("safeNext só aceita caminhos internos", () => {
   assert.equal(fmt.safeNext("/checkout"), "/checkout");
   assert.equal(fmt.safeNext("/orders/MS-1"), "/orders/MS-1");
-  assert.equal(fmt.safeNext("//evil.com"), "/shop");
-  assert.equal(fmt.safeNext("https://evil.com"), "/shop");
-  assert.equal(fmt.safeNext(null), "/shop");
+  assert.equal(fmt.safeNext("//evil.com"), "/");
+  assert.equal(fmt.safeNext("https://evil.com"), "/");
+  assert.equal(fmt.safeNext(null), "/");
   assert.equal(fmt.safeNext(undefined, "/"), "/");
   // Vetores que a versao anterior deixava passar: barra invertida
   // (o navegador le "/\\evil.com" como "//evil.com") e caracteres de
   // controle que quebram a analise de URL.
-  assert.equal(fmt.safeNext("/\\evil.com"), "/shop");
-  assert.equal(fmt.safeNext("/\tevil"), "/shop");
-  assert.equal(fmt.safeNext("/\r\n//evil.com"), "/shop");
+  assert.equal(fmt.safeNext("/\\evil.com"), "/");
+  assert.equal(fmt.safeNext("/\tevil"), "/");
+  assert.equal(fmt.safeNext("/\r\n//evil.com"), "/");
   assert.equal(fmt.safeNext("/account?next=/orders"), "/account?next=/orders");
 });
 
