@@ -93,6 +93,10 @@ function SignupInner() {
   const [nationality, setNationality] = useState("");
   const [portId, setPortId] = useState("");
   const [terms, setTerms] = useState(false);
+  // Duas etapas: conta (e-mail, senha, nome) e depois navio, porto e
+  // telefone. Oito campos de uma vez era a tela mais longa da loja; a
+  // chamada ao servidor continua sendo uma só, no fim.
+  const [etapa, setEtapa] = useState<1 | 2>(1);
 
   const [ranks, setRanks] = useState<SelectOption[]>([]);
   const [ports, setPorts] = useState<PortRow[]>([]);
@@ -135,9 +139,37 @@ function SignupInner() {
 
   const score = passwordScore(password);
 
+  /** Etapa 1 fecha só com conta válida; o resto é cobrado na etapa 2. */
+  function continuar() {
+    setErr(null);
+    if (!email.trim()) {
+      setErr("Please enter your email.");
+      return;
+    }
+    if (password.length < PASSWORD_MIN) {
+      setErr(`Password needs at least ${PASSWORD_MIN} characters.`);
+      return;
+    }
+    if (password !== confirm) {
+      setErr("The two passwords don't match.");
+      return;
+    }
+    if (!first.trim() || !last.trim()) {
+      setErr("Please enter your first and last name.");
+      return;
+    }
+    setEtapa(2);
+    window.scrollTo({ top: 0 });
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
+    // Enter na etapa 1 avança, não envia.
+    if (etapa === 1) {
+      continuar();
+      return;
+    }
 
     if (password.length < PASSWORD_MIN) {
       setErr(`Password needs at least ${PASSWORD_MIN} characters.`);
@@ -280,8 +312,13 @@ function SignupInner() {
     <main className="pg-form">
       <Breadcrumb trail={[{ label: "Register to shop" }]} />
       <h1 className="secttl">Register to shop</h1>
+      <p className="finehint etapa">
+        Step {etapa} of 2 · {etapa === 1 ? "Your account" : "Your vessel & port"}
+      </p>
 
       <form onSubmit={submit} className="stack cadgrid">
+        {etapa === 1 && (
+        <>
         <div className="field">
           <label htmlFor="email">
             Email
@@ -376,7 +413,11 @@ function SignupInner() {
             onChange={(e) => setLast(e.target.value)}
           />
         </div>
+        </>
+        )}
 
+        {etapa === 2 && (
+        <>
         <PhoneInput
           value={phone}
           onChange={setPhone}
@@ -444,6 +485,8 @@ function SignupInner() {
           <span className="track" />
           <span className="lbl">I accept the terms and conditions</span>
         </label>
+        </>
+        )}
 
         {err && <p className="alert">{err}</p>}
         {halfSaved && (
@@ -458,9 +501,28 @@ function SignupInner() {
           </>
         )}
 
-        <button className="btn" type="submit" disabled={busy}>
-          {busy ? "Creating…" : "Create an Account"}
-        </button>
+        {etapa === 1 ? (
+          <button className="btn" type="button" onClick={continuar}>
+            Continue
+          </button>
+        ) : (
+          <>
+            <button className="btn" type="submit" disabled={busy}>
+              {busy ? "Creating…" : "Create an Account"}
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => {
+                setErr(null);
+                setEtapa(1);
+              }}
+              disabled={busy}
+            >
+              Back to your account details
+            </button>
+          </>
+        )}
       </form>
 
       <div className="stack">
