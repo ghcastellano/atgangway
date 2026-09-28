@@ -78,6 +78,10 @@ export default function SiteHeader({ tree }: { tree: CategoryNode[] }) {
     return () => window.removeEventListener("ag:abrir-carrinho", abrir);
   }, []);
 
+  // A sessão mudou (entrou ou saiu): o menu fecha. Sair na própria home
+  // não troca de rota, e o menu ficava aberto mostrando "Sign in".
+  useEffect(() => setMenu(false), [logado]);
+
   // Navegou: fecha. Sem isto o painel fica aberto por cima da página nova.
   useEffect(() => setMega(null), [path]);
   // O mesmo para o menu da conta. Antes cada item fechava no próprio

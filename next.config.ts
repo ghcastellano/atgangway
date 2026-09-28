@@ -52,6 +52,14 @@ const nextConfig: NextConfig = {
    * o app não abre websocket, e proxy de websocket na Vercel cobra por
    * conexão aberta.
    */
+  // public/ sai da Vercel com max-age=0: cada visita revalidava as
+  // fontes e a imagem social. As fontes têm hash no nome — imutáveis.
+  async headers() {
+    return [
+      { source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+      { source: "/og.png", headers: [{ key: "Cache-Control", value: "public, max-age=86400" }] },
+    ];
+  },
   async rewrites() {
     const alvo = (
       process.env.NEXT_PUBLIC_SUPABASE_URL ||
