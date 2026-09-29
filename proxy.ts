@@ -7,7 +7,8 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /* Tudo, exceto estáticos, assets — e as quatro páginas de texto puro.
+    /* Tudo, exceto estáticos, assets, páginas de texto e /apresentacao.
+     * A apresentação é pública, estática e não utiliza sessão.
      *
      * O proxy não é só renovação de sessão: ele também barra rota
      * protegida e DESVIA perfil incompleto para /account. Rodando em
@@ -39,6 +40,7 @@ export const config = {
      * um getUser() — ou seja, uma ida EXTRA ao Supabase para autenticar a
      * própria ida ao Supabase. Dobraria a conta e a latência de tudo que
      * o navegador pede. */
-    "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|faq|terms|privacy|attributions|auth/v1|rest/v1|storage/v1|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|apresentacao(?:/|$)|faq|terms|privacy|attributions|auth/v1|rest/v1|storage/v1|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
+
