@@ -6,9 +6,9 @@ node_modules/
 out/
 next-env.d.ts
 
-# env — nunca commitar chaves locais
-.env
-.env*.local
+# environment files; retain the existing public build configuration
+.env*
+!.env.production
 
 # vercel
 .vercel
@@ -17,5 +17,5 @@ next-env.d.ts
 *.tsbuildinfo
 .DS_Store
 
-# resto do CLI do Supabase (npx supabase deixa isto para trás)
+# Supabase CLI temporary files
 supabase/.temp/

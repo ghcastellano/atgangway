@@ -1,115 +1,87 @@
-# At Gangway — app MVP
+# Atgangway
 
-**🟢 No ar: <https://atgangway.com>**
+A fullstack commerce application for delivering supplies to vessel crews calling at the Port of Santos.
 
-Loja de conveniência com **entrega na prancha de embarque** para tripulações em escala
-no **Porto de Santos**. Este repositório agora contém a **aplicação completa do MVP**
-(mobile-first), evoluída a partir dos protótipos de `prototype/`.
+The product connects vessel availability, a product catalog, customer orders, deposit payments, and staff fulfillment workflows.
 
-A tese, pesquisa e features estão em [`docs/TESE.md`](docs/TESE.md).
+[Product website](https://atgangway.com)
 
-## Stack
+## Product capabilities
 
-- **Next.js 15** (App Router) + React 19 + TypeScript — sem framework de CSS: o design
-  system "Hull & Chart" do protótipo foi portado direto para `app/globals.css`.
-- **Supabase** — Postgres + Auth (Google OAuth, email com confirmação, esqueci a senha)
-  com RLS em todas as tabelas. Migrações versionadas em `supabase/migrations/`.
-- Pensado para deploy na **Vercel**.
+- Vessel selection and ordering windows.
+- Product catalog, cart, checkout, and customer order tracking.
+- Account authentication and staff access.
+- Deposit checkout through Stripe and payment confirmation through webhooks.
+- Transactional email notifications and scheduled operational summaries.
+- Staff workflows for catalog, vessels, and order fulfillment.
 
-## Por que o protótipo abria com faixa branca no celular?
+## Architecture and Node.js usage
 
-O protótipo era uma página de demonstração dentro do **viewer de Artifacts do claude.ai**,
-que embute a página num frame que não ocupa a última faixa da tela no Safari (barras
-dinâmicas do iOS). Como o protótipo se travava em `height: 100svh` num "frame de celular",
-tudo que sobrasse fora do frame aparecia com o fundo claro do site hospedeiro.
+| Layer | Implementation |
+| --- | --- |
+| User interface | React, Next.js App Router, TypeScript, and custom CSS |
+| Backend | Next.js Server Actions and API route handlers using Node.js-compatible server libraries |
+| Database | Supabase/PostgreSQL, SQL functions, migrations, and row-level security policies |
+| Authentication | Supabase Auth and server-side session handling |
+| Payments | Stripe SDK, checkout sessions, and signed webhook events |
+| Notifications | Nodemailer SMTP transport |
+| Operations | Scheduled API endpoints, Vercel metrics, and GitHub Actions |
 
-No app real isso não existe: a página é dona do viewport. Mesmo assim, o layout aplica as
-defesas certas — fundo escuro em `html/body` (nunca só num container), `min-height: 100dvh`,
-`viewport-fit=cover` + `theme-color` escuro e barras fixas com `env(safe-area-inset-bottom)`.
+Node.js handles HTTP requests, external integrations, payment orchestration, and email delivery. Critical order rules are implemented in PostgreSQL functions: the backend calls these functions rather than trusting prices supplied by the browser.
 
-## Rotas
+This is a **Node.js/TypeScript backend built with Next.js**, not NestJS. The AIS integration under `supabase/functions/` is a separate Supabase Edge Function and should not be counted as Node.js runtime code.
 
-| Rota | Quem | O que |
-|---|---|---|
-| `/` | público | Seleção de navio (line-up com ETA, berço e janela de pedido) |
-| `/shop` | público | Catálogo por categoria, carrinho persistente no aparelho |
-| `/cart` | público | Resumo com depósito de 30% e saldo na prancha |
-| `/checkout` | logado | Confirmação do pedido (preços validados no servidor) |
-| `/orders` · `/orders/[code]` | logado | Meus pedidos + tracking em 4 etapas |
-| `/login` · `/signup` · `/forgot-password` · `/reset-password` | público | Acesso do cliente: Google **ou** email+senha com confirmação e recuperação |
-| `/account` | logado | Conta, pedidos, sair — e atalho pro painel staff |
-| `/admin` | staff | Board de pedidos com KPIs e avanço de status |
-| `/admin/ships` · `/admin/products` | staff | CRUD do line-up e do catálogo |
-| `/admin/shopping-list` | staff | Lista de compras consolidada (pedidos com depósito pago) |
+## Engineering decisions
 
-Fluxo de status do pedido:
-`awaiting_deposit → deposit_paid → preparing → at_gangway → delivered`
-(+ `credited` quando o navio desvia — o depósito vira crédito — e `cancelled`).
+- **Database-owned pricing and order creation:** the checkout delegates catalog checks and order persistence to a PostgreSQL RPC.
+- **Idempotent operations:** order creation uses a request key, Stripe checkout uses an idempotency key, and webhook processing records event identifiers.
+- **Verified payment events:** the webhook verifies the Stripe signature before processing payment confirmation.
+- **Separated access checks:** server-side session and staff checks work alongside database access policies.
+- **Operational visibility:** instrumentation records order attempts, database-call duration, and email outcomes.
 
-**Acesso admin:** quem consta em `admin_emails` (seed já inclui `ghcastellano@gmail.com`)
-vira `admin` automaticamente ao criar a conta. Para promover alguém depois:
-`update public.profiles set role = 'admin' where email = 'pessoa@email.com';`
+These mechanisms are implemented in the repository; they do not by themselves establish production-scale reliability.
 
-## Rodando local
+## Code walkthrough
+
+| Area | Entry point | What to inspect |
+| --- | --- | --- |
+| Checkout | [app/checkout/actions.ts](app/checkout/actions.ts) | User checks, order RPC, deposit calculation, and Stripe session creation |
+| Payments | [app/api/stripe/webhook/route.ts](app/api/stripe/webhook/route.ts) | Signature validation, event handling, and confirmation outcomes |
+| Email | [lib/mailer.ts](lib/mailer.ts) | SMTP configuration, timeouts, and delivery claims |
+| Staff authorization | [lib/admin.ts](lib/admin.ts) | Shared staff-access checks |
+| Scheduled operations | [app/api/cron/daily/route.ts](app/api/cron/daily/route.ts) | Authenticated daily operational summary |
+| Database changes | [supabase/migrations/](supabase/migrations/) | SQL schema and business-rule evolution |
+| Database checks | [supabase/tests/](supabase/tests/) | pgTAP checks for order, stock, and access invariants |
+
+## Verification
+
+The [CI workflow](.github/workflows/ci.yml) uses Node.js 22 and runs dependency installation, TypeScript checks, the Node test suite, and builds with the repository's public configuration and with empty public configuration.
 
 ```bash
-npm install
-cp .env.example .env.local   # preencha com URL + anon key do Supabase
-npm run dev
+npm ci
+npx tsc --noEmit
+npm test
+npm run build
 ```
 
-Sem as variáveis o app builda e abre normalmente, mostrando um aviso de
-"backend not configured" — útil para validar o front isolado.
+Browser tests in [tests/responsivo.test.mjs](tests/responsivo.test.mjs) are opt-in; a passing default test run does not mean these browser checks ran. Database tests require a separately configured development database and are not executed by this CI workflow.
 
-## Infra provisionada (estado atual)
+## Development configuration
 
-- **Supabase:** projeto `atgangway` (`cuaocjxofaizefzcxlyc`, região `sa-east-1`),
-  com as 3 migrações de `supabase/migrations/` aplicadas (schema+RLS, seed, hardening).
-  As chaves públicas estão commitadas em `.env.production` (a publishable key roda no
-  navegador por design; a segurança vem da RLS).
-- **Vercel:** projeto `atgangway` linkado a github.com/ghcastellano/atgangway — **push no `main`
-  faz deploy de produção automático**; branches geram preview.
-- Dashboard do banco: <https://supabase.com/dashboard/project/cuaocjxofaizefzcxlyc>
+Use Node.js 22 and configure a private `.env.local` before connecting to external services. Run `npm run dev` to start the application.
 
-### Auth — configuração no Dashboard (passo manual)
+| Feature | Configuration names |
+| --- | --- |
+| Public application configuration | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_CONTACT_EMAIL` |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_CONFIRM_SECRET` |
+| SMTP | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` |
 
-Em [Authentication → URL Configuration](https://supabase.com/dashboard/project/cuaocjxofaizefzcxlyc/auth/url-configuration):
+Public Supabase client configuration is distinct from administrative credentials. Authorization depends on database policies and server-side checks. Use development services and test-mode payments for local verification.
 
-- **Site URL:** `https://atgangway.com`
-- **Redirect URLs:**
-  - `https://atgangway.com/**`
-  - `https://*-gustavos-projects-287c5dd3.vercel.app/**` (previews)
-  - `http://localhost:3000/**`
+## Current limitations
 
-Sem isso, os links dos emails de confirmação/recuperação caem no Site URL padrão
-(`localhost:3000`) em vez do domínio de produção.
+- Some historical migration files describe changes applied directly to the database instead of containing executable SQL. Database bootstrap and security-policy reproducibility need reconciliation before treating the migration directory as a complete setup procedure.
+- Email delivery after payment confirmation needs a durable retry mechanism. The current webhook does not guarantee recovery from an SMTP failure.
+- The repository includes automated checks, but not a complete end-to-end validation of payments, database policies, email recovery, and production load.
 
-Em **Authentication → Providers**:
-
-- **Email:** já vem com confirmação obrigatória ligada. `/auth/confirm` aceita os dois
-  formatos de link (`?code=` do template padrão e `?token_hash=` de template
-  customizado). O SMTP padrão do Supabase é limitado (±2 emails/h) — para produção
-  configure um SMTP próprio em *Authentication → Emails → SMTP*. Com SMTP ativo, os
-  templates com a marca (links por `token_hash`, que funcionam mesmo abrindo o email
-  em outro navegador) estão prontos em `supabase/templates/email-templates.json` —
-  é aplicar via Management API (`PATCH /v1/projects/{ref}/config/auth`) ou colar no
-  dashboard.
-- **Google:** crie um OAuth Client (Web) no
-  [Google Cloud Console](https://console.cloud.google.com/apis/credentials) com
-  redirect URI `https://cuaocjxofaizefzcxlyc.supabase.co/auth/v1/callback`, e cole
-  Client ID/Secret no [provider Google](https://supabase.com/dashboard/project/cuaocjxofaizefzcxlyc/auth/providers).
-  Sem isso o botão "Continue with Google" avisa que o método ainda não está habilitado
-  (email continua funcionando).
-
-## O que fica para depois do MVP (roadmap curto)
-
-- **Pagamento online real** do depósito (Stripe international / Pix) — hoje o pedido
-  nasce `awaiting_deposit` e o staff confirma o depósito no board (link de pagamento
-  manual), que é como a fase 0 opera na prática.
-- Programa **Captain** (indicação por QR, crédito 5–7%) — telas já desenhadas no protótipo.
-- Pedido nativo via WhatsApp, tracking por AIS, i18n (EN primeiro já é o padrão do app).
-
-## Protótipos
-
-Os HTMLs originais (app, ops, brand system, estratégia, catálogo A4 e planilha fase 0)
-foram movidos para [`prototype/`](prototype/) e continuam abrindo direto no navegador.
+Earlier product prototypes remain in `prototype/`; the application code is in `app/` and `lib/`.
