@@ -85,3 +85,6 @@ Public Supabase client configuration is distinct from administrative credentials
 - The repository includes automated checks, but not a complete end-to-end validation of payments, database policies, email recovery, and production load.
 
 Earlier product prototypes remain in `prototype/`; the application code is in `app/` and `lib/`.
+
+
+See [the engineering review](docs/ENGINEERING_REVIEW.md) for source-level security findings and verification limits.

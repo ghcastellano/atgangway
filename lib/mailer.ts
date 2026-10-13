@@ -18,6 +18,7 @@
  */
 
 import nodemailer, { type Transporter } from "nodemailer";
+import { escapeEmailText } from "./email-text.ts";
 import { SITE_URL, CONTACT_EMAIL } from "./env.ts";
 import { buildOrderEmail, type OrderEmailData } from "./emails.ts";
 import { medir } from "./metricas.ts";
@@ -77,7 +78,7 @@ export async function sendMail(msg: {
       to: msg.to,
       replyTo: CONTACT_EMAIL,
       subject: msg.subject,
-      html: msg.html || `<pre style="font: 14px/1.5 ui-monospace, monospace">${msg.text}</pre>`,
+      html: msg.html || `<pre style="font: 14px/1.5 ui-monospace, monospace">${escapeEmailText(msg.text)}</pre>`,
       text: msg.text,
     });
     medir("email.envio_ms", Date.now() - inicio, { resultado: "enviado" });
