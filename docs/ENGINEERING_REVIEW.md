@@ -1,6 +1,6 @@
 # Engineering review
 
-Reviewed on October 13, 2026. Scope: selected API routes, server actions, authentication helpers, configuration, migrations and tests. No production database policy inspection, payment execution, load test, or full Git-history secret scan was performed.
+Reviewed on October 14, 2026. Scope: selected API routes, server actions, authentication helpers, configuration, migrations, tests, and read-only production database permission checks. No payment execution, customer email, load test, or full Git-history secret scan was performed.
 
 ## What is expected to be visible
 
@@ -26,3 +26,12 @@ The inspected Stripe and SMTP secrets are read in server modules. Admin actions 
 The documentation cleanup passed the existing GitHub Actions pipeline (Node 22, TypeScript, tests, and builds). The email escaping change adds two deterministic tests. The default test run excludes opt-in browser checks; pgTAP tests require a configured test database and are not run in this workflow.
 
 The review establishes concrete source-level findings. It does not assert that customer data has leaked, that a public Supabase key is a leaked secret, or that every dependency and historical commit has been audited.
+
+## October 14 release verification
+
+- Updated the lockfile to patched Next.js/image dependencies and Nodemailer 10.1.1. Full `npm audit` reports zero known vulnerabilities at verification time.
+- Added real Nodemailer serialization tests using an in-memory transport. SMTP failures now return `smtp_delivery_failed` instead of raw provider diagnostics. No messages were sent.
+- 293 tests pass, 54 existing environment-dependent tests are skipped, TypeScript and production builds pass.
+- Read-only Supabase checks found zero public tables without RLS. The legacy two-argument payment function and stored webhook signing secret are absent; payment/email functions no longer accept that signing secret. The internal `products_rollup` function is not executable by `anon`. Customer direct-insert policies on orders/items are absent.
+- These observations confirm selected existing production controls; no schema migration was applied. Executable replay of the historical lockdown, preview isolation, order concurrency, and recoverable email delivery remain open items above. Advisor warnings still require case-by-case review; a callable SECURITY DEFINER function is not by itself proof of unauthorized access.
+
