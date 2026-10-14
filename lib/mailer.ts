@@ -87,7 +87,7 @@ export async function sendMail(msg: {
     // A mensagem do erro SMTP não vira tag: ela varia com o servidor e
     // com o destinatário. O que importa medir é que não saiu.
     medir("email.envio_ms", Date.now() - inicio, { resultado: "falhou" });
-    return { sent: false, error: (e as Error).message };
+    return { sent: false, error: "smtp_delivery_failed" };
   }
 }
 
